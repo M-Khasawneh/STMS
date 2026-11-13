@@ -28,7 +28,7 @@
     @if (authenticated) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
 </head>
-<body class="@(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
+<body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
     @if (authenticated)
     {
@@ -94,7 +94,19 @@
             }
             @RenderBody()
         </main>
+        @if (ViewData["PremiumLanding"] is true)
+        {
+            <footer class="landing-footer">
+                <div><a asp-controller="Home" asp-action="Index" class="landing-footer-brand">STMS</a><p>Sourcing &amp; Tender Management System</p><p>A connected process, from request to decision.</p></div>
+                <nav aria-label="Footer platform navigation"><h2>Platform</h2><a asp-controller="Home" asp-action="About">About</a><a href="#how-it-works">How It Works</a><a asp-controller="Home" asp-action="Contact">Contact</a></nav>
+                <nav aria-label="Footer account navigation"><h2>Your workspace</h2><a asp-controller="Account" asp-action="Login">Login</a><a asp-controller="Suppliers" asp-action="Register">Supplier Registration</a><a asp-controller="Home" asp-action="Privacy">Privacy</a></nav>
+                <div class="landing-footer-bottom"><span>&copy; 2026 Sourcing &amp; Tender</span><a href="#home">Back to top ↑</a></div>
+            </footer>
+        }
+        else
+        {
         <footer class="app-footer"><span>&copy; 2026 Sourcing &amp; Tender</span>@if (controller == "Home" && action == "Index" && !signedIn) { <a asp-controller="Home" asp-action="Privacy">Privacy</a> }<span class="footer-note">A considered workspace.</span></footer>
+        }
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

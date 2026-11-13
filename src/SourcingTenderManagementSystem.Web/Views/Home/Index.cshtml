@@ -2,11 +2,13 @@
 @{
     ViewData["Title"] = "Home";
     ViewData["PublicHome"] = true;
+    ViewData["PremiumLanding"] = true;
 }
 @section Styles {
     <meta name="description" content="One connected platform for purchase requests, tenders and supplier participation. Explore the sourcing process and access your STMS account." />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home-motion.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/landing-premium.css" asp-append-version="true" />
 }
 <div class="stms-landing">
     <section id="home" class="stms-hero" aria-labelledby="home-title">
@@ -21,6 +23,14 @@
         </div>
     </section>
     <section class="home-live-metrics" aria-label="Public system statistics"><div><span>Active tenders</span><strong>@(Model.ActiveTenders?.ToString("N0") ?? "Unavailable")</strong><small>Recorded Open tenders</small></div><div><span>Approved suppliers</span><strong>@(Model.ApprovedSuppliers?.ToString("N0") ?? "Unavailable")</strong><small>Approved company registrations</small></div><div><span>Requests converted to tender</span><strong>@(Model.ConvertedRequests?.ToString("N0") ?? "Unavailable")</strong><small>Completed requisition conversions</small></div></section>
+    <section class="landing-features" aria-labelledby="features-title">
+        <header><p class="stms-eyebrow">A SHARED WORKSPACE</p><h2 id="features-title">Every detail connected.<br /><span>Every next step clearer.</span></h2></header>
+        <div class="landing-feature-grid">
+            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">↗</span><h3>Requests with context</h3><p>Bring quantities, specifications and target dates together. Keep the request and its review in one place.</p><a href="#how-it-works">Explore the workflow →</a></article>
+            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">◇</span><h3>Supplier participation</h3><p>Register your company, respond to invitations and prepare your offer through your own supplier workspace.</p><a asp-controller="Suppliers" asp-action="Register">Register your company →</a></article>
+            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">◎</span><h3>Access with purpose</h3><p>Role-based workspaces bring relevant requests, tenders and notifications to the people responsible for them.</p><a asp-controller="Account" asp-action="Login">Access your workspace →</a></article>
+        </div>
+    </section>
     <section class="stms-expand" data-scroll-expand aria-label="Connected sourcing process illustration">
         <div class="stms-expand-track"><div class="stms-expand-stage">
             <div class="stms-expand-frame"><div class="stms-expand-media">        <div class="stms-blueprint" role="img" aria-label="Sourcing workflow illustration: a purchase request connects review, suppliers, evaluation and a final decision. This is a process illustration, not a live dashboard.">
@@ -64,4 +74,4 @@
         </div><span id="sling-help" class="stms-sling-help" hidden>Click or press Enter. Or pull and release.</span>
     </div></div>
 </div>
-@section Scripts { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/home-motion.js" asp-append-version="true"></script> }
+@section Scripts { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/home-motion.js" asp-append-version="true"></script><script src="~/js/landing-premium.js" asp-append-version="true"></script> }
