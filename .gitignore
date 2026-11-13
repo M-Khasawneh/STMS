@@ -37,6 +37,8 @@
 # Local visual QA artifacts and reference-only component sources
 *-qa/
 design-references/
+# Keep the authoritative requirements locally; intentionally removed from GitHub by the owner.
+Sourcing_Tender_Management_System_English_Brief_V5*.docx
 artifacts/
 .DS_Store
 Thumbs.db

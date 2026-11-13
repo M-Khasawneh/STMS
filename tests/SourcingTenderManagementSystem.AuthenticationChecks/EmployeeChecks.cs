@@ -32,7 +32,7 @@ public static class EmployeeChecks
         var list = await admin.GetAsync("/Employees");
         Check(list.StatusCode == HttpStatusCode.OK && list.Headers.CacheControl?.NoStore == true, "Admin employee list renders without caching");
         var html = await list.Content.ReadAsStringAsync();
-        Check(html.Contains("Protected Admin") && !html.Contains($"/Employees/Edit/{supplierId}"), "list identifies protected Admin and excludes supplier accounts");
+        Check(!html.Contains($"/Employees/Edit/{protectedId}") && !html.Contains($"/Employees/Edit/{supplierId}"), "list excludes the built-in Admin and supplier accounts without deleting them");
         var create = await admin.GetStringAsync("/Employees/Create");
         Check(create.Contains("data-val-required") && create.Contains("autocomplete=\"new-password\"") && !create.Contains("value=\"Supplier\""), "create view validates input and offers only employee roles");
         await ExpectPost("/Employees/Create", Creation("no-csrf", ApplicationRoles.Admin, null), HttpStatusCode.BadRequest);

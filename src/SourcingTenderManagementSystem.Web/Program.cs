@@ -22,6 +22,9 @@ if (provisionFirstAdmin)
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IPublicStatistics, PublicStatistics>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
+builder.Services.AddScoped<IRoleDashboard, RoleDashboard>();
+builder.Services.AddScoped<IProfileTransactions, ProfileTransactions>();
+builder.Services.AddScoped<ProfileManagement>();
 builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
 builder.Services.AddScoped<SupplierRegistration>();
 builder.Services.AddScoped<SupplierReview>();

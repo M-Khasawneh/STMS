@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using SourcingTenderManagementSystem.AuthenticationChecks;
 using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
@@ -101,10 +102,14 @@ var request = new CertificateRequest("CN=localhost", key, HashAlgorithmName.SHA2
 using var generatedCertificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
 // Windows Schannel requires an imported key container for the local TLS listener.
 using var certificate = X509CertificateLoader.LoadPkcs12(generatedCertificate.Export(X509ContentType.Pfx), null);
+var experienceBrowser = args.Contains("--experience-browser-fixture", StringComparer.Ordinal);
+var webSource = Path.Combine(Directory.GetCurrentDirectory(), "src", "SourcingTenderManagementSystem.Web");
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     ApplicationName = typeof(AccountController).Assembly.GetName().Name,
-    EnvironmentName = "Development"
+    EnvironmentName = "Development",
+    ContentRootPath = experienceBrowser ? webSource : null,
+    WebRootPath = experienceBrowser ? Path.Combine(webSource, "wwwroot") : null
 });
 builder.Logging.ClearProviders();
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
@@ -112,6 +117,7 @@ builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 builder.Services.AddControllersWithViews().AddApplicationPart(typeof(ProtectionController).Assembly);
 builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
 builder.Services.AddSingleton<IAdminDashboard>(s => new TestAdminDashboard(s.GetRequiredService<IHttpContextAccessor>(), TimeProvider.System));
+builder.Services.AddSingleton<IRoleDashboard, TestRoleDashboard>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=localhost;Database=NoSqlSupplierGetOnly;Integrated Security=True;TrustServerCertificate=True"));
 builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
 builder.Services.AddScoped<SupplierRegistration>();
@@ -137,12 +143,19 @@ employeeData.Departments[administrationId] = new() { Id = administrationId, Name
 eligibility.DepartmentAssignments = employeeData.Assignments;
 builder.Services.AddSingleton<IEmployeeData>(employeeData);
 builder.Services.AddScoped<EmployeeManagement>();
+builder.Services.AddScoped<IProfileTransactions, MemoryProfileTransactions>();
+builder.Services.AddScoped<ProfileManagement>();
 await using var app = builder.Build();
+if (experienceBrowser) {
+    app.Use(async (context, next) => { context.Response.Headers["X-STMS-Experience-Fixture"] = "memory-only"; await next(); });
+    app.UseStaticFiles();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 string password = "Aa1!" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+if (experienceBrowser) password = Environment.GetEnvironmentVariable("STMS_UI_TEST_PASSWORD") ?? throw new InvalidOperationException("Supply an ephemeral test password through STMS_UI_TEST_PASSWORD.");
 IdentityUser employee;
 IdentityUser supplier;
 using (var scope = app.Services.CreateScope())
@@ -180,6 +193,12 @@ using var handler = new HttpClientHandler
 using var client = new HttpClient(handler) { BaseAddress = new Uri(address) };
 try
 {
+    if (experienceBrowser) { Console.WriteLine("EXPERIENCE_BROWSER_FIXTURE " + address); await app.WaitForShutdownAsync(); return; }
+    if (args.Contains("--experience-checks-only", StringComparer.Ordinal)) {
+        ExperienceChecks.QueryChecks();
+        await ExperienceChecks.ProfileAsync(client, () => new HttpClient(new HttpClientHandler { AllowAutoRedirect=false, ServerCertificateCustomValidationCallback=(_,cert,_,_)=>cert?.Thumbprint==certificate.Thumbprint }) { BaseAddress=client.BaseAddress }, usersStore, password);
+        return;
+    }
     TenderRuleChecks.Run();
     RequisitionRuleChecks.Run();
     await SupplierUploadChecks.RunAsync();
@@ -190,11 +209,10 @@ try
     var publicHome = await client.GetAsync("/");
     var publicHtml = await publicHome.Content.ReadAsStringAsync();
     Check(publicHome.StatusCode == HttpStatusCode.OK && publicHtml.Contains("Unified Platform for"), "public home is accessible without authentication");
-    // The current public redesign no longer contains these legacy labels/statistics markup.
-    // Keep the original assertions in the full suite; the explicit auth-only mode isolates Identity regressions.
+    // Public metrics must distinguish unavailable data from a genuine zero.
     if (!args.Contains("--workspace-auth-regressions-only", StringComparer.Ordinal)) {
         Check(publicHtml.Contains("Unavailable") && !publicHtml.Contains("data-count=\"0\""), "unavailable statistics are not misreported as zero");
-        Check(publicHtml.Contains("Contact form not yet available") && publicHtml.Contains("Register your company"), "public home retains Contact dependency and links implemented Supplier Registration");
+        Check(publicHtml.Contains("Public contact details are not yet configured") && publicHtml.Contains("Register your company"), "public home retains Contact dependency and links implemented Supplier Registration");
     }
     using var employeeSessionHandler = new HttpClientHandler
     {

@@ -45,7 +45,7 @@ const fs=require('fs'), path=require('path');
     await page.goto(base+'/Departments');ok(await page.locator('body.admin-workspace').count()===1&&await page.locator('link[href*="admin-shell.css"]').count()===1&&await page.locator('link[href*="admin-dashboard.css"]').count()===0,'Admin pages share dashboard identity without dashboard widgets');
     for(const actor of['supplier','requester','officer','manager','evaluator','top']){
       await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':actor});await page.goto(base+'/Workspace');
-      ok(await page.locator('[data-admin-overview]').count()===0&&await page.locator('.workspace-tools').count()===1,'non-Admin workspace preserved: '+actor);
+      ok(await page.locator('[data-admin-overview]').count()===0&&await page.locator('[data-role-dashboard]').count()===1,'non-Admin workspace preserved: '+actor);
     }
     ok(errors.length===0,'no JavaScript errors');
     fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({checks,errors,data:'Synthetic test fixtures only; production dashboard queries real SQL data.'},null,2));

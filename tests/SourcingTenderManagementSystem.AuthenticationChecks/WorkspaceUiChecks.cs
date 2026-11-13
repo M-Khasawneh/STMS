@@ -20,7 +20,7 @@ public static class WorkspaceUiChecks
             var home = await client.GetAsync("/");
             Check(home.StatusCode == HttpStatusCode.Redirect && home.Headers.Location?.OriginalString == "/Workspace", actor + " cannot render public Home while signed in");
             var dashboard = await client.GetAsync("/Workspace"); var html = await dashboard.Content.ReadAsStringAsync();
-            Check(dashboard.StatusCode == HttpStatusCode.OK && html.Contains(actor == "admin" ? "Administration overview" : "Your tools") && !html.Contains("stms-landing") && !html.Contains("Unified Platform for"), actor + " gets internal dashboard only");
+            Check(dashboard.StatusCode == HttpStatusCode.OK && html.Contains(actor == "admin" ? "Administration overview" : "My dashboard") && !html.Contains("stms-landing") && !html.Contains("Unified Platform for"), actor + " gets internal dashboard only");
             Check(html.Contains("workspace-ui.js") && html.Contains("workspace-ui.css") && html.Contains("Dashboard</a>"), actor + " has shared dialogs and Dashboard navigation");
             Check(html.Contains("href=\"/Departments\"") == (actor == "admin"), "department links match role " + actor);
             Check(html.Contains("href=\"/Bids\"") == (actor == "supplier"), "My Offers links match role " + actor);

@@ -10,7 +10,7 @@
     const segments = url.pathname.split('/').filter(Boolean);
     return {controller: segments[0] || 'Home', action: segments[1] || 'Index'};
   };
-  const isEditor = url => { const r = route(url); return controllers.has(r.controller) && editorActions.has(r.action); };
+  const isEditor = url => { const r = route(url); return r.controller === 'Profile' && r.action === 'Index' || controllers.has(r.controller) && editorActions.has(r.action); };
   const formKey = form => { const url = new URL(form.action, location.href); return url.pathname + url.search; };
   const main = document.querySelector('main');
   const forms = () => [...main.querySelectorAll('form')].filter(form => form.method.toLowerCase() === 'post');
@@ -67,7 +67,7 @@
     // Success redirects to list/details return control to the workspace. Validation and ongoing
     // editing stay in the dialog, including add-item commands, file uploads and criteria configuration.
     const success = !!main.querySelector('.alert-success');
-    const ended = !isEditor(new URL(location.href)) && !forms().some(form => !key || formKey(form) === key);
+    const ended = controller !== 'Profile' && !isEditor(new URL(location.href)) && !forms().some(form => !key || formKey(form) === key);
     if (frame.dataset.submitted === 'true' && (key ? success || ended : ended)) {
       dirty = false;
       parent.workspacePopup?.complete();

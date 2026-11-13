@@ -33,7 +33,7 @@ const {chromium}=require(process.env.STMS_PLAYWRIGHT||'playwright');const fs=req
     }
     await page.locator('.menu-toggle').click();ok(await page.locator('.menu-toggle').getAttribute('aria-expanded')==='true','mobile menu still opens');await page.keyboard.press('Escape');ok(await page.locator('.menu-toggle').getAttribute('aria-expanded')==='false','mobile menu still closes');
     await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'supplier'});await page.goto(base+'/Workspace');
-    ok(await page.locator('link[href*="admin-shell.css"]').count()===0&&await page.locator('body.admin-workspace').count()===0,'other role identity preserved');
+    ok(await page.locator('link[href*="admin-shell.css"]').count()===1&&await page.locator('body.admin-workspace').count()===0,'shared identity preserves role separation');
     ok(errors.length===0,'no JavaScript errors');fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({checks:count,errors},null,2));console.log('PASS: '+count+' shared Admin shell checks');
   }catch(e){if(page)await page.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw e}finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -13,7 +13,7 @@ public interface IAdminDashboard { Task<AdminDashboardModel> ReadAsync(ClaimsPri
 public sealed class AdminDashboard(ApplicationDbContext db, UserManager<IdentityUser> users, TimeProvider clock, ILogger<AdminDashboard> logger) : IAdminDashboard
 {
     public IQueryable<IdentityUser> EmployeeQuery() => db.Users.AsNoTracking().Where(u =>
-        !db.SupplierProfiles.Any(p => p.UserId == u.Id) && !db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == ApplicationRoles.Supplier)));
+        u.NormalizedUserName != "ADMIN" && !db.SupplierProfiles.Any(p => p.UserId == u.Id) && !db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == ApplicationRoles.Supplier)));
     public IQueryable<DashboardActivity> ActivityQuery()
     {
         var requests = from log in db.AuditLogs.AsNoTracking() where log.RecordType == "PurchaseRequisition"

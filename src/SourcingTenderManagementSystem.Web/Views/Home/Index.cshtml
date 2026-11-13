@@ -20,6 +20,7 @@
             <div class="stms-hero-foot" data-hero-reveal><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg>Role-based access</span><span>Built around transparency &amp; traceability</span></div>
         </div>
     </section>
+    <section class="home-live-metrics" aria-label="Public system statistics"><div><span>Active tenders</span><strong>@(Model.ActiveTenders?.ToString("N0") ?? "Unavailable")</strong><small>Recorded Open tenders</small></div><div><span>Approved suppliers</span><strong>@(Model.ApprovedSuppliers?.ToString("N0") ?? "Unavailable")</strong><small>Approved company registrations</small></div><div><span>Requests converted to tender</span><strong>@(Model.ConvertedRequests?.ToString("N0") ?? "Unavailable")</strong><small>Completed requisition conversions</small></div></section>
     <section class="stms-expand" data-scroll-expand aria-label="Connected sourcing process illustration">
         <div class="stms-expand-track"><div class="stms-expand-stage">
             <div class="stms-expand-frame"><div class="stms-expand-media">        <div class="stms-blueprint" role="img" aria-label="Sourcing workflow illustration: a purchase request connects review, suppliers, evaluation and a final decision. This is a process illustration, not a live dashboard.">
@@ -48,12 +49,12 @@
     </section>
     <section id="about" class="stms-about stms-about-preview" aria-labelledby="about-title">
         <div data-animated-content><div class="stms-eyebrow">02 / ABOUT THE PLATFORM</div><h2 id="about-title">One shared purpose.<br /><span>A clearer process.</span></h2><div class="stms-about-symbol" aria-hidden="true"><span></span><span></span><span></span></div></div>
-        <div class="stms-about-copy" data-animated-content data-ac-stagger="90"><p class="stms-mission">Organizing purchasing digitally, from the first request to the final decision.</p><p>STMS brings departments, sourcing teams and suppliers into one central platform, with a shared context for documents and decisions.</p></div>
+        <div class="stms-about-copy" data-animated-content data-ac-stagger="90"><p class="stms-mission">Organizing purchasing digitally, from the first request to the final decision.</p><p>STMS brings departments, sourcing teams and suppliers into one central platform, with a shared context for documents and decisions.</p><a asp-controller="Home" asp-action="About" class="stms-text-link">About the platform ↗</a></div>
     </section>
     <section id="supplier-registration" class="stms-supplier" aria-labelledby="supplier-title" data-animated-content><div class="stms-supplier-icon" aria-hidden="true">&#8599;</div><div><div class="stms-eyebrow">FOR SUPPLIERS</div><h2 id="supplier-title">Your next opportunity starts here.</h2><p>Register your company and submit official documents. An administrator reviews your application before account access is activated.</p></div><span class="stms-magnet" data-magnet><span class="stms-magnet-inner"><a asp-controller="Suppliers" asp-action="Register" class="stms-button stms-button-primary">Register your company <span aria-hidden="true">&#8599;</span></a></span></span></section>
     <section id="contact" class="stms-contact stms-section stms-contact-preview" aria-labelledby="contact-title">
         <div data-animated-content><div class="stms-eyebrow">03 / CONTACT</div><h2 id="contact-title">Find your<br /><span>next step.</span></h2></div>
-        <div data-animated-content><p>Sign in to an existing account or register your company as a supplier.</p><p class="stms-preview-availability"><span class="stms-dot" aria-hidden="true"></span> Public contact details are not yet configured.</p><a asp-controller="Account" asp-action="Login" class="stms-text-link">Go to account login <span aria-hidden="true">&#8599;</span></a></div>
+        <div data-animated-content><p>Sign in to an existing account or register your company as a supplier.</p><p class="stms-preview-availability"><span class="stms-dot" aria-hidden="true"></span> Public contact details are not yet configured.</p><a asp-controller="Home" asp-action="Contact" class="stms-text-link">Contact &amp; account access <span aria-hidden="true">&#8599;</span></a></div>
     </section>
     <div class="stms-top-control"><span>Back to the beginning.</span><div class="stms-sling" data-sling>
         <a href="#home" class="stms-text-link" data-sling-fallback>Back to top &#8593;</a>

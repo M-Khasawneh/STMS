@@ -17,6 +17,14 @@ public class HomeController(IPublicStatistics statistics) : Controller
     }
 
     [AllowAnonymous]
+    [HttpGet]
+    public IActionResult About() => View();
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Contact() => View();
+
+    [AllowAnonymous]
     public IActionResult Privacy()
     {
         return View();

@@ -15,7 +15,7 @@ public sealed class EmployeeManagement(UserManager<IdentityUser> users, RoleMana
     {
         var employees = new List<EmployeeDetails>();
         foreach (var user in await data.ListUsersAsync())
-            if (await DescribeAsync(user) is { } employee) employees.Add(employee);
+            if (await DescribeAsync(user) is { IsProtected: false } employee) employees.Add(employee);
         return employees;
     }
 

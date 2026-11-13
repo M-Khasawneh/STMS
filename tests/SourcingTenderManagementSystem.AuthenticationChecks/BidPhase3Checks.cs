@@ -53,6 +53,7 @@ public static class BidPhase3Checks
         builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<IAdminDashboard>(s => new TestAdminDashboard(s.GetRequiredService<IHttpContextAccessor>(), f.Clock, adminChecks));
+        builder.Services.AddSingleton<IRoleDashboard, TestRoleDashboard>();
         var departments = new MemoryDepartments();
         var initialDepartment = new Department { Id = Guid.NewGuid(), Name = "Administration" };
         departments.Departments[initialDepartment.Id] = initialDepartment;

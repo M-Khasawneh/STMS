@@ -50,7 +50,7 @@ public static class AdminDashboardChecks
         foreach (var role in new[] { "supplier", "requester", "officer", "manager", "evaluator", "top" }) {
             client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor"); client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", role);
             var html = await client.GetStringAsync("/Workspace");
-            Check(!html.Contains("admin-dashboard.css") && html.Contains("Your tools"), role + " keeps existing dashboard");
+            Check(!html.Contains("admin-dashboard.css") && html.Contains("My dashboard"), role + " has a personal dashboard without Admin data");
         }
         Check(fixture.Calls == calls, "non-Admin roles never invoke aggregate queries");
         using var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlServer("Server=unused;Database=unused;Integrated Security=True").Options);

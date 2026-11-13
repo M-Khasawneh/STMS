@@ -15,7 +15,7 @@
             </div>
                 <div class="mb-3">
                     <label asp-for="Roles" class="form-label"></label>
-                    <select asp-for="Roles" class="form-select" multiple size="6" aria-describedby="role-help">
+                    <select asp-for="Roles" class="form-select" multiple size="6" aria-describedby="role-help" data-role-picker>
                         @foreach (var role in ApplicationRoles.EmployeeRoles) { <option value="@role">@role</option> }
                     </select>
                     <span asp-validation-for="Roles" class="text-danger"></span>

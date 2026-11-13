@@ -2,7 +2,7 @@
 
 An existing ASP.NET Core MVC application using Razor Views, .NET 10, EF Core 10, SQL Server and ASP.NET Core Identity.
 
-The original V5 Word document in the repository root defines the requirements. Approved workflow decisions and completed-module verification are documented in [`docs/`](docs/). Repository presence does not imply that every procurement module is implemented.
+The original V5 Word document, maintained locally in the project root and excluded from Git at the owner's direction, defines the requirements. Approved workflow decisions and completed-module verification are documented in [`docs/`](docs/). Repository presence does not imply that every procurement module is implemented.
 
 ## Local setup
 
@@ -18,6 +18,7 @@ Do not apply migrations, provision users or initialise roles against an existing
 From the repository root:
 
 ```text
+dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --experience-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --admin-dashboard-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --workspace-ui-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --bid-phase3-checks-only
