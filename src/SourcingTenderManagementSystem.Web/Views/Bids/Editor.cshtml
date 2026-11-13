@@ -1,0 +1,46 @@
+@model SupplierBidEditor
+@{ var create = !Model.Id.HasValue; ViewData["Title"] = create ? "Create bid" : "Edit draft"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace">
+    <header class="page-heading"><div><div class="eyebrow">MY OFFERS / @(create ? "NEW OFFER" : "WORKING DRAFT")</div><h1>@ViewData["Title"]</h1><p>@Model.Tender.Title</p></div><a class="quiet-link" asp-action="Index">← My Offers</a></header>
+    @if (TempData["BidStatus"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+    <ol class="bid-progress" aria-label="Offer preparation"><li aria-current="step"><span>01</span> Commercial offer</li><li><span>02</span> Private documents</li><li><span>03</span> Review &amp; submit</li></ol>
+    <div class="bid-deadline"><strong>Submission deadline</strong><span>@TenderTime.Display(Model.Tender.SubmissionDeadline)</span><small>Submission must finish before this time.</small></div>
+    <form asp-action="@(create ? "Create" : "Edit")" asp-route-id="@Model.Id" asp-route-tenderId="@(create ? Model.Tender.Id : (Guid?)null)" method="post" data-bid-editor>
+        <input asp-for="Form.Version" type="hidden" />
+        <div asp-validation-summary="All" class="text-danger bid-validation" role="alert"></div>
+        <section class="bid-panel" aria-labelledby="bid-items-title"><div class="bid-section-heading"><div><span class="eyebrow">01 / PRICING</span><h2 id="bid-items-title">A complete offer. Every item.</h2></div><span class="bid-currency">JOD ONLY</span></div><p>Quantities and specifications come from the tender. Partial bids are not permitted. Enter a positive unit price with up to six decimal places.</p>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Required items and JOD prices"><table class="table bid-lines"><thead><tr><th scope="col">Item &amp; specifications</th><th scope="col">Required quantity</th><th scope="col">Unit price · JOD</th><th scope="col">Item total · JOD</th></tr></thead><tbody>
+            @for (var i = 0; i < Model.RequestedItems.Count; i++)
+            {
+                var item = Model.RequestedItems[i];
+                <tr data-bid-line data-quantity="@item.Quantity.ToString("0.######", CultureInfo.InvariantCulture)"><th scope="row"><strong>@item.Description</strong><p class="bid-specifications">@item.Specifications</p><input type="hidden" name="Form.Items[@i].ItemId" value="@item.Id" /></th><td>@item.Quantity.ToString("0.######")</td><td><label asp-for="Form.Items[i].UnitPrice" class="visually-hidden">JOD unit price for @item.Description</label><input asp-for="Form.Items[i].UnitPrice" type="number" class="form-control" min="0.000001" max="999999999999.999999" step="0.000001" required inputmode="decimal" data-val-number="Enter a JOD amount." data-msg-min="Positive price required." data-msg-required="Required." data-unit-price /><span asp-validation-for="Form.Items[i].UnitPrice" class="text-danger"></span></td><td><output data-line-total>—</output></td></tr>
+            }
+            </tbody></table></div>
+        </section>
+        <section class="bid-panel" aria-labelledby="bid-terms-title"><div class="bid-section-heading"><div><span class="eyebrow">02 / YOUR PROPOSAL</span><h2 id="bid-terms-title">Commercial &amp; technical terms</h2></div></div>
+            <div class="bid-fields"><div><label asp-for="Form.DeliveryTimeframe">Delivery timeframe</label><input asp-for="Form.DeliveryTimeframe" class="form-control" required /><span asp-validation-for="Form.DeliveryTimeframe" class="text-danger"></span></div><div><label asp-for="Form.OfferValidUntil">Offer valid until</label><input asp-for="Form.OfferValidUntil" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" required /><span asp-validation-for="Form.OfferValidUntil" class="text-danger"></span></div><div><label asp-for="Form.PaymentTerms">Payment terms</label><textarea asp-for="Form.PaymentTerms" class="form-control" rows="3" required></textarea><span asp-validation-for="Form.PaymentTerms" class="text-danger"></span></div><div><label asp-for="Form.TechnicalDetails">Technical details</label><textarea asp-for="Form.TechnicalDetails" class="form-control" rows="3" required></textarea><span asp-validation-for="Form.TechnicalDetails" class="text-danger"></span></div></div>
+        </section>
+        <section class="bid-panel" aria-labelledby="bid-costs-title"><div class="bid-section-heading"><div><span class="eyebrow">03 / OPTIONAL</span><h2 id="bid-costs-title">Taxes, fees &amp; additional costs</h2></div><button class="btn btn-outline-secondary" type="submit" name="command" value="AddCharge" formnovalidate data-add-charge>Add cost</button></div><p>Add only the costs applicable to your offer. Amounts must be nonnegative and in JOD.</p>
+            <div data-charge-list>
+                @for (var i = 0; i < Model.Form.Charges.Count; i++)
+                {
+                    <div class="bid-charge" data-charge><div><label asp-for="Form.Charges[i].CostType">Cost type</label><input asp-for="Form.Charges[i].CostType" class="form-control" maxlength="128" required /><span asp-validation-for="Form.Charges[i].CostType" class="text-danger"></span></div><div><label asp-for="Form.Charges[i].Amount">Amount · JOD</label><input asp-for="Form.Charges[i].Amount" class="form-control" type="number" min="0" max="999999999999.999999" step="0.000001" required data-charge-amount /><span asp-validation-for="Form.Charges[i].Amount" class="text-danger"></span></div><div><label asp-for="Form.Charges[i].Notes">Notes (optional)</label><input asp-for="Form.Charges[i].Notes" class="form-control" /></div><button class="bid-remove" type="submit" name="removeCharge" value="@i" formnovalidate data-remove-charge aria-label="Remove additional cost @(i + 1)">Remove</button></div>
+                }
+            </div>
+            <template data-charge-template><div class="bid-charge" data-charge><div><label data-cost-label>Cost type</label><input class="form-control" data-cost-field="CostType" maxlength="128" required /></div><div><label data-cost-label>Amount · JOD</label><input class="form-control" data-cost-field="Amount" type="number" min="0" max="999999999999.999999" step="0.000001" required data-charge-amount /></div><div><label data-cost-label>Notes (optional)</label><input class="form-control" data-cost-field="Notes" /></div><button class="bid-remove" type="submit" name="removeCharge" formnovalidate data-remove-charge>Remove</button></div></template>
+            <div class="bid-total"><span>Estimated overall total <small>All items + additional costs · JOD</small></span><output data-bid-total aria-live="polite">—</output></div><p class="form-text">Live totals are a preview. The server calculates the authoritative totals when you save.</p><noscript><p class="form-text">Save the draft, then open its details to see server-calculated totals.</p></noscript>
+        </section>
+        <div class="bid-savebar"><p>Saving a draft does not submit your offer.</p><button type="submit" name="command" value="Save" class="btn btn-primary" data-save-draft>Save draft <span aria-hidden="true">↗</span></button></div>
+    </form>
+    <section class="bid-panel bid-documents" aria-labelledby="bid-documents-title"><div class="bid-section-heading"><div><span class="eyebrow">04 / PRIVATE ATTACHMENTS</span><h2 id="bid-documents-title">Bid documents</h2></div><span class="bid-currency">@Model.Documents.Count / 10 FILES</span></div><p><strong>Technical Proposal: at least one required before submission.</strong> Financial Proposal and Supporting Documents are optional. PDF, JPG or PNG only; 5 MB per file; 10 attachments per bid. All documents become read-only after submission.</p>
+    @if (create) { <div class="bid-notice">Save your draft first to upload documents securely.</div> }
+    else
+    {
+        <partial name="_Documents" model="Model" />
+        <div class="bid-review-link"><div><h3>Ready for the final check?</h3><p>Save any changes above before continuing. Submission sends the saved offer only.</p></div><a asp-action="Submit" asp-route-id="@Model.Id" class="btn btn-primary" data-leave-editor>Review &amp; submit →</a></div>
+    }
+    </section>
+    <p role="status" class="bid-form-status" data-bid-form-status></p>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/bids.js" asp-append-version="true"></script> }

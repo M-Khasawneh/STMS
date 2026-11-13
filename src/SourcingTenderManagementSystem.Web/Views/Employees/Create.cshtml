@@ -1,0 +1,41 @@
+@model SourcingTenderManagementSystem.Web.Models.Employees.EmployeeCreateViewModel
+@using SourcingTenderManagementSystem.Web.Security
+@{ ViewData["Title"] = "Create employee"; }
+<div class="row form-layout">
+    <section class="col-12 col-md-8 col-lg-6 form-panel" aria-labelledby="employee-title">
+        <div class="eyebrow">PEOPLE &amp; ACCESS</div>
+        <h1 id="employee-title">Create employee</h1>
+        <p>Select a department and one or more employee roles.</p>
+        <form asp-action="Create" method="post">
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" autocomplete="off" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <partial name="_ContactFields" model="Model" />
+            <div class="mb-3">
+                <label asp-for="Roles" class="form-label"></label>
+                <select asp-for="Roles" class="form-select" multiple size="6" aria-describedby="role-help">
+                    @foreach (var role in ApplicationRoles.EmployeeRoles) { <option value="@role">@role</option> }
+                </select>
+                <span asp-validation-for="Roles" class="text-danger"></span>
+                <div id="role-help" class="form-text">Select all required roles. On a keyboard, hold Ctrl or Command to select more than one.</div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" value="" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" value="" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 form-actions">
+                <button type="submit" class="btn btn-primary">Create employee</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

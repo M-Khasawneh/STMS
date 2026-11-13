@@ -1,0 +1,24 @@
+@model SourcingTenderManagementSystem.Web.Models.Suppliers.SupplierRegistrationViewModel
+@{ ViewData["Title"] = "Supplier Registration"; }
+<div class="row form-layout"><section class="form-panel supplier-registration-panel" aria-labelledby="supplier-title">
+<div class="eyebrow">SUPPLIER REGISTRATION</div><h1 id="supplier-title">Join the sourcing network.</h1>
+<p>Register one account for your company. Your application and three official documents must be approved by an administrator before you can sign in.</p>
+<form asp-action="Register" method="post" enctype="multipart/form-data" data-supplier-registration>
+<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+<h2 class="supplier-form-heading">Company &amp; contact</h2><div class="supplier-field-grid">
+<div class="mb-3"><label asp-for="CompanyName" class="form-label"></label><input asp-for="CompanyName" class="form-control" autocomplete="organization" /><span asp-validation-for="CompanyName" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="RegistrationNumber" class="form-label"></label><input asp-for="RegistrationNumber" class="form-control" autocomplete="off" /><span asp-validation-for="RegistrationNumber" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="TaxNumber" class="form-label"></label><input asp-for="TaxNumber" class="form-control" autocomplete="off" /><span asp-validation-for="TaxNumber" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ContactName" class="form-label"></label><input asp-for="ContactName" class="form-control" autocomplete="name" /><span asp-validation-for="ContactName" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ContactEmail" class="form-label"></label><input asp-for="ContactEmail" class="form-control" autocomplete="email" /><span asp-validation-for="ContactEmail" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ContactPhone" class="form-label"></label><input asp-for="ContactPhone" class="form-control" autocomplete="tel" /><span asp-validation-for="ContactPhone" class="text-danger"></span></div>
+</div><h2 class="supplier-form-heading">Account credentials</h2><div class="supplier-field-grid"><div class="mb-3"><label asp-for="UserName" class="form-label"></label><input asp-for="UserName" class="form-control" autocomplete="username" /><span asp-validation-for="UserName" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" autocomplete="new-password" value="" /><span asp-validation-for="Password" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ConfirmPassword" class="form-label"></label><input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" value="" /><span asp-validation-for="ConfirmPassword" class="text-danger"></span></div>
+</div><h2 class="supplier-form-heading">Official documents</h2><p class="form-text" id="upload-help">All three documents are required. PDF, JPG or PNG only; maximum 5 MB per file. After a validation error, select your files again.</p>
+<div class="mb-3"><label asp-for="CompanyCertificate" class="form-label"></label><input asp-for="CompanyCertificate" type="file" class="form-control" accept=".pdf,.jpg,.png" aria-describedby="upload-help" data-supplier-upload /><span asp-validation-for="CompanyCertificate" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="TradeLicense" class="form-label"></label><input asp-for="TradeLicense" type="file" class="form-control" accept=".pdf,.jpg,.png" aria-describedby="upload-help" data-supplier-upload /><span asp-validation-for="TradeLicense" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="TaxCertificate" class="form-label"></label><input asp-for="TaxCertificate" type="file" class="form-control" accept=".pdf,.jpg,.png" aria-describedby="upload-help" data-supplier-upload /><span asp-validation-for="TaxCertificate" class="text-danger"></span></div>
+<div class="form-actions d-flex flex-wrap gap-2"><button type="submit" class="btn btn-primary">Submit registration</button><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
+</form></section></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/suppliers.js" asp-append-version="true"></script> }

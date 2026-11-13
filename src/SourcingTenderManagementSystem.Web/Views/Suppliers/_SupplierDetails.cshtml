@@ -1,0 +1,8 @@
+@model SourcingTenderManagementSystem.Web.Models.Suppliers.SupplierReviewViewModel
+@{ var supplier = Model.Supplier!; }
+<dl class="supplier-facts"><div><dt>Company</dt><dd>@supplier.CompanyName</dd></div><div><dt>Registration number</dt><dd>@supplier.RegistrationNumber</dd></div><div><dt>Tax registration number</dt><dd>@supplier.TaxNumber</dd></div><div><dt>Contact name</dt><dd>@supplier.ContactName</dd></div><div><dt>Contact email</dt><dd>@supplier.ContactEmail</dd></div><div><dt>Contact phone</dt><dd>@supplier.ContactPhone</dd></div><div><dt>Status</dt><dd><span class="status-pill">@supplier.Status</span></dd></div>
+@if (supplier.ReviewedAt.HasValue) { <div><dt>Reviewed at (UTC)</dt><dd>@supplier.ReviewedAt.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</dd></div> }
+@if (!string.IsNullOrWhiteSpace(supplier.ReviewReason)) { <div><dt>Review reason</dt><dd class="review-reason">@supplier.ReviewReason</dd></div> }
+</dl>
+<h2 class="supplier-form-heading">Official documents</h2><p class="form-text">Download each document for review. Files are provided as attachments.</p>
+<ul class="supplier-document-list">@foreach (var document in Model.Documents) { <li><div><strong>@document.DocumentType</strong><small>@document.OriginalName &middot; @((document.Size / 1024d).ToString("N1")) KB</small></div><a asp-action="Document" asp-route-id="@document.Id" class="table-action" aria-label="Download @document.DocumentType">Download</a></li> }</ul>

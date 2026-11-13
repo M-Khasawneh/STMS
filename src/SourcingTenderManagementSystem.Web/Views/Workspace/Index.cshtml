@@ -1,0 +1,28 @@
+@using SourcingTenderManagementSystem.Web.Security
+@{
+    ViewData["Title"] = "Dashboard";
+    var admin = User.IsInRole(ApplicationRoles.Admin);
+    var supplier = User.IsInRole(ApplicationRoles.Supplier);
+    var requester = User.IsInRole(ApplicationRoles.RequestingDepartment);
+    var officer = User.IsInRole(ApplicationRoles.SourcingOfficer);
+    var manager = User.IsInRole(ApplicationRoles.SourcingManager);
+    var links = new List<(string Controller, string Action, string Title, string Description, string Mark)>();
+    if (admin) {
+        links.Add(("Employees", "Index", "Employees", "Manage employee accounts, departments and existing roles.", "01"));
+        links.Add(("Departments", "Index", "Departments", "Keep your organisational structure up to date.", "02"));
+        links.Add(("Suppliers", "Index", "Supplier applications", "Review company registrations and supplier account status.", "03"));
+    }
+    if (supplier) {
+        links.Add(("Tenders", "Inbox", "My invitations", "Review and respond to your tender invitations.", "01"));
+        links.Add(("Bids", "Index", "My Offers", "Prepare your offers and track your own submissions.", "02"));
+        links.Add(("Suppliers", "Status", "My company", "View your company registration and approval status.", "03"));
+    }
+    if (admin || requester || officer) links.Add(("Requisitions", "Index", "Purchase requisitions", admin ? "Read-only oversight of purchase requisitions." : officer ? "Review requisitions within your authorised workflow." : "Create and follow your own purchase requisitions.", "RQ"));
+    if (admin || supplier || requester || officer || manager) links.Add(("Tenders", "Index", "Tenders", admin ? "Read-only oversight of tenders." : "Open the tenders available to your account.", "TN"));
+    links.Add(("Notifications", "Index", "Notifications", "Read your account's in-app notifications.", "↗"));
+}
+<div class="workspace-dashboard">
+    <header class="workspace-welcome"><div><span class="eyebrow">YOUR WORKSPACE</span><h1>A clear place to begin.</h1><p>Welcome, <strong>@User.Identity?.Name</strong>. Choose where you want to work.</p><div class="workspace-role-list" aria-label="Your roles">@foreach (var role in ApplicationRoles.All.Where(User.IsInRole)) { <span>@role</span> }</div></div><span class="workspace-welcome-art" aria-hidden="true">st<span>WORKSPACE</span></span></header>
+    <div class="workspace-section-heading"><h2>Your tools</h2><p>Access follows your existing roles and permissions.</p></div>
+    <div class="workspace-tools">@foreach (var link in links) { <a class="workspace-tool" asp-controller="@link.Controller" asp-action="@link.Action"><span class="workspace-tool-mark" aria-hidden="true">@link.Mark</span><span class="workspace-tool-copy"><h3>@link.Title</h3><p>@link.Description</p></span><span class="workspace-tool-arrow" aria-hidden="true">↗</span></a> }</div>
+</div>

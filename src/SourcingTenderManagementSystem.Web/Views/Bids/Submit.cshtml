@@ -1,0 +1,13 @@
+@model SupplierBidConfirmation
+@{ ViewData["Title"] = "Confirm offer submission"; var offer = Model.Offer; var bid = offer.Details.Snapshot.Bid; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace"><header class="page-heading"><div><span class="eyebrow">MY OFFERS / FINAL CHECK</span><h1>Review. Confirm. Submit.</h1><p>@offer.Tender.Title</p></div><a asp-action="Details" asp-route-id="@bid.Id" class="quiet-link">← Offer details</a></header>
+<div class="bid-deadline"><strong>Submission deadline</strong><span>@TenderTime.Display(offer.Tender.SubmissionDeadline)</span><small>At or after this time, submission is rejected.</small></div>
+@if (Model.Error is not null) { <div class="alert alert-warning" role="alert"><strong>Not ready for submission.</strong> @Model.Error @if (offer.CanEdit) { <a asp-action="Edit" asp-route-id="@bid.Id">Return to draft &amp; documents</a> }</div> }
+<partial name="_OfferContent" model="offer" />
+@if (Model.Error is null)
+{
+    <section class="bid-panel bid-confirm"><span class="eyebrow">FINAL SUBMISSION</span><h2>Your saved offer will become read-only.</h2><p>You cannot edit the offer or add, remove, or replace documents after submission. Eligibility, the deadline, and every stored document will be checked again.</p><form asp-action="Submit" asp-route-id="@bid.Id" method="post" data-bid-submit><input type="hidden" name="Version" value="@offer.Details.Version" /><div asp-validation-summary="All" class="text-danger" role="alert"></div><div class="bid-check"><input type="checkbox" id="confirm-offer" name="Confirmed" value="true" required /><label for="confirm-offer">I have reviewed this saved offer and understand that submission is final.</label></div><button class="btn btn-primary" type="submit">Submit final offer <span aria-hidden="true">↗</span></button></form></section>
+}
+</div>
+@section Scripts { <script src="~/js/bids.js" asp-append-version="true"></script> }

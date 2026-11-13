@@ -1,0 +1,92 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SourcingTenderManagementSystem.Web.Data;
+using SourcingTenderManagementSystem.Web.Security;
+
+var builder = WebApplication.CreateBuilder(args);
+
+var provisionFirstAdmin = args.Contains("--provision-first-admin", StringComparer.Ordinal);
+if (provisionFirstAdmin)
+{
+    // Keep credentials and exception details out of all configured log sinks.
+    builder.Logging.ClearProviders();
+    if (args.Length != 1)
+    {
+        Console.Error.WriteLine("Use --provision-first-admin alone. Credentials must be entered at the private console prompts.");
+        Environment.ExitCode = 1;
+        return;
+    }
+}
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IPublicStatistics, PublicStatistics>();
+builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
+builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
+builder.Services.AddScoped<SupplierRegistration>();
+builder.Services.AddScoped<SupplierReview>();
+builder.Services.AddScoped<RequisitionManagement>();
+builder.Services.AddScoped<TenderManagement>();
+builder.Services.AddScoped<BidData>();
+builder.Services.AddScoped<IBidData>(services => services.GetRequiredService<BidData>());
+builder.Services.AddScoped<IBidDocumentData>(services => services.GetRequiredService<BidData>());
+builder.Services.AddScoped<BidManagement>();
+builder.Services.AddScoped<IPrivateBidFiles, PrivateBidFiles>();
+builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
+builder.Services.AddScoped<BidDocumentManagement>();
+builder.Services.AddScoped<SupplierBidPages>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+builder.Services.AddAuthenticationFoundation();
+builder.Services.AddScoped<IDepartmentStore, DepartmentStore>();
+builder.Services.AddScoped<IEmployeeData, EmployeeData>();
+builder.Services.AddScoped<EmployeeManagement>();
+builder.Services.AddScoped<IFirstAdminDatabase, FirstAdminDatabase>();
+builder.Services.AddScoped<IFirstAdminConsole, FirstAdminConsole>();
+builder.Services.AddScoped<FirstAdminProvisioner>();
+
+var app = builder.Build();
+
+if (provisionFirstAdmin)
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    Environment.ExitCode = await scope.ServiceProvider.GetRequiredService<FirstAdminProvisioner>().RunAsync();
+    return;
+}
+
+// Explicit maintenance command only: normal web startup never changes database data.
+if (args.Contains("--initialize-roles", StringComparer.Ordinal))
+{
+    using var scope = app.Services.CreateScope();
+    await RoleInitializer.InitializeAsync(scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>());
+    Console.WriteLine("Required roles initialized. No users or credentials created.");
+    return;
+}
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapStaticAssets().AllowAnonymous();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
+
+app.Run();

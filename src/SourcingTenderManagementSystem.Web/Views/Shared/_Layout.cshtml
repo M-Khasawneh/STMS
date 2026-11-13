@@ -1,0 +1,98 @@
+@using SourcingTenderManagementSystem.Web.Security
+@{
+    var authenticated = User.Identity?.IsAuthenticated == true;
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var admin = User.IsInRole(ApplicationRoles.Admin);
+    var publicWebsite = ViewData["PublicHome"] is true || ViewData["PublicWebsite"] is true;
+    var adminDashboard = admin && ViewData["AdminDashboard"] is true;
+    var adminWorkspace = authenticated && admin && !publicWebsite;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="@(adminWorkspace ? "#0B1220" : "#142d2d")" />
+    <title>@ViewData["Title"] &middot; Sourcing &amp; Tender</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /> }
+    @await RenderSectionAsync("Styles", required: false)
+    @if (adminWorkspace) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
+</head>
+<body class="@(authenticated ? "workspace" : "public-shell") @(publicWebsite ? "stms-home" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    @if (authenticated)
+    {
+        <aside class="sidebar" id="workspace-navigation" aria-label="Workspace navigation">
+            <a class="brand" asp-controller="Workspace" asp-action="Index"><span class="brand-mark" aria-hidden="true">s<span>t</span></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
+            <div class="nav-label">WORKSPACE</div>
+            <nav class="side-links" aria-label="Main navigation">
+                <a class="side-link @(controller == "Workspace" ? "active" : "")" aria-current="@(controller == "Workspace" ? "page" : null)" asp-controller="Workspace" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z"/></svg>Dashboard</a>
+                @if (admin)
+                {
+                    <div class="nav-label">ADMINISTRATION</div>
+                    <a class="side-link @(controller == "Departments" ? "active" : "")" aria-current="@(controller == "Departments" ? "page" : null)" asp-controller="Departments" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1m4 0h1M9 11h1m4 0h1M10 21v-6h4v6"/></svg>Departments</a>
+                    <a class="side-link @(controller == "Employees" ? "active" : "")" aria-current="@(controller == "Employees" ? "page" : null)" asp-controller="Employees" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg>Employees</a>
+                }
+                @if (admin) { <a class="side-link @(controller == "Suppliers" ? "active" : "")" aria-current="@(controller == "Suppliers" ? "page" : null)" asp-controller="Suppliers" asp-action="Index"><span class="nav-icon" aria-hidden="true">&#9671;</span>Suppliers</a> }
+                @if (User.IsInRole(ApplicationRoles.Supplier)) { <a class="side-link @(controller == "Suppliers" ? "active" : "")" asp-controller="Suppliers" asp-action="Status">My company</a> }
+                @if (admin || User.IsInRole(ApplicationRoles.RequestingDepartment) || User.IsInRole(ApplicationRoles.SourcingOfficer)) {
+                    <a class="side-link @(controller == "Requisitions" ? "active" : "")" aria-current="@(controller == "Requisitions" ? "page" : null)" asp-controller="Requisitions" asp-action="Index"><span class="nav-icon" aria-hidden="true">&#9636;</span>Requisitions</a>
+                }
+                @if(admin||User.IsInRole(ApplicationRoles.SourcingOfficer)||User.IsInRole(ApplicationRoles.SourcingManager)||User.IsInRole(ApplicationRoles.RequestingDepartment)||User.IsInRole(ApplicationRoles.Supplier)) { <a class="side-link @(controller=="Tenders"?"active":"")" aria-current="@(controller=="Tenders"?"page":null)" asp-controller="Tenders" asp-action="Index">@if(adminWorkspace){<svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 17V6l6-3 6 3v11M9 9h6m-6 4h6m-3 4v4"/></svg>}Tenders</a> }
+                @if(User.IsInRole(ApplicationRoles.Supplier)){<a class="side-link" asp-controller="Tenders" asp-action="Inbox">My invitations</a>}
+                @if(User.IsInRole(ApplicationRoles.Supplier)){<a class="side-link @(controller=="Bids"?"active":"")" aria-current="@(controller=="Bids"?"page":null)" asp-controller="Bids" asp-action="Index">My Offers</a>}
+                <a class="side-link @(controller=="Notifications"?"active":"")" aria-current="@(controller=="Notifications"?"page":null)" asp-controller="Notifications" asp-action="Index">@if(adminWorkspace){<svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>}Notifications</a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a class="side-link @(action == "Privacy" ? "active" : "")" asp-controller="Home" asp-action="Privacy"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>Privacy</a>
+                <div class="account-block"><span class="avatar" aria-hidden="true">@(string.IsNullOrEmpty(User.Identity?.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpperInvariant())</span><span class="account-name">@User.Identity?.Name<small>@(admin ? "Administrator" : User.IsInRole(ApplicationRoles.Supplier) ? "Supplier" : "Employee")</small></span></div>
+                <form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="logout-button">Log out <span aria-hidden="true">&#8599;</span></button></form>
+            </div>
+        </aside>
+        <button class="sidebar-scrim" type="button" aria-label="Close navigation" tabindex="-1" hidden></button>
+    }
+    <div class="app-frame">
+        <header class="topbar">
+            @if (authenticated)
+            {
+                <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
+                <div class="topbar-context">Workspace <span aria-hidden="true">/</span> <strong>@(adminDashboard ? "Administration" : controller == "Home" ? ViewData["Title"] : controller)</strong></div>
+                @if (adminWorkspace) { <div class="admin-header-identity"><span aria-hidden="true">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant() ?? "A")</span><div><strong>@User.Identity?.Name</strong><small>Administrator</small></div></div> }
+                <span class="workspace-tag"><i aria-hidden="true"></i> @(admin ? "Administration" : User.IsInRole(ApplicationRoles.Supplier) ? "Supplier workspace" : "Employee workspace")</span>
+            }
+            else
+            {
+                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark" aria-hidden="true">s<span>t</span></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
+                @if (publicWebsite)
+                {
+                    <button class="home-menu-toggle" type="button" aria-controls="home-navigation" aria-expanded="false" hidden>Menu <span aria-hidden="true">&#9776;</span></button>
+                }
+                <nav id="@(publicWebsite ? "home-navigation" : null)" class="public-nav landing-navigation" aria-label="Main navigation">
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="home">Home</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="about">About</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works">How It Works</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="contact">Contact</a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Login</a>
+                    <a asp-controller="Suppliers" asp-action="Register" class="registration-link">Supplier Registration</a>
+                </nav>
+            }
+        </header>
+        <main id="main-content" class="content-area" tabindex="-1">
+            @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders")
+            {
+                <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
+            }
+            @RenderBody()
+        </main>
+        <footer class="app-footer"><span>&copy; 2026 Sourcing &amp; Tender</span><a asp-controller="Home" asp-action="Privacy">Privacy</a><span class="footer-note">A considered workspace.</span></footer>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
+</body>
+</html>

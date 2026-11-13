@@ -1,0 +1,16 @@
+* text=auto
+*.cs text eol=lf
+*.cshtml text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.docx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

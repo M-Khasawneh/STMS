@@ -1,0 +1,6 @@
+@model SourcingTenderManagementSystem.Web.Models.Requisitions.RequisitionForm
+@{ ViewData["Title"] = "Create purchase requisition"; }
+<div class="row form-layout requisition-form-layout"><section class="form-panel" aria-labelledby="requisition-title"><div class="eyebrow">PURCHASE REQUISITIONS</div><h1 id="requisition-title">Create purchase requisition</h1><p>Department: <strong>@Model.DepartmentName</strong>. Save a draft or submit your completed request for review.</p>
+<form asp-action="Create" asp-route-id="@Model.Id" method="post" data-requisition-form data-today="@Model.Today.ToString("yyyy-MM-dd")"><partial name="_Fields" model="Model" /></form>
+</section></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/requisitions.js" asp-append-version="true"></script> }

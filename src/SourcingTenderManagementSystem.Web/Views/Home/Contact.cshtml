@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Contact";
+    ViewData["PublicWebsite"] = true;
+}
+@section Styles {
+    <meta name="description" content="Find STMS account access and supplier registration information, and check the availability of public contact details." />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home-motion.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/public-pages.css" asp-append-version="true" />
+}
+<div class="stms-landing stms-public-page" data-public-page="contact">
+    <section class="public-page-hero public-contact-hero" aria-labelledby="contact-page-title">
+        <nav class="public-page-breadcrumb" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">/</span><span aria-current="page">Contact</span></nav>
+        <div class="public-page-hero-grid"><div data-animated-content data-ac-stagger="90"><div class="stms-eyebrow"><span class="stms-dot" aria-hidden="true"></span> CONTACT &amp; ACCESS</div><h1 id="contact-page-title">Find your way<br /><span>into STMS.</span></h1><p class="public-page-lead">Use the available account and registration routes below. Public contact details have not yet been configured.</p></div><div class="public-contact-art" aria-hidden="true"><span></span><span></span><svg viewBox="0 0 120 100"><rect x="15" y="22" width="90" height="60" rx="10"/><path d="m17 27 43 31 43-31"/></svg></div></div>
+    </section>
+    <section class="public-contact-details" aria-labelledby="official-contact-title">
+        <div data-animated-content><div class="stms-eyebrow">PUBLIC CONTACT INFORMATION</div><h2 id="official-contact-title">Official details.<br /><span>When available.</span></h2></div>
+        <div class="public-contact-notice" data-animated-content><span class="public-notice-label"><i aria-hidden="true"></i> Not yet configured</span><h3>Contact enquiries are currently unavailable.</h3><p>No public email address, phone number or office address has been configured for this website.</p><p>There is currently no enquiry submission service on this page.</p></div>
+    </section>
+    <section class="public-access-section" aria-labelledby="access-title">
+        <div class="public-section-heading" data-animated-content><div><div class="stms-eyebrow">AVAILABLE NOW</div><h2 id="access-title">Choose your<br /><span>next step.</span></h2></div><p>These links lead to existing STMS account and supplier registration pages.</p></div>
+        <div class="public-access-grid">
+            <article class="public-access-card" data-animated-content><span class="public-access-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="11" r="5"/><path d="M6 28v-3a10 10 0 0 1 20 0v3"/></svg></span><span class="public-access-kicker">EXISTING ACCOUNTS</span><h3>Access your account.</h3><p>Employees sign in with credentials created by the administrator. Suppliers sign in after their registration has been approved.</p><a asp-controller="Account" asp-action="Login" class="stms-button stms-button-primary">Account login <span aria-hidden="true">&#8599;</span></a></article>
+            <article class="public-access-card public-access-supplier" data-animated-content><span class="public-access-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 28V7h20v21M11 12h3m4 0h3M11 17h3m4 0h3M13 28v-6h6v6"/></svg></span><span class="public-access-kicker">NEW SUPPLIERS</span><h3>Register your company.</h3><p>Submit your company information and required official documents. An administrator reviews your application before account access is activated.</p><a asp-controller="Suppliers" asp-action="Register" class="stms-button stms-button-primary">Supplier Registration <span aria-hidden="true">&#8599;</span></a></article>
+        </div>
+    </section>
+    <section class="public-contact-footnote" data-animated-content><p>Looking for an overview of the sourcing process?</p><a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works" class="stms-text-link">Explore How It Works <span aria-hidden="true">&#8599;</span></a></section>
+</div>
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+    <script src="~/js/home-motion.js" asp-append-version="true"></script>
+}

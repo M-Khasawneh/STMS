@@ -1,0 +1,8 @@
+@{ ViewData["Title"] = "Access denied"; }
+<div class="row justify-content-center">
+    <section class="col-12 col-md-8 message-panel" aria-labelledby="denied-title">
+        <div class="message-symbol" aria-hidden="true">&#9671;</div><div class="eyebrow">PERMISSION REQUIRED</div><h1 id="denied-title">Access denied</h1>
+        <p>Your account does not have permission to access this page. Contact your administrator if you need assistance.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Home</a>
+    </section>
+</div>

@@ -1,0 +1,16 @@
+@model SourcingTenderManagementSystem.Web.Models.Departments.DepartmentFormViewModel
+@{ ViewData["Title"] = "Edit department"; }
+<div class="row form-layout">
+    <section class="col-12 col-md-8 col-lg-6 form-panel" aria-labelledby="department-title">
+        <div class="eyebrow">ORGANIZATION</div>
+        <h1 id="department-title">Edit department</h1>
+        <form asp-action="Edit" asp-route-id="@ViewData["DepartmentId"]" method="post">
+            <partial name="_DepartmentFields" model="Model" />
+            <div class="d-flex flex-wrap gap-2 form-actions">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

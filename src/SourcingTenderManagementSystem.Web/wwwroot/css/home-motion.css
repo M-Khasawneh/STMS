@@ -1,0 +1,58 @@
+/* Magnet: wrapper supplies stable geometry, only its inner moves. */
+.stms-magnet { position:relative; display:inline-block; max-width:100%; }
+.stms-magnet-inner { display:block; transform-origin:center; }
+.stms-magnet .stms-button:hover { transform:none; }
+.stms-magnet[data-magnet-active] .stms-button { box-shadow:0 10px 36px #2563eb55; }
+/* ScrollExpand: sticky stage + clip aperture, media zoom, title-out/overlay-in. */
+.stms-expand { background:#0b1220; }
+.stms-expand-track { position:relative; }
+.stms-expand-stage { position:relative; min-height:520px; height:76svh; display:grid; place-items:center; overflow:clip; }
+.stms-expand-frame { position:absolute; inset:0; overflow:hidden; border-radius:24px; background:radial-gradient(ellipse at 50% 40%,#183d71,#09182c 75%); }
+.stms-expand-media { width:100%; height:100%; display:grid; place-items:center; transform-origin:center; }
+.stms-expand .stms-blueprint { display:block!important; margin:0; width:min(780px,86%); height:88%; max-width:780px; aspect-ratio:auto; background-color:#0d203b; background-image:radial-gradient(ellipse at 95% 90%,#174579,transparent 65%),linear-gradient(#69afff0b 1px,transparent 1px),linear-gradient(90deg,#69afff0b 1px,transparent 1px); border-color:#315888; color:#edf5ff; }
+.stms-expand .stms-node { background:#122c50ed; border-color:#4c82b277; }
+.stms-expand .stms-node small,.stms-expand .stms-blueprint-head,.stms-expand .stms-blueprint-foot { color:#abc9e8; }
+.stms-expand .stms-node-icon { color:#7ce6ff; border-color:#4679a3; }
+.stms-expand .stms-process-core { background:linear-gradient(135deg,#204d88,#10284c); color:#f3f8ff; border-color:#639ad1; }
+.stms-expand .stms-core-lines span { background:#416c9d; }
+.stms-expand .stms-core-bottom { border-color:#4a729d; }
+.stms-expand .stms-track { stroke:#6be4ff; }
+.stms-expand .stms-track-faint { stroke:#5594c5; }
+.stms-expand .stms-connections circle { fill:#38bdf8; }
+.stms-expand-title { display:none; position:relative; text-align:center; font-size:clamp(2.4rem,6vw,5.4rem); line-height:1.05; letter-spacing:-.05em; font-weight:550; color:#fff; text-shadow:0 5px 40px #0b1220; pointer-events:none; }
+.stms-expand-title span { color:#74dfff; }
+.stms-expand-hint { display:none; position:absolute; bottom:7%; font-size:.6rem; letter-spacing:.18em; color:#a4c4e9; }
+.stms-expand-overlay { position:absolute; bottom:6%; left:6%; right:6%; display:none; flex-direction:column; align-items:center; gap:10px; text-align:center; pointer-events:none; }
+.stms-expand-overlay span { font-size:.56rem; letter-spacing:.18em; color:#9dc6ef; }
+.stms-expand-overlay strong { color:#f1f6ff; font-size:clamp(1.25rem,3vw,2.4rem); letter-spacing:-.04em; }
+.stms-expand-scrim { position:absolute; inset:0; background:linear-gradient(transparent 30%,#020b1ce6); opacity:0; pointer-events:none; }
+.stms-expand.is-motion .stms-expand-stage { position:sticky; top:var(--expand-top,0px); min-height:0; height:var(--expand-height); }
+.stms-expand.is-motion .stms-expand-frame { border-radius:0; }
+.stms-expand.is-motion .stms-expand-overlay { display:flex; }
+.stms-expand.is-motion .stms-expand-title,.stms-expand.is-motion .stms-expand-hint { display:block; }
+/* ScrollStack: stable sticky slots; depth transforms belong to the inner article. */
+.stms-process-list { position:relative; }
+.stms-stack-slot { list-style:none; margin:0 0 24px; position:relative; }
+.stms-stack-shade { position:absolute; inset:0; border-radius:inherit; background:#020814; opacity:var(--stack-dim,0); pointer-events:none; z-index:2; }
+.stms-process-list.is-stack { padding-bottom:200px; }
+.is-stack .stms-stack-slot { position:sticky; top:calc(var(--stack-top) + var(--stack-index) * var(--stack-gap)); margin-bottom:100px; z-index:var(--stack-layer); }
+.stms-process-intro { z-index:0; }
+/* SlingButton: a non-critical back-to-top action, with a native anchor fallback. */
+.stms-top-control { display:flex; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid var(--home-line); margin:0 max(5vw,24px); padding:20px 0; }
+.stms-top-control>span { color:#9eb4d3; font-size:.78rem; }
+.stms-sling { position:relative; text-align:center; }
+.stms-sling-stage { position:relative; width:210px; height:180px; display:grid; place-items:center; overflow:clip; }
+.stms-sling-fx { position:absolute; width:88px; height:88px; left:calc(50% - 44px); top:calc(50% - 44px); overflow:visible; fill:none; }
+.stms-sling-well { fill:#0a1b32; stroke:#36557b; stroke-width:1.5; }
+.stms-sling-band,.stms-sling-hot { stroke:#4b749b; stroke-width:3; fill:none; }
+.stms-sling-hot { stroke:#38bdf8; opacity:0; }
+.stms-sling-arc { stroke:#38bdf8; stroke-width:3; fill:none; opacity:0; }
+.stms-sling-move { position:absolute; left:calc(50% - 28px); top:calc(50% - 28px); width:56px; height:56px; }
+.stms-sling-pad { width:56px; height:56px; border:1px solid #5a92ff; border-radius:50%; background:#2563eb; color:white; display:grid; place-items:center; touch-action:none; cursor:grab; user-select:none; }
+.stms-sling-pad:active { cursor:grabbing; }
+.stms-sling-icon { font-size:1.8rem; display:block; line-height:1; }
+.stms-sling-dot { position:absolute; top:calc(50% - 4px); left:calc(50% - 4px); width:8px; height:8px; border-radius:50%; background:#38bdf8; pointer-events:none; opacity:0; }
+.stms-sling-help { display:block; font-size:.61rem; color:#b5c6dc; margin-top:-10px; padding-bottom:12px; }
+@media(max-width:850px) { .stms-supplier .stms-magnet { grid-column:2; justify-self:start; }  }
+@media(max-width:580px) { .stms-supplier .stms-magnet { grid-column:1; width:100%; } .stms-expand-stage { min-height:480px; } .stms-expand .stms-blueprint { width:94%; height:78%; } .stms-expand .stms-node-three,.stms-expand .stms-node-four { bottom:20%; } .stms-expand-overlay { bottom:4%; } .stms-expand-title { font-size:2.7rem; } .stms-top-control { margin-inline:22px; gap:0; } .stms-top-control>span { max-width:90px; } .stms-sling-stage { width:190px; } }
+@media(prefers-reduced-motion:reduce) { .stms-expand-title,.stms-expand-hint { display:none; } .stms-expand-frame { clip-path:none!important; } .stms-expand-media { transform:none!important; } .stms-stack-slot { position:relative!important; } .stms-stack-card,.stms-magnet-inner { transform:none!important; filter:none!important; } .stms-stack-shade { opacity:0!important; } }

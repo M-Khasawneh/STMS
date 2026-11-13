@@ -1,0 +1,61 @@
+@model AdminDashboardModel
+@using System.Globalization
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{
+    ViewData["Title"] = "Administration overview";
+    ViewData["AdminDashboard"] = true;
+    var metrics = new[] {
+        (Title: "Employees", Value: Model.Employees, Note: Model.Users.ToString("N0") + " total user accounts", Controller: "Employees", Mark: "people"),
+        (Title: "Departments", Value: Model.Departments, Note: "Organisation structure", Controller: "Departments", Mark: "department"),
+        (Title: "Suppliers", Value: Model.Suppliers.Sum(x => x.Count), Note: "All registration statuses", Controller: "Suppliers", Mark: "supplier"),
+        (Title: "Requisitions", Value: Model.Requisitions.Sum(x => x.Count), Note: "Across all departments", Controller: "Requisitions", Mark: "request"),
+        (Title: "Tenders", Value: Model.Tenders.Sum(x => x.Count), Note: "All recorded tender stages", Controller: "Tenders", Mark: "tender")
+    };
+    var distributions = new[] {
+        (Title: "Supplier registrations", Description: "Approval and account status", Rows: Model.Suppliers, Controller: "Suppliers"),
+        (Title: "Purchase requisitions", Description: "From draft to tender conversion", Rows: Model.Requisitions, Controller: "Requisitions"),
+        (Title: "Tender pipeline", Description: "Recorded workflow stages", Rows: Model.Tenders, Controller: "Tenders")
+    };
+}
+@section Styles { <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" /> }
+<div class="admin-overview" data-admin-overview>
+    <header class="admin-page-heading"><div><div class="admin-eyebrow">ADMINISTRATION / OVERVIEW</div><h1>Administration overview</h1><p>Your organisation, its activity, and the work that needs attention.</p></div><div class="admin-heading-actions"><a class="admin-refresh" asp-controller="Workspace" asp-action="Index"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg>Refresh overview</a><small>@(Model.ReadAt.HasValue ? "Updated " + TenderTime.Display(Model.ReadAt.Value) : "Data not loaded")</small></div></header>
+    @if (!Model.Available) { <div class="admin-unavailable" role="alert"><strong>Dashboard data is temporarily unavailable.</strong><span>Counts and activity could not be loaded. Refresh to try again; management pages remain accessible from the sidebar.</span></div> }
+    <section class="admin-metrics" aria-label="System totals">
+        @for (var i = 0; i < metrics.Length; i++) {
+            var m = metrics[i];
+            <a asp-controller="@m.Controller" asp-action="Index" class="admin-metric" data-metric="@m.Mark"><div class="admin-metric-top"><span>@m.Title</span><span class="admin-metric-glyph" aria-hidden="true">@switch (m.Mark) { case "people": <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg> break; case "department": <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h1m6 0h1M8 11h1m6 0h1M10 21v-5h4v5"/></svg> break; case "supplier": <svg viewBox="0 0 24 24"><path d="m3 9 9-6 9 6v12H3ZM8 21v-8h8v8M3 9h18"/></svg> break; case "request": <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h3"/></svg> break; default: <svg viewBox="0 0 24 24"><path d="M4 21h16M6 17V6l6-3 6 3v11M9 9h6m-6 4h6m-3 4v4"/></svg> break; }</span></div><strong data-metric-value>@(Model.Available ? m.Value.ToString("N0") : "—")</strong><div class="admin-metric-foot"><span>@(Model.Available ? m.Note : "Unavailable")</span><span aria-hidden="true">↗</span></div></a>
+        }
+    </section>
+    @if (Model.Available) {
+        <div class="admin-main-grid">
+            <section class="admin-panel admin-attention" aria-labelledby="attention-title"><div class="admin-panel-heading"><div><span class="admin-eyebrow">OPERATIONS</span><h2 id="attention-title">Needs attention</h2></div><span class="admin-monitor-badge">Administrative oversight</span></div>
+                <a class="admin-queue-row" asp-controller="Suppliers" asp-action="Index"><span class="admin-queue-symbol tone-amber" aria-hidden="true">↗</span><span><strong>Supplier applications</strong><small>Pending Admin review</small></span><b>@Model.PendingSuppliers.ToString("N0")</b><span aria-hidden="true">→</span></a>
+                <a class="admin-queue-row" asp-controller="Requisitions" asp-action="Index"><span class="admin-queue-symbol tone-blue" aria-hidden="true">≡</span><span><strong>Requisitions in review</strong><small>Submitted or Under Review · read-only</small></span><b>@Model.RequestsInReview.ToString("N0")</b><span aria-hidden="true">→</span></a>
+                <a class="admin-queue-row" asp-controller="Requisitions" asp-action="Index"><span class="admin-queue-symbol tone-cyan" aria-hidden="true">✓</span><span><strong>Approved requisitions</strong><small>Awaiting tender conversion · read-only</small></span><b>@Model.ApprovedRequests.ToString("N0")</b><span aria-hidden="true">→</span></a>
+                <a class="admin-queue-row" asp-controller="Tenders" asp-action="Index"><span class="admin-queue-symbol tone-rose" aria-hidden="true">◷</span><span><strong>Open past deadline</strong><small>Awaiting explicit officer closure · read-only</small></span><b>@Model.PastDeadlineOpenTenders.ToString("N0")</b><span aria-hidden="true">→</span></a>
+                <p class="admin-panel-note">Requisition and tender actions remain with their authorised officers.</p>
+            </section>
+            <section class="admin-panel admin-deadlines" aria-labelledby="deadline-title"><div class="admin-panel-heading"><div><span class="admin-eyebrow">SUBMISSION WINDOWS</span><h2 id="deadline-title">Upcoming deadlines</h2></div><a asp-controller="Tenders" asp-action="Index">All tenders ↗</a></div>
+                @if (Model.Deadlines.Count == 0) { <div class="admin-empty"><span aria-hidden="true">◷</span><h3>No upcoming Open tender deadlines</h3><p>Future deadlines will appear here for tenders in the Open state.</p></div> }
+                @foreach (var deadline in Model.Deadlines) { <a class="admin-deadline" asp-controller="Tenders" asp-action="Details" asp-route-id="@deadline.Id"><time class="admin-date-tile" datetime="@deadline.Deadline.ToString("O")"><span>@TenderTime.Local(deadline.Deadline).ToString("MMM", CultureInfo.InvariantCulture)</span><strong>@TenderTime.Local(deadline.Deadline).ToString("dd")</strong></time><span><strong>@deadline.Title</strong><small>@TenderTime.Display(deadline.Deadline)</small></span><span aria-hidden="true">↗</span></a> }
+                <p class="admin-panel-note">Asia/Amman · Deadlines remain authoritative until an officer closes the tender.</p>
+            </section>
+        </div>
+        <section aria-labelledby="distribution-title" class="admin-distribution-section"><div class="admin-section-heading"><h2 id="distribution-title">Operational distribution</h2><p>Current statuses from recorded system data</p></div><div class="admin-distributions">
+            @foreach (var group in distributions) {
+                var total = group.Rows.Sum(x => x.Count);
+                <article class="admin-panel admin-distribution"><div class="admin-panel-heading"><div><h3>@group.Title</h3><p>@group.Description</p></div><strong>@total.ToString("N0")</strong></div>
+                    @if (total == 0) { <p class="admin-zero-state">No records yet.</p> }
+                    else { <div class="admin-segment-bar" aria-hidden="true">@foreach (var status in group.Rows.Where(x => x.Count > 0)) { <span class="tone-@status.Tone" style="flex-grow:@status.Count.ToString(CultureInfo.InvariantCulture)"></span> }</div> }
+                    <dl class="admin-status-list">@foreach (var status in group.Rows) { <div><dt><i class="tone-@status.Tone" aria-hidden="true"></i>@status.Label</dt><dd>@status.Count.ToString("N0")</dd></div> }</dl><a class="admin-panel-link" asp-controller="@group.Controller" asp-action="Index">View records <span aria-hidden="true">↗</span></a>
+                </article>
+            }
+        </div></section>
+        <section class="admin-panel admin-activity" aria-labelledby="activity-title"><div class="admin-panel-heading"><div><span class="admin-eyebrow">RECORDED UPDATES</span><h2 id="activity-title">Recent activity</h2></div><span class="admin-muted-label">Requisitions &amp; tenders</span></div>
+            @if (Model.Activity.Count == 0) { <div class="admin-activity-empty"><h3>No recorded activity yet</h3><p>Recorded requisition and tender updates will appear here.</p></div> }
+            else { <div class="admin-activity-table" role="region" aria-label="Recent requisition and tender activity" tabindex="0"><table><caption class="visually-hidden">Recent existing audit events. Times use Asia/Amman.</caption><thead><tr><th scope="col">Record</th><th scope="col">Event</th><th scope="col">Status</th><th scope="col">Recorded · Asia/Amman</th></tr></thead><tbody>@foreach (var entry in Model.Activity) { <tr><th scope="row"><a asp-controller="@entry.Controller" asp-action="Details" asp-route-id="@entry.RecordId">@entry.Title</a><small>@(entry.Controller == "Tenders" ? "Tender" : "Purchase requisition")</small></th><td>@entry.Description</td><td>@if (entry.Status is not null) { <span class="admin-status-badge">@AdminDashboardModel.StatusLabel(entry.Status)</span> } else { <span class="admin-muted-label">Not changed</span> }</td><td><time datetime="@entry.At.ToString("O")">@TenderTime.Local(entry.At).ToString("yyyy-MM-dd HH:mm")</time></td></tr> }</tbody></table></div> }
+        </section>
+    }
+    <footer class="admin-overview-footer"><span>System administration</span><span>Sourcing &amp; Tender Management</span></footer>
+</div>

@@ -1,0 +1,6 @@
+@{ ViewData["Title"] = "Supplier registration"; var submitted = TempData["SupplierRegistered"] is true; }
+<section class="message-panel" aria-labelledby="confirmation-title"><div class="eyebrow">SUPPLIER APPLICATIONS</div>
+<h1 id="confirmation-title">@(submitted ? "Registration received" : "Registration information")</h1>
+<p>@(submitted ? "Your company application and documents have been submitted with Pending status." : "Supplier applications start with Pending status and require administrator review.")</p>
+<p>You cannot sign in until your application is approved. Do not register again while waiting for review.</p>
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Return home</a></section>

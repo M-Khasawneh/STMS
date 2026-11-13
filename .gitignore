@@ -1,0 +1,42 @@
+# Visual Studio and .NET build output
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Private documents, file-operation journals and local runtime data
+**/App_Data/
+**/uploads/
+**/TestResults/
+*.trx
+*.coverage
+*.log
+
+# Machine-specific configuration and credentials (copy the example locally)
+**/appsettings*.json
+!**/appsettings.Example.json
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+*.publishsettings
+**/PublishProfiles/
+
+# Database files/backups; retain versioned EF migration source and SQL scripts
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.bacpac
+*.dump
+
+# Local visual QA artifacts and reference-only component sources
+*-qa/
+design-references/
+artifacts/
+.DS_Store
+Thumbs.db

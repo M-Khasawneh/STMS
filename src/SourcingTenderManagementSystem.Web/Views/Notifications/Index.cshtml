@@ -1,0 +1,6 @@
+@model IReadOnlyList<SourcingTenderManagementSystem.Web.Models.Entities.Notification>
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ViewData["Title"]="Notifications";}
+<div class="eyebrow">YOUR WORKSPACE</div><h1>Notifications</h1>
+@if(Model.Count==0){<p>No notifications found.</p>}
+<ol class="requisition-history">@foreach(var item in Model){<li><strong>@item.Subject</strong><small>@TenderTime.Display(item.CreatedAt)</small><p>@item.Message</p>@if(item.TenderId.HasValue){<a asp-controller="Tenders" asp-action="Details" asp-route-id="@item.TenderId" class="table-action">View tender</a>}</li>}</ol>

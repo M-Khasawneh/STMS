@@ -1,0 +1,31 @@
+@model SourcingTenderManagementSystem.Web.Models.Requisitions.RequisitionDetails
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Requisitions
+@{ ViewData["Title"] = "Requisition details"; var request = Model.Request; }
+<div class="page-heading"><div><div class="eyebrow">PURCHASE REQUISITIONS</div><h1>@request.Title</h1><p>@Model.DepartmentName &middot; Created by @Model.CreatorName</p></div><span class="status-pill">@RequisitionDisplay.Status(request.Status)</span></div>
+@if (TempData["RequisitionStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<section class="requisition-detail-panel" aria-label="Requisition information"><dl class="supplier-facts"><div><dt>Priority</dt><dd>@request.Priority</dd></div><div><dt>Target date</dt><dd>@request.TargetDate.ToString("yyyy-MM-dd")</dd></div><div><dt>Created (UTC)</dt><dd>@request.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</dd></div><div><dt>Last submitted (UTC)</dt><dd>@(request.SubmittedAt?.UtcDateTime.ToString("yyyy-MM-dd HH:mm") ?? "Not submitted")</dd></div></dl><h2>Reason</h2><p class="requisition-text">@request.Reason</p>
+@if (Model.Actor.CanEdit(request)) {
+<div class="d-flex flex-wrap gap-2"><a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-outline-secondary">Edit requisition</a><form asp-action="Submit" asp-route-id="@request.Id" method="post"><input type="hidden" name="Version" value="@Model.Version" /><button type="submit" class="btn btn-primary">@(request.Status == PurchaseRequestStatus.Returned ? "Resubmit for review" : "Submit for review")</button></form></div>
+}
+@if (Model.Actor.Admin) { <p class="form-text">Admin oversight is read-only.</p> }
+</section>
+@if(request.Status==PurchaseRequestStatus.Approved && User.IsInRole(SourcingTenderManagementSystem.Web.Security.ApplicationRoles.SourcingOfficer) && !User.IsInRole(SourcingTenderManagementSystem.Web.Security.ApplicationRoles.Admin)){<a asp-controller="Tenders" asp-action="Create" asp-route-requisitionId="@request.Id" class="btn btn-primary mt-3">Create tender from requisition</a>}
+<h2 class="requisition-section-title">Request items</h2>
+@if (Model.Items.Count == 0) { <p>No items saved. Add at least one valid item before submission.</p> } else {
+<div class="table-responsive" role="region" aria-label="Request items" tabindex="0"><table class="table align-middle requisition-items-table"><caption>Requested items and specifications</caption><thead><tr><th scope="col">Description</th><th scope="col">Quantity</th><th scope="col">Specifications</th></tr></thead><tbody>@foreach (var item in Model.Items) { <tr><td class="text-break">@item.Description</td><td>@item.Quantity.ToString("0.######")</td><td class="requisition-text text-break">@item.Specifications</td></tr> }</tbody></table></div> }
+@if (Model.Actor.CanReview(request) && request.Status is PurchaseRequestStatus.Submitted or PurchaseRequestStatus.UnderReview) {
+<section class="requisition-detail-panel mt-4" aria-labelledby="review-title"><h2 id="review-title">Review requisition</h2><form asp-action="Review" asp-route-id="@request.Id" method="post" data-requisition-review>
+<input type="hidden" name="Version" value="@Model.Version" />
+@if (request.Status == PurchaseRequestStatus.Submitted) { <input type="hidden" name="Decision" value="UnderReview" /><p>Start the review before approving, rejecting or returning this request.</p><button type="submit" class="btn btn-primary">Start review</button> }
+else { <div class="mb-3"><label for="Decision" class="form-label">Decision</label><select id="Decision" name="Decision" class="form-select" required data-val="true" data-val-required="Select a decision."><option value="">Select a decision</option><option value="Approved">Approve</option><option value="Rejected">Reject</option><option value="Returned">Return for correction</option></select><span data-valmsg-for="Decision" data-valmsg-replace="true" class="text-danger"></span></div>
+<div class="mb-3"><label for="Comments" class="form-label">Review comments</label><textarea id="Comments" name="Comments" class="form-control" rows="3" aria-describedby="comments-help">@ViewContext.ViewData.ModelState["Comments"]?.AttemptedValue</textarea><span data-valmsg-for="Comments" data-valmsg-replace="true" class="text-danger"></span><div class="form-text" id="comments-help">A reason is required for rejection or return.</div></div><button type="submit" class="btn btn-primary">Save decision</button> }
+</form></section>
+} else if (Model.Actor.Officer && !Model.Actor.CanReview(request)) { <p class="form-text mt-4">Review is unavailable for your own requisition or a requisition from your department. Admins have read-only access.</p> }
+<h2 class="requisition-section-title">Review decisions</h2>
+@if (Model.Reviews.Count == 0) { <p>No review decisions yet.</p> }
+<ol class="requisition-history">@foreach (var review in Model.Reviews) { <li><strong>@RequisitionDisplay.Status(review.Outcome)</strong><small>@review.ReviewedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC</small><p class="requisition-text">@review.Comments</p></li> }</ol>
+<h2 class="requisition-section-title">Change history</h2><ol class="requisition-history">@foreach (var entry in Model.History) { <li><strong>@RequisitionDisplay.Action(entry.Action)</strong><small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @entry.PreviousStatus &#8594; @entry.NewStatus</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
+<a asp-action="Index" class="btn btn-outline-secondary">Back to requisitions</a>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/requisitions.js" asp-append-version="true"></script> }

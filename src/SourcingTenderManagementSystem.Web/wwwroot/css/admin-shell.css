@@ -1,0 +1,52 @@
+/* Shared authenticated Admin identity. Other roles and the public website are unchanged. */
+.admin-workspace {
+  --sidebar:240px; --ink:#0b1220; --muted:#64748b; --paper:#f3f6fb; --surface:#fff;
+  --line:#e1e8f2; --accent:#2563eb; --accent-dark:#1d4ed8; --lime:#e0f2fe;
+  --admin-blue:#2563eb; --admin-cyan:#0891b2; --admin-slate:#94a3b8;
+  --admin-amber:#b77908; --admin-rose:#bd4a66;
+  background:var(--paper); color:var(--ink);
+}
+.admin-workspace .sidebar { background:radial-gradient(ellipse at 0 0,#18335280,transparent 65%),#0b1220; border-right:1px solid #1d2b42; padding:28px 16px 20px; }
+.admin-workspace .sidebar .brand { margin:0 10px 36px; font-size:1.1rem; }
+.admin-workspace .brand-mark { background:#2563eb; color:#fff; border-radius:12px; width:39px; height:39px; box-shadow:0 5px 20px #2563eb25; }
+.admin-workspace .brand-sub { color:#94a3b8; }
+.admin-workspace .nav-label { color:#7f92ae; font-size:.61rem; letter-spacing:.15em; margin:26px 14px 12px; }
+.admin-workspace .side-links { gap:4px; }
+.admin-workspace .side-link { min-height:43px; color:#bac9dd; border:1px solid transparent; border-radius:10px; padding:11px 14px; font-size:.85rem; }
+.admin-workspace .side-link:hover { color:#fff; background:#16243b; transform:none; }
+.admin-workspace .side-link.active { background:linear-gradient(100deg,#2563eb38,#2563eb16); color:#fff; border-color:#2563eb55; box-shadow:inset 3px 0 #38bdf8; }
+.admin-workspace .side-link.active:after { background:#38bdf8; }
+.admin-workspace .side-link:focus-visible,.admin-workspace .logout-button:focus-visible { outline:2px solid #38bdf8; outline-offset:3px; }
+.admin-workspace .sidebar-bottom { padding-top:24px; }
+.admin-workspace .account-block { border-color:#24314b; padding:15px 10px; }
+.admin-workspace .avatar { background:#182e4c; color:#7dd3fc; }
+.admin-workspace .account-name small { color:#8ea1ba; }
+.admin-workspace .logout-button { color:#b9c9dc; }
+.admin-workspace .topbar { height:78px; border-bottom:1px solid #e1e8f2; background:#ffffffd9; padding-inline:32px; gap:16px; }
+.admin-workspace .topbar-context { color:#7d8a9c; font-size:.76rem; }
+.admin-workspace .topbar-context strong { color:#0f172a; }
+.admin-workspace .workspace-tag { display:none; }
+.admin-header-identity { display:flex; align-items:center; gap:10px; margin-left:auto; min-width:0; max-width:45%; }
+.admin-header-identity>span { display:grid; place-items:center; width:35px; height:35px; flex:0 0 35px; border:1px solid #bfdbfe; background:#eff6ff; color:#1d4ed8; font-size:.82rem; border-radius:11px; font-weight:650; }
+.admin-header-identity>div { min-width:0; }.admin-header-identity strong { display:block; font-size:.8rem; font-weight:600; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; }.admin-header-identity small { display:block; font-size:.65rem; color:#64748b; margin-top:2px; }
+.admin-workspace .content-area { padding:32px; max-width:1600px; width:100%; margin-inline:auto; }
+.admin-workspace .app-footer { border-color:#e1e8f2; color:#7d8a9c; margin-inline:32px; font-size:.7rem; }
+.admin-workspace :focus-visible { outline:3px solid #38bdf8; outline-offset:4px; }
+/* Existing module components adopt the dashboard tokens without changing their markup or behavior. */
+.admin-workspace .breadcrumb-line{margin-bottom:24px;font-size:.75rem}.admin-workspace .breadcrumb-line span[aria-hidden]{color:#94a3b8}
+.admin-workspace .page-heading{margin-bottom:28px;gap:20px}.admin-workspace .page-heading h1,.admin-workspace .collection-heading h1{font-size:clamp(1.65rem,2.5vw,2.15rem);letter-spacing:-.04em;color:#0b1220}
+.admin-workspace .page-intro{font-size:clamp(1.15rem,2vw,1.6rem);color:#334155}.admin-workspace .eyebrow{color:#617b9e}.admin-workspace .record-count>span{color:#0f172a}.admin-workspace .record-count small{color:#64748b}
+.admin-workspace .btn-primary{--bs-btn-bg:#2563eb;--bs-btn-border-color:#2563eb;--bs-btn-hover-bg:#1d4ed8;--bs-btn-hover-border-color:#1d4ed8;background:#2563eb;border-color:#2563eb;box-shadow:0 6px 18px -12px #2563eb80;color:#fff}
+.admin-workspace .btn-primary:hover{background:#1d4ed8;border-color:#1d4ed8;box-shadow:0 8px 20px -12px #2563eb80}.admin-workspace .btn-outline-secondary{color:#334155;border-color:#cbd8e7;background:#fff}.admin-workspace .btn-outline-secondary:hover{color:#1d4ed8;background:#eff6ff;border-color:#93c5fd}
+.admin-workspace .table-responsive{position:relative;background:#fff;border:1px solid #e1e8f2;border-radius:15px;box-shadow:0 3px 7px #0b122003}.admin-workspace .table{--bs-table-color:#334155;--bs-table-bg:transparent;--bs-table-border-color:#e8eef6;margin-bottom:0}
+.admin-workspace .table>thead>tr>th{background:#f8fafc;color:#64748b;font-size:.72rem;font-weight:600;letter-spacing:.03em;border-color:#e1e8f2;padding:16px 22px}.admin-workspace .table>tbody>tr>td,.admin-workspace .table>tbody>tr>th{border-color:#e8eef6;padding:19px 22px}.admin-workspace .table>tbody>tr:hover{--bs-table-bg:#f8fbff;background:#f8fbff}.admin-workspace .table caption{color:#71839b;padding:13px 22px;font-size:.75rem}
+.admin-workspace .table-action{color:#1d4ed8;background:#eff6ff;border-color:#dbeafe}.admin-workspace .table-action:hover{background:#dbeafe;color:#1d4ed8}.admin-workspace .status-pill{color:#1d4ed8;background:#eff6ff;border-color:#dbeafe}.admin-workspace .status-pill:before{background:#2563eb}.admin-workspace .status-disabled{color:#9f3c53;background:#fff1f4}.admin-workspace .status-disabled:before{background:#bd4a66}.admin-workspace .status-locked{color:#94620c;background:#fff7e8}.admin-workspace .status-locked:before{background:#b77908}
+.admin-workspace .form-panel,.admin-workspace .document-panel,.admin-workspace .message-panel,.admin-workspace .requisition-detail-panel{color:#0f172a;background:#fff;border-color:#e1e8f2;border-radius:16px;box-shadow:0 4px 18px -12px #0b122018}
+.admin-workspace .form-control,.admin-workspace .form-select{background-color:#fbfdff;border-color:#cbd8e7;color:#0f172a}.admin-workspace .form-control:hover,.admin-workspace .form-select:hover{border-color:#9bb8df}.admin-workspace .form-control:focus,.admin-workspace .form-select:focus{background:#fff;border-color:#2563eb;box-shadow:0 0 0 3px #2563eb15}.admin-workspace .form-check-input:checked{background-color:#2563eb;border-color:#2563eb}.admin-workspace .input-validation-error{border-color:var(--danger);background:#fffafa}
+.admin-workspace .requisition-history li{background:#fff;border-color:#e1e8f2}.admin-workspace .requisition-history li:before{border-color:#bfdbfe;background:#eff6ff}.admin-workspace .supplier-facts dt{color:#64748b}
+.admin-workspace .badge.text-bg-secondary{background:#eff6ff!important;color:#426795!important}
+@media(max-width:1150px){.admin-workspace .content-area{padding:24px}.admin-workspace .topbar{padding-inline:24px}}
+@media(max-width:600px){.admin-workspace .content-area{padding:24px 16px}.admin-workspace .topbar{padding-inline:16px;height:68px}.admin-header-identity{max-width:45%;gap:7px}.admin-header-identity>span{width:30px;height:30px;flex-basis:30px}.admin-header-identity small{display:none}.admin-header-identity strong{font-size:.7rem}.admin-workspace .topbar-context{font-size:.72rem;gap:7px}.admin-workspace .app-footer{margin-inline:16px}.admin-workspace .page-heading{align-items:flex-start;gap:14px}.admin-workspace .table>thead>tr>th,.admin-workspace .table>tbody>tr>td{padding:15px}.admin-workspace .record-count>span{font-size:1.8rem}}
+/* Embedded MVC forms retain the modal's compact layout, even with the shared Admin theme loaded. */
+.workspace-popup-embed .admin-workspace .content-area{padding:24px}.workspace-popup-embed .admin-workspace .form-panel{width:100%;max-width:none}
+@media(max-width:600px){.workspace-popup-embed .admin-workspace .content-area{padding:12px}}

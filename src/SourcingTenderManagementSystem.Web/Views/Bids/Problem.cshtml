@@ -1,0 +1,4 @@
+@model string
+@{ ViewData["Title"] = "Offer action could not be completed"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace"><section class="bid-panel bid-empty"><span class="eyebrow">PLEASE REVIEW</span><h1>Offer action could not be completed</h1><p role="alert">@Model</p><p>Open your offer again to review its current state before retrying. Unsaved inputs and selected files may need to be entered again.</p><a class="btn btn-primary" asp-action="Index">Back to My Offers</a></section></div>

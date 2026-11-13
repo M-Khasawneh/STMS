@@ -1,0 +1,20 @@
+@model IReadOnlyList<SupplierOfferRow>
+@{ ViewData["Title"] = "My Offers"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace">
+    <header class="page-heading"><div><div class="eyebrow">SUPPLIER WORKSPACE / OFFERS</div><h1>My Offers</h1><p>Your proposals, from working draft to final submission.</p></div><a class="btn btn-primary" asp-controller="Tenders" asp-action="Inbox">Browse my invitations <span aria-hidden="true">↗</span></a></header>
+    <div class="bid-banner"><span class="bid-orbit" aria-hidden="true">↗</span><p><strong>Your offers stay private.</strong> Only your own offers appear here. Final submission locks the offer and all its documents.</p><span class="bid-count">@Model.Count <span>offers</span></span></div>
+    @if (Model.Count == 0)
+    {
+        <section class="bid-panel bid-empty"><span class="eyebrow">READY WHEN YOU ARE</span><h2>Your next offer starts with an invitation.</h2><p>Accept an eligible tender invitation, then create your draft during its Open submission period.</p><a asp-controller="Tenders" asp-action="Inbox" class="quiet-link">View my invitations →</a></section>
+    }
+    else
+    {
+        <div class="table-responsive bid-table" role="region" aria-label="My offers" tabindex="0"><table class="table align-middle"><caption class="visually-hidden">Offers belonging to your supplier account. All times use Asia/Amman.</caption><thead><tr><th scope="col">Tender / offer</th><th scope="col">Status</th><th scope="col">Submitted · Asia/Amman</th><th scope="col">Actions</th></tr></thead><tbody>
+        @foreach (var row in Model)
+        {
+            <tr><th scope="row"><a asp-action="Details" asp-route-id="@row.Bid.Id">@row.Tender.Title</a><small class="bid-reference">@row.Bid.Id</small></th><td><span class="bid-status @(row.Bid.Status == BidStatus.Draft ? "is-draft" : "")">@row.Bid.Status</span></td><td>@(row.Bid.SubmittedAt.HasValue ? TenderTime.Local(row.Bid.SubmittedAt.Value).ToString("yyyy-MM-dd HH:mm") : "Not submitted")</td><td><div class="bid-actions"><a asp-action="Details" asp-route-id="@row.Bid.Id">View</a>@if (row.CanEdit) { <a asp-action="Edit" asp-route-id="@row.Bid.Id">Edit draft</a> }<a asp-action="Summary" asp-route-id="@row.Bid.Id" download>Download summary</a></div></td></tr>
+        }
+        </tbody></table></div>
+    }
+</div>

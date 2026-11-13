@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SourcingTenderManagementSystem.Web/SourcingTenderManagementSystem.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SourcingTenderManagementSystem.AuthenticationChecks/SourcingTenderManagementSystem.AuthenticationChecks.csproj" />
+    <Project Path="tests/SourcingTenderManagementSystem.SchemaChecks/SourcingTenderManagementSystem.SchemaChecks.csproj" />
+  </Folder>
+</Solution>
