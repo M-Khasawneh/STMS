@@ -1,0 +1,6 @@
+.unified-report-workspace .table-responsive { max-width: 100%; overscroll-behavior-x: contain; }
+.unified-report-workspace .table { min-width: 720px; }
+.unified-report-workspace .report-breakdown { min-width: 560px; }
+.unified-report-workspace .table th:first-child { min-width: 180px; }
+.unified-report-workspace .table td { min-width: 110px; }
+.unified-report-workspace .table th, .unified-report-workspace .table td { overflow-wrap: break-word; word-break: normal; }

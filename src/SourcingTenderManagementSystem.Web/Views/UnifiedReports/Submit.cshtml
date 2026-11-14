@@ -1,0 +1,12 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
+@{ ViewData["Title"] = "Submit unified report"; }
+<section class="requisition-detail-panel">
+    <h1>Submit the saved committee report</h1><p>@Model.Tender.Title</p>
+    @if (Model.CanEdit && Model.Ready && Model.Report is not null && Model.Report.RecommendedBidId.HasValue && !string.IsNullOrWhiteSpace(Model.Report.FinalResult) && !string.IsNullOrWhiteSpace(Model.Report.Recommendation)) {
+        <h2>Recommended supplier</h2><p>@Model.Snapshot?.Offers.FirstOrDefault(x => x.BidId == Model.Report.RecommendedBidId)?.Supplier</p>
+        <h2>Final result</h2><p class="requisition-text">@Model.Report.FinalResult</p><h2>Recommendation</h2><p class="requisition-text">@Model.Report.Recommendation</p>
+        <p>Submission fixes the report contents and sends the tender to Awaiting Manager Review.</p>
+        <form asp-action="Submit" asp-route-id="@Model.Tender.Id" method="post"><input name="version" type="hidden" value="@Model.Form.Version" /><label><input name="accept" value="true" type="checkbox" required /> I confirm that the saved committee report is ready for manager review.</label><button class="btn btn-primary" type="submit">Submit report</button></form>
+    } else { <p role="status">Save a recommended offer, final result and substantiated recommendation. Complete evaluations and the current technical appointment are required.</p> }
+    <a asp-action="Details" asp-route-id="@Model.Tender.Id">Back to the full report</a>
+</section>

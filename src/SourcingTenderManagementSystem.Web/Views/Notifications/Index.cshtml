@@ -11,6 +11,8 @@
             var destination = User.IsInRole("Supplier") ? "Bids" : "ReviewBids";
             if (item.Subject is "Clarification requested" or "Clarification answered") { destination = "Compliance"; }
             <a asp-controller="@destination" asp-action="Details" asp-route-id="@item.BidId" class="table-action">View offer</a>
+        } else if (item.TenderId.HasValue && item.Subject == "Unified report submitted") {
+            <a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@item.TenderId" class="table-action">View unified report</a>
         } else if (item.TenderId.HasValue && item.Subject == "Evaluation started") {
             <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@item.TenderId" class="table-action">View offers to evaluate</a>
         } else if (item.TenderId.HasValue) {

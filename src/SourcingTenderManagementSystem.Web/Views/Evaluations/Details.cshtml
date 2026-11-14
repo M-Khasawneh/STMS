@@ -5,6 +5,7 @@
 <div class="bid-workspace compliance-workspace">
     <header class="page-heading"><div><span class="eyebrow">COMMITTEE EVALUATION</span><h1>Technical &amp; financial evaluation</h1><p>@Model.Tender.Title · @Model.SupplierName</p></div></header>
     <a asp-controller="ReviewBids" asp-action="Details" asp-route-id="@Model.Bid.Id">← Offer and private documents</a>
+    <a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@Model.Tender.Id">Unified committee report</a>
     <section class="bid-panel"><h2>Confirmed evaluations · @Model.ConfirmedMembers / 4</h2>
         @if (Model.Results.Count > 0) {
             <div class="table-responsive" tabindex="0" role="region" aria-label="Weighted evaluation results"><table class="table"><thead><tr><th scope="col">Criterion</th><th scope="col">Type</th><th scope="col">Weight</th><th scope="col">Average / 100</th><th scope="col">Weighted points</th></tr></thead><tbody>

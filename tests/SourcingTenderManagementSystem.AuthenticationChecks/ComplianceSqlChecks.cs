@@ -18,8 +18,9 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 
 public static class ComplianceSqlChecks
 {
-    public static async Task RunAsync(bool committeeChecks = false, bool evaluationChecks = false, bool cleanupOnly = false)
+    public static async Task RunAsync(bool committeeChecks = false, bool evaluationChecks = false, bool cleanupOnly = false, bool reportChecks = false)
     {
+        evaluationChecks = evaluationChecks || reportChecks;
         using var settings = JsonDocument.Parse(await File.ReadAllTextAsync("src/SourcingTenderManagementSystem.Web/appsettings.json"));
         var connection = settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
         var target = new SqlConnectionStringBuilder(connection);
@@ -39,6 +40,7 @@ public static class ComplianceSqlChecks
         services.AddScoped<CommitteeManagement>();
         services.AddScoped<TenderManagement>();
         services.AddScoped<EvaluationManagement>();
+        services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>();
         await using var provider = services.BuildServiceProvider();
         var userIds = Enumerable.Range(0, evaluationChecks ? 8 : committeeChecks ? 7 : 3).Select(i => marker + "-" + i).ToArray();
         var tenderId = Guid.NewGuid(); var bidId = Guid.NewGuid(); var requestId = Guid.NewGuid();
@@ -47,6 +49,11 @@ public static class ComplianceSqlChecks
         using (var scope = provider.CreateScope()) {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             if ((await db.Database.GetPendingMigrationsAsync()).Any()) throw new Exception("Apply approved migrations before tests.");
+            if (reportChecks) {
+                var reports = await db.EvaluationReports.AsNoTracking().ToListAsync();
+                if (reports.GroupBy(x => x.TenderId).Any(x => x.Count() > 1)) throw new Exception("Existing duplicate report records. Stopped before test writes.");
+                Console.WriteLine($"Read-only report preflight: {reports.Count} existing reports; no duplicate tender reports.");
+            }
             if (cleanupOnly) {
                 var rows = await db.Users.AsNoTracking().Where(x => x.UserName!.StartsWith("compliance-check-")).ToListAsync();
                 var pattern = new System.Text.RegularExpressions.Regex("^(compliance-check-[a-f0-9]{32})-[0-7]$");
@@ -118,7 +125,7 @@ public static class ComplianceSqlChecks
                 await db.SaveChangesAsync();
             }
             if (evaluationChecks) {
-                await EvaluationSqlChecks.VerifyAsync(provider, userIds, tenderId, bidId, value => failure.Enabled = value);
+                await EvaluationSqlChecks.VerifyAsync(provider, userIds, tenderId, bidId, value => failure.Enabled = value, reportChecks);
                 return;
             }
             if (committeeChecks) {
@@ -184,16 +191,20 @@ public static class ComplianceSqlChecks
             await db.ComplianceReviews.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
             await db.Notifications.Where(x => x.BidId == bidId || x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.AuditLogs.Where(x => userIds.Contains(x.ActorUserId!)).ExecuteDeleteAsync();
+            await db.EvaluationReports.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.TechnicalEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.FinancialEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.EvaluationCriteria.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.CommitteeMembers.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.CommitteeAssignments.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
+            await db.BidItems.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
+            await db.BidCostComponents.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
             await db.Bids.Where(x => x.Id == bidId).ExecuteDeleteAsync();
             await db.Invitations.Where(x => x.TenderSupplierId == linkId).ExecuteDeleteAsync();
             await db.TenderSuppliers.Where(x => x.Id == linkId).ExecuteDeleteAsync();
             await db.TenderPurchaseRequisitions.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.Tenders.Where(x => x.Id == tenderId).ExecuteDeleteAsync();
+            await db.PurchaseRequisitionItems.Where(x => x.PurchaseRequisitionId == requestId).ExecuteDeleteAsync();
             await db.PurchaseRequisitions.Where(x => x.Id == requestId).ExecuteDeleteAsync();
             await db.SupplierProfiles.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync();
             await db.EmployeeDepartments.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync();
@@ -215,7 +226,7 @@ public static class ComplianceSqlChecks
         public bool Enabled;
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
         {
-            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced" or "EvaluationConfirmed")) throw new InjectedAuditFailure();
+            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced" or "EvaluationConfirmed" or "ReportSubmitted")) throw new InjectedAuditFailure();
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
     }

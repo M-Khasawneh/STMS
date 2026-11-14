@@ -39,6 +39,7 @@ builder.Services.AddScoped<IComplianceManagement, ComplianceManagement>();
 builder.Services.AddScoped<CommitteeManagement>();
 builder.Services.AddScoped<EvaluationManagement>();
 builder.Services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>());
+builder.Services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>();
 builder.Services.AddScoped<IPrivateBidFiles, PrivateBidFiles>();
 builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
 builder.Services.AddScoped<BidDocumentManagement>();

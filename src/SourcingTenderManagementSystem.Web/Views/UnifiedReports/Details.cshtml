@@ -1,0 +1,91 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ ViewData["Title"] = "Unified evaluation report"; var submitted = Model.Report?.SubmittedAt.HasValue == true; }
+@section Styles {
+    <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/unified-reports.css" asp-append-version="true" />
+}
+<div class="bid-workspace compliance-workspace unified-report-workspace">
+    <header class="page-heading">
+        <div><span class="eyebrow">COMMITTEE REPORT</span><h1>Unified evaluation report</h1><p>@Model.Tender.Title</p></div>
+        <span class="bid-status">@(submitted ? "Submitted" : Model.Report is null ? "Not prepared" : "Draft")</span>
+    </header>
+    <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@Model.Tender.Id">← Submitted offers</a>
+    @if (submitted) { <p role="status">Submitted @TenderTime.Display(Model.Report!.SubmittedAt!.Value). The report below preserves the information captured at submission.</p> }
+    @if (!submitted && !Model.Ready) { <div class="alert alert-info" role="status">Every compliant offer requires confirmed evaluations from all four current members before report preparation.</div> }
+    @if (Model.Snapshot is { } snapshot) {
+        <section class="bid-panel">
+            <h2>Committee</h2>
+            <ul>@foreach (var member in snapshot.Members) { <li><strong>@member.Position</strong> · @member.Name</li> }</ul>
+            <h3>Approved criteria</h3>
+            <ul>@foreach (var criterion in snapshot.Criteria) { <li>@criterion.Name · @criterion.Kind · @criterion.Weight.ToString("0.######")%</li> }</ul>
+        </section>
+        <section class="bid-panel">
+            <h2>Supplier comparison</h2>
+            <div class="table-responsive" role="region" aria-label="Unified supplier comparison" tabindex="0">
+                <table class="table report-comparison">
+                    <thead><tr><th scope="col">Supplier</th><th scope="col">Compliance</th><th scope="col">Total JOD</th><th scope="col">Confirmed members</th><th scope="col">Technical points</th><th scope="col">Financial points</th><th scope="col">Total / 100</th></tr></thead>
+                    <tbody>
+                    @foreach (var offer in snapshot.Offers) {
+                        var complete = offer.Results.Count == snapshot.Criteria.Count && offer.Results.Count > 0;
+                        <tr>
+                            <th scope="row">@offer.Supplier</th><td>@offer.Status</td><td>@offer.Total.ToString("N6")</td><td>@offer.ConfirmedMembers / 4</td>
+                            <td>@(complete ? offer.Results.Where(p => snapshot.Criteria.Single(c => c.Id == p.CriterionId).Kind == EvaluationKind.Technical).Sum(p => p.WeightedPoints).ToString("0.######") : "—")</td>
+                            <td>@(complete ? offer.Results.Where(p => snapshot.Criteria.Single(c => c.Id == p.CriterionId).Kind == EvaluationKind.Financial).Sum(p => p.WeightedPoints).ToString("0.######") : "—")</td>
+                            <td>@(complete ? offer.Results.Sum(p => p.WeightedPoints).ToString("0.######") : "—")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        @foreach (var offer in snapshot.Offers) {
+            <section class="bid-panel">
+                <h2>@offer.Supplier</h2>
+                <dl class="bid-facts"><div><dt>Payment terms</dt><dd>@offer.PaymentTerms</dd></div><div><dt>Delivery</dt><dd>@offer.Delivery</dd></div><div><dt>Offer valid until</dt><dd>@offer.ValidUntil</dd></div></dl>
+                <div class="table-responsive" role="region" aria-label="Offer item comparison" tabindex="0">
+                    <table class="table"><thead><tr><th scope="col">Item</th><th scope="col">Specifications</th><th scope="col">Quantity</th><th scope="col">Unit price JOD</th><th scope="col">Total JOD</th></tr></thead><tbody>
+                    @foreach (var item in offer.Items) { <tr><th scope="row">@item.Description</th><td>@item.Specifications</td><td>@item.Quantity.ToString("0.######")</td><td>@item.UnitPrice.ToString("N6")</td><td>@item.Total.ToString("N6")</td></tr> }
+                    </tbody></table>
+                </div>
+                @if (offer.Charges.Count > 0) { <h3>Taxes, fees and additional costs</h3><ul>@foreach (var charge in offer.Charges) { <li>@charge.Type · @charge.Amount.ToString("N6") JOD</li> }</ul> }
+                @if (offer.ComplianceReasons.Count > 0) { <h3>Compliance record</h3><ul>@foreach (var reason in offer.ComplianceReasons) { <li class="compliance-text">@reason</li> }</ul> }
+                @if (offer.Notes.Count > 0) {
+                    <h3>Evaluation breakdown</h3>
+                    <div class="table-responsive" role="region" aria-label="Criterion score breakdown" tabindex="0"><table class="table report-breakdown">
+                        <thead><tr><th scope="col">Criterion</th><th scope="col">Weight</th><th scope="col">Average / 100</th><th scope="col">Weighted points</th></tr></thead>
+                        <tbody>@foreach (var result in offer.Results) { var criterion = snapshot.Criteria.Single(x => x.Id == result.CriterionId); <tr><th scope="row">@criterion.Name</th><td>@criterion.Weight.ToString("0.######")%</td><td>@result.Average.ToString("0.######")</td><td>@result.WeightedPoints.ToString("0.######")</td></tr> }</tbody>
+                    </table></div>
+                    <h3>Confirmed committee assessments</h3>
+                    <ul>@foreach (var note in offer.Notes) { <li><strong>@note.MemberName · @snapshot.Criteria.Single(c => c.Id == note.CriterionId).Name · @note.Score.ToString("0.######") / 100</strong><p class="compliance-text">@note.Notes</p><p class="compliance-text">@note.NonCompliance</p><small>@TenderTime.Display(note.ConfirmedAt)</small></li> }</ul>
+                }
+            </section>
+        }
+    } else if (Model.Report is { } legacy) {
+        <section class="bid-panel"><h2>Technical summary</h2><p class="compliance-text">@legacy.TechnicalSummary</p><h2>Financial summary</h2><p class="compliance-text">@legacy.FinancialSummary</p><h2>Comparison</h2><p class="compliance-text">@legacy.Comparison</p></section>
+    }
+    @if (Model.CanEdit && Model.Ready) {
+        <section class="bid-panel">
+            <h2>Committee findings and recommendation</h2>
+            <form asp-action="Save" asp-route-id="@Model.Tender.Id" method="post">
+                <div asp-validation-summary="All" class="text-danger" role="alert"></div><input asp-for="Form.Version" type="hidden" />
+                <label asp-for="Form.RecommendedBidId">Recommended offer</label>
+                <select asp-for="Form.RecommendedBidId" class="form-select"><option value="">Choose a compliant evaluated offer</option>@foreach (var offer in Model.Snapshot!.Offers.Where(x => x.Status == BidStatus.Compliant)) { <option value="@offer.BidId">@offer.Supplier</option> }</select>
+                <label asp-for="Form.Observations">Combined observations</label><textarea asp-for="Form.Observations" class="form-control" rows="4" maxlength="12000"></textarea>
+                <label asp-for="Form.NonCompliance">Additional non-compliance observations</label><textarea asp-for="Form.NonCompliance" class="form-control" rows="3" maxlength="12000"></textarea>
+                <label asp-for="Form.FinalResult">Final result</label><textarea asp-for="Form.FinalResult" class="form-control" rows="3" maxlength="12000"></textarea>
+                <label asp-for="Form.Recommendation">Substantiated recommendation</label><textarea asp-for="Form.Recommendation" class="form-control" rows="4" maxlength="12000"></textarea>
+                <button class="btn btn-primary" type="submit">Save report draft</button>
+            </form>
+            @if (Model.Report is not null) { <a asp-action="Submit" asp-route-id="@Model.Tender.Id" class="btn btn-outline-primary mt-3">Review saved report &amp; submit</a> }
+        </section>
+    } else if (Model.Report is { } report) {
+        <section class="bid-panel"><h2>Committee findings</h2><p class="compliance-text">@report.Observations</p><h3>Additional non-compliance observations</h3><p class="compliance-text">@report.NonCompliance</p><h3>Final result</h3><p class="compliance-text">@report.FinalResult</p><h3>Recommendation</h3><p class="compliance-text">@report.Recommendation</p>
+            @if (report.RecommendedBidId.HasValue) { <p>Recommended supplier · @(Model.Snapshot?.Offers.FirstOrDefault(x => x.BidId == report.RecommendedBidId)?.Supplier ?? report.RecommendedBidId.ToString())</p> }
+        </section>
+    }
+    <section class="bid-panel"><h2>Report activity</h2><ol class="requisition-history">@foreach (var entry in Model.History) { <li><strong>@(entry.Action == "ReportSubmitted" ? "Report submitted" : "Report draft saved")</strong><small>@TenderTime.Display(entry.OccurredAt)</small></li> }</ol></section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

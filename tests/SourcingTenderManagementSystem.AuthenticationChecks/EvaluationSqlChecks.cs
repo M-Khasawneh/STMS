@@ -9,7 +9,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 
 internal static class EvaluationSqlChecks
 {
-    public static async Task VerifyAsync(IServiceProvider provider, string[] users, Guid tenderId, Guid bidId, Action<bool> failAudit)
+    public static async Task VerifyAsync(IServiceProvider provider, string[] users, Guid tenderId, Guid bidId, Action<bool> failAudit, bool reportChecks = false)
     {
         var count = 0;
         void Check(bool condition, string message) { if (!condition) throw new Exception(message); count++; Console.WriteLine("PASS: " + message); }
@@ -125,5 +125,6 @@ internal static class EvaluationSqlChecks
             return true;
         });
         Console.WriteLine($"PASS: {count} SQL evaluation checks. Shared fixture cleanup removes all temporary rows.");
+        if (reportChecks) await UnifiedReportSqlChecks.VerifyAsync(provider, users, tenderId, bidId, failAudit);
     }
 }

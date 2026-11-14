@@ -8,7 +8,7 @@
     }
     @foreach (var group in Model.GroupBy(x => x.Tender.Id)) {
         <section class="bid-panel">
-            <div class="bid-section-heading"><h2>@group.First().Tender.Title</h2><a asp-action="Compare" asp-route-tenderId="@group.Key">Compare offers →</a></div>
+            <div class="bid-section-heading"><h2>@group.First().Tender.Title</h2><a asp-action="Compare" asp-route-tenderId="@group.Key">Compare offers →</a><a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@group.Key">Unified report</a></div>
             <div class="table-responsive" tabindex="0" role="region" aria-label="Submitted offers"><table class="table"><thead><tr><th scope="col">Supplier / offer reference</th><th scope="col">Status</th><th scope="col">Submitted · Asia/Amman</th><th scope="col">Actions</th></tr></thead><tbody>
             @foreach (var row in group) {
                 <tr><th scope="row">@row.SupplierName<br /><small>@row.Bid.Id</small></th><td>@row.Bid.Status</td><td>@TenderTime.Display(row.Bid.SubmittedAt!.Value)</td><td><a asp-action="Details" asp-route-id="@row.Bid.Id">View offer</a></td></tr>
