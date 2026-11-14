@@ -20,4 +20,6 @@ User request: an Admin messages section, dashboard message count, stacked notifi
 - Regressions passed: 44 Admin dashboard browser checks, 36 Admin dashboard service/MVC checks, 45 workspace role/routing checks, 19 Contact checks and the existing database-free authentication/Employee/Department suite.
 - SQL read-state/persistence checks are prepared behind the explicit `--inbox-sql-checks-only` command. They must not run without this task's separate approval. The fixture encloses all temporary users, notifications and read updates in a rollback transaction and verifies existing data fingerprints afterward.
 
-The dropdown uses the current page's bounded notification snapshot; it does not add polling or background notification delivery. The View all page retrieves current data. SQL write-test outcome is recorded separately after approval.
+The dropdown uses the current page's bounded notification snapshot; it does not add polling or background notification delivery. The View all page retrieves current data.
+
+After separate user approval, `--inbox-sql-checks-only` passed all 18 SQL checks. Verified actual Contact persistence, matching Admin message/dashboard counts, recipient isolation, conditional read timestamp updates, unread counter changes, repeated-read idempotence, stale/mixed-role rejection and failed-save behavior. The transaction was rolled back completely; fingerprints confirmed existing users, role assignments and notifications matched their baseline. No test records were committed and no migrations were applied.
