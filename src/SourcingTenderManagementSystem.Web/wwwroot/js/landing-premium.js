@@ -1,59 +1,93 @@
-/* Native motion adaptation of the 21st hero/nav references. No runtime dependencies. */
+/* Native MVC animation system. Existing home.js owns public navigation. */
 (() => {
     'use strict';
-    if (!document.body.classList.contains('premium-landing')) return;
+    const root = document.querySelector('.landing-redesign');
+    if (!root) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const pointer = matchMedia('(hover: hover) and (pointer: fine)');
-    const hero = document.querySelector('.stms-hero');
-    const cards = [...document.querySelectorAll('[data-landing-reveal]')];
+    const fine = matchMedia('(hover: hover) and (pointer: fine)');
     const active = new Set();
-    let frame = 0;
+    const steps = [...root.querySelectorAll('.lp-steps li')];
+    const meter = root.querySelector('.lp-workflow-meter');
+    const meterLabel = root.querySelector('[data-workflow-label]');
+    const visual = root.querySelector('.lp-visual');
+    let pointerFrame = 0;
+    let scrollFrame = 0;
 
-    // Content stays visible until an actual animation starts. Failed or absent APIs leave it readable.
-    const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+    function animate(element, delay = 0) {
+        if (reduced.matches || !element.animate) return;
+        const animation = element.animate([
+            { opacity: 0, transform: 'translateY(30px)', filter: 'blur(3px)' },
+            { opacity: 1, transform: 'translateY(0)', filter: 'blur(0)' }
+        ], { duration: 850, delay, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        active.add(animation);
+        animation.finished.then(() => active.delete(animation)).catch(() => active.delete(animation));
+    }
+
+    root.querySelectorAll('[data-enter]').forEach((element, index) => animate(element, index * 75));
+    const reveal = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
         entries.forEach(entry => {
             if (!entry.isIntersecting) return;
-            observer.unobserve(entry.target);
-            if (reduced.matches || !entry.target.animate) return;
-            const animation = entry.target.animate([
-                { opacity: 0, transform: 'translateY(28px) scale(.98)' },
-                { opacity: 1, transform: 'translateY(0) scale(1)' }
-            ], { duration: 700, delay: cards.indexOf(entry.target) * 80, easing: 'cubic-bezier(.22,1,.36,1)' });
-            active.add(animation);
-            animation.finished.then(() => active.delete(animation)).catch(() => active.delete(animation));
+            reveal.unobserve(entry.target);
+            const siblings = [...entry.target.parentElement.children];
+            animate(entry.target, Math.min(siblings.indexOf(entry.target), 3) * 75);
         });
     }, { threshold: .12 }) : null;
-    cards.forEach(card => observer?.observe(card));
+    root.querySelectorAll('[data-reveal]').forEach(element => reveal?.observe(element));
 
-    const trackPointer = event => {
-        if (reduced.matches || !pointer.matches || frame) return;
-        const card = event.target.closest('[data-landing-reveal]');
-        const target = card || (hero?.contains(event.target) ? hero : null);
-        if (!target) return;
+    function updateWorkflow() {
+        scrollFrame = 0;
+        const positions = steps.map(step => step.getBoundingClientRect().top);
+        const threshold = innerHeight * .48;
+        let current = 0;
+        positions.forEach((top, index) => { if (top <= threshold) current = index; });
+        steps.forEach((step, index) => step.classList.toggle('is-current', index === current));
+        meter?.style.setProperty('--workflow-progress', String((current + 1) / steps.length));
+        if (meterLabel) meterLabel.textContent = steps[current].querySelector('h3').textContent;
+    }
+    function scheduleScroll() {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(updateWorkflow);
+    }
+    window.addEventListener('scroll', scheduleScroll, { passive: true });
+    window.addEventListener('resize', scheduleScroll);
+    scheduleScroll();
+
+    root.addEventListener('pointermove', event => {
+        if (reduced.matches || !fine.matches || pointerFrame) return;
+        const card = event.target.closest('.lp-feature');
+        const inVisual = visual?.contains(event.target);
+        if (!card && !inVisual) return;
         const x = event.clientX, y = event.clientY;
-        frame = requestAnimationFrame(() => {
-            frame = 0;
-            const bounds = target.getBoundingClientRect();
+        pointerFrame = requestAnimationFrame(() => {
+            pointerFrame = 0;
+            const target = card || visual;
+            const box = target.getBoundingClientRect();
             if (card) {
-                card.style.setProperty('--card-x', `${x - bounds.left}px`);
-                card.style.setProperty('--card-y', `${y - bounds.top}px`);
+                card.style.setProperty('--card-x', `${x - box.left}px`);
+                card.style.setProperty('--card-y', `${y - box.top}px`);
             } else {
-                hero.style.setProperty('--spot-x', `${(x - bounds.left - bounds.width / 2) * .12}px`);
-                hero.style.setProperty('--spot-y', `${(y - bounds.top - bounds.height / 2) * .1}px`);
+                visual.style.setProperty('--visual-y', `${(x - box.left - box.width / 2) * .015}deg`);
+                visual.style.setProperty('--visual-x', `${-(y - box.top - box.height / 2) * .015}deg`);
             }
         });
+    }, { passive: true });
+    const resetVisual = () => {
+        visual?.style.removeProperty('--visual-x');
+        visual?.style.removeProperty('--visual-y');
     };
-    document.addEventListener('pointermove', trackPointer, { passive: true });
-    const reset = () => {
-        cancelAnimationFrame(frame);
-        frame = 0;
+    visual?.addEventListener('pointerleave', resetVisual);
+    function resetMotion() {
+        cancelAnimationFrame(pointerFrame);
+        pointerFrame = 0;
         active.forEach(animation => animation.cancel());
         active.clear();
-        hero?.style.removeProperty('--spot-x');
-        hero?.style.removeProperty('--spot-y');
-        cards.forEach(card => { card.style.removeProperty('--card-x'); card.style.removeProperty('--card-y'); });
-    };
-    reduced.addEventListener('change', reset);
-    pointer.addEventListener('change', reset);
-    window.addEventListener('pagehide', () => { reset(); observer?.disconnect(); });
+        resetVisual();
+    }
+    reduced.addEventListener('change', resetMotion);
+    fine.addEventListener('change', resetMotion);
+    window.addEventListener('pagehide', () => {
+        resetMotion();
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = 0;
+    });
+    window.addEventListener('pageshow', scheduleScroll);
 })();

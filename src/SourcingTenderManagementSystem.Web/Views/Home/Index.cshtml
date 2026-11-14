@@ -5,73 +5,80 @@
     ViewData["PremiumLanding"] = true;
 }
 @section Styles {
-    <meta name="description" content="One connected platform for purchase requests, tenders and supplier participation. Explore the sourcing process and access your STMS account." />
+    <meta name="description" content="STMS connects purchase requests, sourcing teams and suppliers through one traceable sourcing process." />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/home-motion.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/landing-premium.css" asp-append-version="true" />
 }
-<div class="stms-landing">
-    <section id="home" class="stms-hero" aria-labelledby="home-title">
-        <div class="stms-aurora" aria-hidden="true"><span class="stms-aurora-veil"></span><span class="stms-aurora-veil"></span><span class="stms-aurora-veil"></span><span class="stms-aurora-grid"></span></div>
-        <div class="stms-hero-copy">
-            <div class="stms-orb-wrap" aria-hidden="true"><div class="stms-orb"><span class="stms-orb-halo"></span><span class="stms-orb-core">st</span></div></div>
-            <div class="stms-eyebrow" data-hero-reveal><span class="stms-dot" aria-hidden="true"></span> SOURCING, CONNECTED.</div>
-            <h1 id="home-title"><span class="stms-hero-line"><span data-hero-reveal>Unified Platform for</span></span> <span class="stms-hero-line"><span class="stms-hero-gradient" data-hero-reveal>Sourcing &amp; Tender</span></span> <span class="stms-hero-line"><span class="stms-hero-gradient" data-hero-reveal>Management</span></span></h1>
-            <p class="stms-lead" data-hero-reveal>Bring purchase requests, tenders, supplier offers, evaluations and decisions into one central platform. A clearer path from need to decision.</p>
-            <div class="stms-actions" data-hero-reveal><span class="stms-magnet" data-magnet><span class="stms-magnet-inner"><a asp-controller="Account" asp-action="Login" class="stms-button stms-button-primary">Account login <span aria-hidden="true">&#8599;</span></a></span></span><a href="#how-it-works" class="stms-text-link">Explore the process <span aria-hidden="true">&#8595;</span></a></div>
-            <div class="stms-hero-foot" data-hero-reveal><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg>Role-based access</span><span>Built around transparency &amp; traceability</span></div>
+<div class="stms-landing landing-redesign">
+    <section id="home" class="lp-hero" aria-labelledby="home-title">
+        <div class="lp-grid" aria-hidden="true"></div>
+        <div class="lp-container lp-hero-grid">
+            <div class="lp-hero-copy">
+                <p class="lp-kicker" data-enter>SOURCING &amp; TENDER MANAGEMENT SYSTEM</p>
+                <h1 id="home-title" data-enter>Unified Platform for <span>Sourcing &amp; Tender Management</span></h1>
+                <p class="lp-lead" data-enter>From the first request to the final decision. Bring your departments, sourcing teams and suppliers together through one clear, connected process.</p>
+                <div class="lp-actions" data-enter>
+                    <a asp-controller="Account" asp-action="Login" class="lp-button lp-button-primary">Access your workspace <span aria-hidden="true">↗</span></a>
+                    <a href="#how-it-works" class="lp-button lp-button-outline">Explore the process <span aria-hidden="true">↓</span></a>
+                </div>
+                <p class="lp-hero-note" data-enter>Role-based access. Documents and decisions in context.</p>
+            </div>
+            <div class="lp-visual" data-enter role="img" aria-label="Illustration of a connected sourcing process linking requests, tenders and suppliers.">
+                <div class="lp-orbit lp-orbit-one"></div><div class="lp-orbit lp-orbit-two"></div><div class="lp-orbit lp-orbit-three"></div>
+                <div class="lp-orbit-center"><span>st</span><small>ONE CONNECTED PROCESS</small></div>
+                <div class="lp-orbit-label lp-label-request"><span aria-hidden="true">↗</span> Purchase requests</div>
+                <div class="lp-orbit-label lp-label-tender"><span aria-hidden="true">▤</span> Tender management</div>
+                <div class="lp-orbit-label lp-label-supplier"><span aria-hidden="true">◇</span> Supplier participation</div>
+                <div class="lp-visual-caption">STRUCTURED FROM THE START</div>
+            </div>
+        </div>
+        <div class="lp-container lp-metrics" aria-label="Public system statistics">
+            <div><strong>@(Model.ActiveTenders?.ToString("N0") ?? "Unavailable")</strong><span>Active tenders</span><small>Recorded Open tenders</small></div>
+            <div><strong>@(Model.ApprovedSuppliers?.ToString("N0") ?? "Unavailable")</strong><span>Approved suppliers</span><small>Approved company registrations</small></div>
+            <div><strong>@(Model.ConvertedRequests?.ToString("N0") ?? "Unavailable")</strong><span>Requests converted to tender</span><small>Completed requisition conversions</small></div>
+            <p>A clearer perspective.<br /><span>Built on real system data.</span></p>
         </div>
     </section>
-    <section class="home-live-metrics" aria-label="Public system statistics"><div><span>Active tenders</span><strong>@(Model.ActiveTenders?.ToString("N0") ?? "Unavailable")</strong><small>Recorded Open tenders</small></div><div><span>Approved suppliers</span><strong>@(Model.ApprovedSuppliers?.ToString("N0") ?? "Unavailable")</strong><small>Approved company registrations</small></div><div><span>Requests converted to tender</span><strong>@(Model.ConvertedRequests?.ToString("N0") ?? "Unavailable")</strong><small>Completed requisition conversions</small></div></section>
-    <section class="landing-features" aria-labelledby="features-title">
-        <header><p class="stms-eyebrow">A SHARED WORKSPACE</p><h2 id="features-title">Every detail connected.<br /><span>Every next step clearer.</span></h2></header>
-        <div class="landing-feature-grid">
-            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">↗</span><h3>Requests with context</h3><p>Bring quantities, specifications and target dates together. Keep the request and its review in one place.</p><a href="#how-it-works">Explore the workflow →</a></article>
-            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">◇</span><h3>Supplier participation</h3><p>Register your company, respond to invitations and prepare your offer through your own supplier workspace.</p><a asp-controller="Suppliers" asp-action="Register">Register your company →</a></article>
-            <article data-landing-reveal><span class="landing-feature-symbol" aria-hidden="true">◎</span><h3>Access with purpose</h3><p>Role-based workspaces bring relevant requests, tenders and notifications to the people responsible for them.</p><a asp-controller="Account" asp-action="Login">Access your workspace →</a></article>
+
+    <section class="lp-capabilities lp-section" aria-labelledby="capabilities-title">
+        <div class="lp-container">
+            <header class="lp-section-heading" data-reveal><p class="lp-kicker">BUILT AROUND YOUR PROCESS</p><h2 id="capabilities-title">Less scattered information.<br /><span>More connected work.</span></h2><p>A shared context for the people, documents and decisions behind every purchase.</p></header>
+            <div class="lp-bento">
+                <article class="lp-feature lp-feature-wide" data-reveal>
+                    <div class="lp-feature-art" aria-hidden="true"><span class="lp-paper"><i></i><i></i><i></i><b>✓</b></span><span class="lp-paper lp-paper-back"></span></div>
+                    <div><span class="lp-icon" aria-hidden="true">↗</span><h3>Start with a clear request.</h3><p>Capture the quantities, specifications, reason and target date. Give every review the context it needs.</p><a href="#how-it-works">Follow the workflow <span aria-hidden="true">→</span></a></div>
+                </article>
+                <article class="lp-feature lp-feature-blue" data-reveal><span class="lp-icon" aria-hidden="true">◇</span><h3>A place for your suppliers.</h3><p>Company registration, invitations and offers come together in each supplier’s own workspace.</p><a asp-controller="Suppliers" asp-action="Register">Become a supplier <span aria-hidden="true">→</span></a><div class="lp-mini-orbits" aria-hidden="true"><i></i><i></i><i></i></div></article>
+                <article class="lp-feature lp-feature-strip" data-reveal><span class="lp-icon" aria-hidden="true">◎</span><div><h3>The right work. The right people.</h3><p>Role-based workspaces connect your team to relevant requests, tenders and notifications.</p></div><a asp-controller="Account" asp-action="Login">Account login <span aria-hidden="true">↗</span></a></article>
+            </div>
         </div>
     </section>
-    <section class="stms-expand" data-scroll-expand aria-label="Connected sourcing process illustration">
-        <div class="stms-expand-track"><div class="stms-expand-stage">
-            <div class="stms-expand-frame"><div class="stms-expand-media">        <div class="stms-blueprint" role="img" aria-label="Sourcing workflow illustration: a purchase request connects review, suppliers, evaluation and a final decision. This is a process illustration, not a live dashboard.">
-            <div class="stms-blueprint-head"><span><i aria-hidden="true"></i> THE CONNECTED PROCESS</span><span>STMS / 01</span></div>
-            <svg class="stms-connections" viewBox="0 0 520 490" fill="none" aria-hidden="true"><path class="stms-track" d="M83 110H260V200M437 110H260M83 365H260V295M437 365H260"/><path class="stms-track-faint" d="M83 110V365M437 110V365"/><circle class="stms-flow-point" r="4"><animateMotion dur="7s" repeatCount="indefinite" path="M83 110H260V200V295V365H437"/></circle><circle cx="260" cy="110" r="4" fill="#c8e5b5"/><circle cx="260" cy="365" r="4" fill="#c8e5b5"/></svg>
-            <div class="stms-node stms-node-one"><span class="stms-node-icon" aria-hidden="true">&#8599;</span><span><small>01 / THE NEED</small>Purchase request</span></div>
-            <div class="stms-node stms-node-two"><span class="stms-node-icon" aria-hidden="true">&#8801;</span><span><small>02 / THE STRUCTURE</small>Review &amp; tender</span></div>
-            <div class="stms-process-core"><div class="stms-core-top"><span class="stms-core-mark" aria-hidden="true">st</span><span>ONE PLATFORM</span><span aria-hidden="true">&#8599;</span></div><div class="stms-core-title">Clarity at<br />every stage.</div><div class="stms-core-lines" aria-hidden="true"><span></span><span></span></div><div class="stms-core-bottom"><span class="stms-dot" aria-hidden="true"></span> Connected by purpose</div></div>
-            <div class="stms-node stms-node-three"><span class="stms-node-icon" aria-hidden="true">&#9671;</span><span><small>03&#8211;04 / THE PARTICIPATION</small>Suppliers &amp; evaluation</span></div>
-            <div class="stms-node stms-node-four"><span class="stms-node-icon" aria-hidden="true">&#10003;</span><span><small>05&#8211;06 / THE OUTCOME</small>Decision &amp; award</span></div>
-            <div class="stms-blueprint-foot"><span>FROM REQUEST TO RESOLUTION</span><span aria-hidden="true">&#8599;</span></div>
-        </div></div><div class="stms-expand-scrim" aria-hidden="true"></div><div class="stms-expand-overlay" aria-hidden="true"><span>STRUCTURE. VISIBILITY. CONNECTION.</span><strong>One connected process.</strong></div></div>
-            <div class="stms-expand-title" aria-hidden="true">From a need.<br /><span>To a decision.</span></div><span class="stms-expand-hint" aria-hidden="true">SCROLL TO EXPLORE &#8595;</span>
-        </div></div>
+
+    <section id="how-it-works" class="lp-workflow lp-section" aria-labelledby="process-title">
+        <div class="lp-container lp-workflow-grid">
+            <header class="lp-workflow-intro" data-reveal><p class="lp-kicker">HOW IT WORKS</p><h2 id="process-title">A clear path.<br /><span>From need<br />to decision.</span></h2><p>Six connected stages bring structure to the sourcing lifecycle.</p><div class="lp-workflow-meter" aria-hidden="true"><span data-workflow-label>Identify &amp; request</span><i><b></b></i></div></header>
+            <ol class="lp-steps">
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">01</span><div><h3>Identify &amp; request</h3><p>Define the product or service needed. Create a purchase request with quantities, specifications, a reason and a target date.</p><small>Requesting department</small></div></li>
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">02</span><div><h3>Review &amp; prepare</h3><p>Review the request for approval, return or rejection. The Sourcing Officer prepares the tender, terms and submission dates.</p><small>Request review · Sourcing Officer</small></div></li>
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">03</span><div><h3>Invite &amp; receive</h3><p>Select suitable suppliers and invite them to submit pricing, technical details and supporting documents before the deadline.</p><small>Sourcing Officer · Suppliers</small></div></li>
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">04</span><div><h3>Check &amp; evaluate</h3><p>Check mandatory requirements. The evaluation committee assesses technical and financial offers against preset criteria and weights.</p><small>Evaluation committee</small></div></li>
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">05</span><div><h3>Report &amp; decide</h3><p>Prepare a unified report for the Sourcing Manager. High-value or critical tenders go to the Top Committee for a final group decision.</p><small>Sourcing Manager · Top Committee</small></div></li>
+                <li data-reveal><span class="lp-step-marker" aria-hidden="true">06</span><div><h3>Award &amp; close</h3><p>Record the winning supplier, close the tender and notify the parties. Keep decisions and their supporting records traceable.</p><small>Award · Notification · Closure</small></div></li>
+            </ol>
+        </div>
     </section>
-    <section id="how-it-works" class="stms-process stms-section" aria-labelledby="process-title">
-        <div class="stms-process-intro" data-animated-content data-ac-wipe="up" data-ac-distance="55" data-ac-tilt="5"><div class="stms-eyebrow">01 / HOW IT WORKS</div><h2 id="process-title">A considered process.<br /><span>A clearer outcome.</span></h2><p>Six connected stages bring structure to sourcing, from identifying a need to recording the final decision.</p><div class="stms-process-summary" aria-hidden="true"><span>Request</span><span>&#8594;</span><span>Tender</span><span>&#8594;</span><span>Decision</span></div><p class="stms-process-caption">An overview of the sourcing lifecycle.</p><div class="stms-workflow-progress" aria-hidden="true"><span data-workflow-current>01</span><span>/ 06</span><i><b data-workflow-progress></b></i></div></div>
-        <ol class="stms-process-list" data-scroll-stack>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">01</span><div class="stms-stage-copy"><h3>Identify &amp; request</h3><p>Define the product or service needed. Create a purchase request with quantities, specifications, a reason and a target date.</p><span class="stms-role">Requesting department</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-1" aria-hidden="true"><svg viewBox="0 0 140 150"><path d="M30 15h65l20 20v100H30Z"/><path d="M95 15v25h20M46 58h52M46 74h35M46 104l8 8 17-17"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">02</span><div class="stms-stage-copy"><h3>Review &amp; prepare</h3><p>Review the request for approval, return or rejection. The Sourcing Officer prepares the tender, terms and submission dates.</p><span class="stms-role">Request review &middot; Sourcing Officer</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-2" aria-hidden="true"><svg viewBox="0 0 140 150"><path d="M35 35v78h65M35 35h65v78"/><circle cx="35" cy="35" r="17"/><circle cx="100" cy="113" r="17"/><path d="m29 35 4 4 8-9m52 83h14m-7-7 7 7-7 7"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">03</span><div class="stms-stage-copy"><h3>Invite &amp; receive</h3><p>Select suitable suppliers and invite them to submit pricing, technical details and supporting documents before the deadline.</p><span class="stms-role">Sourcing Officer &middot; Suppliers</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-3" aria-hidden="true"><span class="stms-party"></span><span class="stms-party"></span><span class="stms-party"></span><svg viewBox="0 0 140 150"><path d="M25 75h90M70 28v94"/><circle cx="70" cy="75" r="22"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">04</span><div class="stms-stage-copy"><h3>Check &amp; evaluate</h3><p>Check mandatory requirements. The evaluation committee assesses technical and financial offers against preset criteria and weights.</p><span class="stms-role">Evaluation committee</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-4" aria-hidden="true"><svg viewBox="0 0 140 150"><path d="M70 20v110M30 47h80M44 47 23 89h42ZM98 47 77 89h42ZM45 130h50"/><circle cx="70" cy="40" r="6"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">05</span><div class="stms-stage-copy"><h3>Report &amp; decide</h3><p>Prepare a unified report for the Sourcing Manager. High-value or critical tenders go to the Top Committee for a final group decision.</p><span class="stms-role">Sourcing Manager &middot; Top Committee</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-5" aria-hidden="true"><svg viewBox="0 0 140 150"><path d="m25 41 76-12 16 102-76 12Z"/><path d="M35 20h76v107H35ZM49 45h48M49 61h48M49 77h28M49 103h48"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-            <li class="stms-stack-slot"><article class="stms-stack-card"><span class="stms-step-number">06</span><div class="stms-stage-copy"><h3>Award &amp; close</h3><p>Record the winning supplier, close the tender and notify the parties. Keep decisions and their supporting records traceable.</p><span class="stms-role">Award &middot; Notification &middot; Closure</span></div><span class="stms-step-arrow" aria-hidden="true">&#8599;</span><div class="stms-stage-art stms-stage-art-6" aria-hidden="true"><svg viewBox="0 0 140 150"><circle cx="70" cy="75" r="49"/><circle cx="70" cy="75" r="60"/><path d="m46 75 16 16 34-35"/></svg></div><span class="stms-stack-shade" aria-hidden="true"></span></article></li>
-        </ol>
+
+    <section id="about" class="lp-about lp-section" aria-labelledby="about-title">
+        <div class="lp-container lp-about-grid"><div class="lp-about-art" aria-hidden="true" data-reveal><span>One<br />shared<br /><em>purpose.</em></span><i></i></div><div data-reveal><p class="lp-kicker">ABOUT STMS</p><h2 id="about-title">Make the process<br /><span>work together.</span></h2><p>STMS organizes purchasing digitally, from the first request to the final decision. Departments, sourcing teams and suppliers work with a shared context for documents and decisions.</p><a asp-controller="Home" asp-action="About" class="lp-text-link">Discover the platform <span aria-hidden="true">↗</span></a></div></div>
     </section>
-    <section id="about" class="stms-about stms-about-preview" aria-labelledby="about-title">
-        <div data-animated-content><div class="stms-eyebrow">02 / ABOUT THE PLATFORM</div><h2 id="about-title">One shared purpose.<br /><span>A clearer process.</span></h2><div class="stms-about-symbol" aria-hidden="true"><span></span><span></span><span></span></div></div>
-        <div class="stms-about-copy" data-animated-content data-ac-stagger="90"><p class="stms-mission">Organizing purchasing digitally, from the first request to the final decision.</p><p>STMS brings departments, sourcing teams and suppliers into one central platform, with a shared context for documents and decisions.</p><a asp-controller="Home" asp-action="About" class="stms-text-link">About the platform ↗</a></div>
+
+    <section id="supplier-registration" class="lp-cta lp-section" aria-labelledby="supplier-title">
+        <div class="lp-container"><div class="lp-cta-panel" data-reveal><p class="lp-kicker">FOR SUPPLIERS</p><h2 id="supplier-title">Your next opportunity<br /><span>starts with a connection.</span></h2><p>Register your company and submit official documents. An administrator reviews your application before account access is activated.</p><a asp-controller="Suppliers" asp-action="Register" class="lp-button lp-sling-cta">Register your company <span aria-hidden="true">↗</span></a></div></div>
     </section>
-    <section id="supplier-registration" class="stms-supplier" aria-labelledby="supplier-title" data-animated-content><div class="stms-supplier-icon" aria-hidden="true">&#8599;</div><div><div class="stms-eyebrow">FOR SUPPLIERS</div><h2 id="supplier-title">Your next opportunity starts here.</h2><p>Register your company and submit official documents. An administrator reviews your application before account access is activated.</p></div><span class="stms-magnet" data-magnet><span class="stms-magnet-inner"><a asp-controller="Suppliers" asp-action="Register" class="stms-button stms-button-primary">Register your company <span aria-hidden="true">&#8599;</span></a></span></span></section>
-    <section id="contact" class="stms-contact stms-section stms-contact-preview" aria-labelledby="contact-title">
-        <div data-animated-content><div class="stms-eyebrow">03 / CONTACT</div><h2 id="contact-title">Find your<br /><span>next step.</span></h2></div>
-        <div data-animated-content><p>Sign in to an existing account or register your company as a supplier.</p><p class="stms-preview-availability"><span class="stms-dot" aria-hidden="true"></span> Public contact details are not yet configured.</p><a asp-controller="Home" asp-action="Contact" class="stms-text-link">Contact &amp; account access <span aria-hidden="true">&#8599;</span></a></div>
-    </section>
-    <div class="stms-top-control"><span>Back to the beginning.</span><div class="stms-sling" data-sling>
-        <a href="#home" class="stms-text-link" data-sling-fallback>Back to top &#8593;</a>
-        <div class="stms-sling-stage" hidden>
-            <svg class="stms-sling-fx" viewBox="-44 -44 88 88" aria-hidden="true"><circle class="stms-sling-well" r="36"/><g class="stms-sling-tension"><path class="stms-sling-band"/><path class="stms-sling-hot"/></g><circle class="stms-sling-arc" r="36" pathLength="1" stroke-dasharray="0 1"/></svg>
-            <span class="stms-sling-move"><button type="button" class="stms-sling-pad" aria-label="Back to top" aria-describedby="sling-help"><span class="stms-sling-icon" aria-hidden="true">&#8593;</span></button></span>
-        </div><span id="sling-help" class="stms-sling-help" hidden>Click or press Enter. Or pull and release.</span>
-    </div></div>
+
+    <section id="contact" class="lp-contact" aria-labelledby="contact-title"><div class="lp-container" data-reveal><div><p class="lp-kicker">LET’S CONNECT</p><h2 id="contact-title">Find your next step.</h2><p>Public contact details are not yet configured.</p></div><a asp-controller="Home" asp-action="Contact" class="lp-button lp-button-outline">Contact &amp; account access <span aria-hidden="true">↗</span></a></div></section>
 </div>
-@section Scripts { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/home-motion.js" asp-append-version="true"></script><script src="~/js/landing-premium.js" asp-append-version="true"></script> }
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+    <script src="~/js/landing-premium.js" asp-append-version="true"></script>
+}
