@@ -1,10 +1,10 @@
-# Top Committee — prepared foundation, database approval pending
+# Top Committee — prepared foundation, reviewed migration applied
 
 ## Delivery boundary
 
-The user approved the seven proposed Top Committee/award rules. This increment prepares the pure rules and the essential migration. It does NOT complete or enable the assignment, voting, rework, award, notification or MVC workflows. Database application requires a separate explicit approval. No migration, seed, SQL write test or application restart was executed.
+The user approved the seven proposed Top Committee/award rules. This increment prepares the pure rules and the essential migration. It does NOT complete or enable the assignment, voting, rework, award, notification or MVC workflows. The reviewed migration was applied on 2026-11-15 after separate explicit user approval. No seed, SQL write test, test records or application restart was performed. See top-committee-migration-verification.md for the guarded application and preservation evidence.
 
-The new build requires this migration before it is used against the existing database. Keep the current deployment running its existing binaries until the approved migration/deployment is performed. Do not run the new build against the unmigrated database.
+The database now contains the required round columns and constraints. Applying this migration does not enable the remaining transactional services or MVC screens. No application rollout or restart was performed as part of the migration-only approval.
 
 ## Approved behavior represented by the pure rules
 
@@ -27,7 +27,7 @@ The new build requires this migration before it is used against the existing dat
 5. Add a filtered unique index for one open TopCommittee round per tender, a unique round/member vote index and a unique tender award index (replacing the previous nonunique award lookup index).
 6. Add a check constraint for coherent legacy/open/closed/final round metadata, valid JSON and timestamp ordering. A rollback guard refuses to drop any stored voting-round history or manufacture decision dates.
 
-The generated review script is top-committee-voting-migration.sql. It has not been executed. Earlier migration files are unchanged; the normal EF snapshot was updated for the prepared target. The existing manager-report view handles a nullable date defensively without changing its workflow.
+The generated review script is top-committee-voting-migration.sql. Its exact reviewed commands were applied in operation batches within an outer verification transaction. Earlier migration files are unchanged; the normal EF snapshot was updated for the prepared target. The existing manager-report view handles a nullable date defensively without changing its workflow.
 
 ## Read-only preflight
 
@@ -37,14 +37,14 @@ Focused existing-database SELECTs found zero TenderApprovals, CommitteeVotes, Te
 
 - Solution build: zero warnings/errors, including Razor compilation.
 - --top-committee-rules-only: 128 database-free voting, secrecy, fixed-roster, stale/duplicate vote, status and award-authority checks passed.
-- SchemaChecks: model/snapshot equivalence, reviewed migration operations, filtered/unique indexes and 37 required tables passed; seven migrations exist in source, while the seventh is NOT applied to SQL Server. --write-top-committee-script only writes the review file locally.
+- SchemaChecks: model/snapshot equivalence, reviewed migration operations, filtered/unique indexes and 37 required tables passed; seven migrations exist in source and the reviewed seventh migration is now applied to SQL Server. --write-top-committee-script only writes the review file locally.
 - Existing manager-review checks: 40 domain and 29 MVC checks passed using memory-only fixtures.
 
 No full SQL workflow, concurrency, notification, browser or award-persistence verification is claimed. These depend on the remaining module implementation and separately approved SQL tests. The prepared rules are not a substitute for the transactional service/controller authorization that must be wired next.
 
-## Next implementation after database approval
+## Remaining implementation after the migration-only step
 
-- Reinspect the migration history, nullable columns, duplicate votes/awards and existing round data; stop on a conflict. Apply only the reviewed migration after explicit approval, without seeding or advancing unrelated migrations.
+- The reviewed migration is already applied. Do not rerun it or advance unrelated migrations. The remaining service/UI work is not included in the completed migration-only step.
 - Add appointed-manager-only candidate/assignment and reasoned replacement services. Derive exclusions from actual tender preparation, evaluation involvement and report approvals; do not trust posted account or member identifiers.
 - Build transactional round opening, replacement/abandonment, all-four voting, no-consensus reopening and responsible-officer award confirmation with the existing serializable tender lock, current eligibility checks, stale versions, audits and atomic notifications.
 - Preserve vote secrecy in every reader: committee pages, existing decision reports/exports, notifications and audit previews. Never expose another member's choice/reason while fewer than four confirmed votes exist, including abandoned rounds. Own-vote access still requires current record eligibility.
