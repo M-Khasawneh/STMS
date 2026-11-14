@@ -36,6 +36,7 @@ builder.Services.AddScoped<IBidDocumentData>(services => services.GetRequiredSer
 builder.Services.AddScoped<BidManagement>();
 builder.Services.AddScoped<BidReviewPages>();
 builder.Services.AddScoped<IComplianceManagement, ComplianceManagement>();
+builder.Services.AddScoped<CommitteeManagement>();
 builder.Services.AddScoped<IPrivateBidFiles, PrivateBidFiles>();
 builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
 builder.Services.AddScoped<BidDocumentManagement>();

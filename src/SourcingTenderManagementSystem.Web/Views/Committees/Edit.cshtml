@@ -1,0 +1,37 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.CommitteePage
+@using SourcingTenderManagementSystem.Web.Data
+@using SourcingTenderManagementSystem.Web.Security
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ ViewData["Title"] = "Evaluation committee"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" /> }
+<div class="bid-workspace compliance-workspace">
+    <header class="page-heading"><div><span class="eyebrow">TENDER / MEMBERSHIP</span><h1>Evaluation committee</h1><p>@Model.Tender.Title</p></div></header>
+    <a asp-controller="Tenders" asp-action="Details" asp-route-id="@Model.Tender.Id">← Tender details</a>
+    @if (TempData["CommitteeMessage"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+    <section class="bid-panel">
+        <h2>Assign four different employees</h2>
+        <p>Representatives require the existing Evaluation Committee role. The department representative must belong to the source requisition's department.</p>
+        <form asp-action="Edit" asp-route-id="@Model.Tender.Id" method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <input asp-for="Form.Version" type="hidden" />
+            <div class="bid-fields">
+                <div><label asp-for="Form.ManagerUserId">Sourcing Manager</label><select asp-for="Form.ManagerUserId" class="form-select" required><option value="">Choose manager</option>@foreach (var candidate in Model.Candidates.Where(x => x.Roles.Contains(ApplicationRoles.SourcingManager))) { <option value="@candidate.Id">@candidate.Name</option> }</select></div>
+                <div><label asp-for="Form.DepartmentRepresentativeId">Department Representative</label><select asp-for="Form.DepartmentRepresentativeId" class="form-select" required><option value="">Choose representative</option>@foreach (var candidate in Model.Candidates.Where(x => x.Roles.Contains(ApplicationRoles.EvaluationCommittee) && x.DepartmentId == Model.SourceDepartmentId)) { <option value="@candidate.Id">@candidate.Name</option> }</select></div>
+                <div><label asp-for="Form.FinancialRepresentativeId">Financial Representative</label><select asp-for="Form.FinancialRepresentativeId" class="form-select" required><option value="">Choose representative</option>@foreach (var candidate in Model.Candidates.Where(x => x.Roles.Contains(ApplicationRoles.EvaluationCommittee))) { <option value="@candidate.Id">@candidate.Name</option> }</select></div>
+                <div><label asp-for="Form.TechnicalRepresentativeId">Technical Representative</label><select asp-for="Form.TechnicalRepresentativeId" class="form-select" required><option value="">Choose representative</option>@foreach (var candidate in Model.Candidates.Where(x => x.Roles.Contains(ApplicationRoles.EvaluationCommittee))) { <option value="@candidate.Id">@candidate.Name</option> }</select></div>
+            </div>
+            <label asp-for="Form.Reason">Reason for membership changes @(Model.EvaluationStarted ? "(required for changes)" : "(optional)")</label>
+            <textarea asp-for="Form.Reason" class="form-control" rows="3" maxlength="8000"></textarea>
+            @if (Model.EvaluationStarted) { <p>Evaluation has started. Replacements require a documented reason. Previous membership and evaluation records remain in the history.</p> }
+            <button class="btn btn-primary" type="submit">Save committee</button>
+        </form>
+    </section>
+    <section class="bid-panel"><h2>Membership history</h2>
+        @if (Model.History.Count == 0) { <p>No evaluation committee has been assigned.</p> }
+        <div class="table-responsive" role="region" aria-label="Committee membership history" tabindex="0"><table class="table"><thead><tr><th scope="col">Position</th><th scope="col">Employee</th><th scope="col">Effective from</th><th scope="col">Effective until</th></tr></thead><tbody>
+        @foreach (var row in Model.History) { <tr><td>@row.Member.Position</td><td>@row.Name</td><td>@(row.Member.EffectiveFrom.HasValue ? TenderTime.Display(row.Member.EffectiveFrom.Value) : "From initial assignment")</td><td>@(row.Member.EffectiveTo.HasValue ? TenderTime.Display(row.Member.EffectiveTo.Value) : "Current")</td></tr> }
+        </tbody></table></div>
+    </section>
+    <section class="bid-panel"><h2>Change record</h2><ol class="requisition-history">@foreach (var change in Model.Changes) { <li><strong>@(change.Action == "MemberAssigned" ? "Member assigned" : "Member replaced")</strong><small>@TenderTime.Display(change.OccurredAt)</small><p>@change.Reason</p></li> }</ol></section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

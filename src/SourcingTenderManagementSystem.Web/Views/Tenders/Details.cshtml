@@ -9,6 +9,7 @@
 <p class="form-text">The configured deadline is exclusive. Tender status changes are explicit officer actions; the deadline remains authoritative even while status is Open.</p>
 @if(Model.Actor.Manage && t.Status==TenderStatus.Draft){<a asp-action="Edit" asp-route-id="@t.Id" class="btn btn-outline-secondary">Edit Draft</a>}
 @if(Model.Actor.Internal){<a asp-action="Criteria" asp-route-id="@t.Id" class="btn btn-outline-secondary">Criteria &amp; approval</a>}
+@if (Model.Actor.Manager && !Model.Actor.Admin) { <a asp-controller="Committees" asp-action="Edit" asp-route-id="@t.Id" class="btn btn-outline-secondary">Evaluation committee</a> }
 @if(Model.Actor.Admin||Model.Actor.Officer){<a asp-action="Invitations" asp-route-id="@t.Id" class="btn btn-outline-secondary">Supplier invitations</a>}
 @if(Model.Actor.Manage && t.Status is TenderStatus.Draft or TenderStatus.Published or TenderStatus.Open){
 <form asp-action="ChangeStatus" asp-route-id="@t.Id" method="post" class="mt-3"><input type="hidden" name="version" value="@Model.Version" /><input type="hidden" name="decision" value="@(t.Status==TenderStatus.Draft?TenderStatus.Published:t.Status==TenderStatus.Published?TenderStatus.Open:TenderStatus.Closed)" /><button type="submit" class="btn btn-primary">@(t.Status==TenderStatus.Draft?"Publish tender":t.Status==TenderStatus.Published?"Open submission period":"Close submission period")</button></form>}
