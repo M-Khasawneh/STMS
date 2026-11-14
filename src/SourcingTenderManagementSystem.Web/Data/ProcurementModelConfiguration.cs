@@ -185,6 +185,11 @@ internal static class ProcurementModelConfiguration
 
         modelBuilder.Entity<TenderApproval>(entity =>
         {
+            entity.Property(x => x.RoundCloseReason).HasMaxLength(8000);
+            entity.Property(x => x.RoundMemberSnapshot).HasMaxLength(512);
+            entity.HasIndex(x => x.TenderId); // Retain the general lookup index alongside the filtered round index.
+            entity.HasIndex(x => new { x.TenderId, x.Stage }).IsUnique().HasDatabaseName("UX_TenderApprovals_OpenTopRound").HasFilter("[Stage] = N'TopCommittee' AND [RoundOpenedAt] IS NOT NULL AND [RoundClosedAt] IS NULL");
+            entity.ToTable("TenderApprovals", table => table.HasCheckConstraint("CK_TenderApprovals_TopRound", "([RoundOpenedAt] IS NULL AND [RoundMemberSnapshot] IS NULL AND [RoundClosedAt] IS NULL AND [RoundCloseReason] IS NULL AND [DecidedAt] IS NOT NULL) OR ([RoundOpenedAt] IS NOT NULL AND [RoundMemberSnapshot] IS NOT NULL AND ISJSON([RoundMemberSnapshot]) = 1 AND [Stage] = N'TopCommittee' AND [CommitteeAssignmentId] IS NOT NULL AND (([RoundClosedAt] IS NULL AND [DecidedAt] IS NULL AND [Decision] = N'RecommendationPending' AND [RoundCloseReason] IS NULL) OR ([RoundClosedAt] IS NOT NULL AND [RoundClosedAt] >= [RoundOpenedAt] AND [RoundCloseReason] IS NOT NULL AND LEN(LTRIM(RTRIM([RoundCloseReason]))) > 0 AND (([Decision] = N'RecommendationPending' AND [DecidedAt] IS NULL) OR ([Decision] IN (N'CommitteeApproved', N'CommitteeRejected', N'ReturnedForReview') AND [DecidedAt] IS NOT NULL AND [DecidedAt] >= [RoundOpenedAt] AND [DecidedAt] <= [RoundClosedAt])))))"));
             entity.HasOne<Tender>().WithMany().HasForeignKey(x => x.TenderId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<EvaluationReport>().WithMany()
                 .HasForeignKey(x => new { x.EvaluationReportId, x.TenderId })
@@ -211,6 +216,7 @@ internal static class ProcurementModelConfiguration
 
         modelBuilder.Entity<CommitteeVote>(entity =>
         {
+            entity.HasIndex(x => new { x.TenderApprovalId, x.CommitteeMemberId }).IsUnique();
             entity.HasOne<Tender>().WithMany().HasForeignKey(x => x.TenderId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<TenderApproval>().WithMany()
                 .HasForeignKey(x => new { x.TenderApprovalId, x.TenderId })
@@ -262,6 +268,7 @@ internal static class ProcurementModelConfiguration
 
         modelBuilder.Entity<TenderAward>(entity =>
         {
+            entity.HasIndex(x => x.TenderId).IsUnique();
             entity.HasOne<Tender>().WithMany().HasForeignKey(x => x.TenderId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<Bid>().WithMany()
                 .HasForeignKey(x => new { x.BidId, x.TenderId })

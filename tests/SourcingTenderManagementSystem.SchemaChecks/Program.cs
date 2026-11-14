@@ -60,7 +60,7 @@ Check(model.FindEntityType(typeof(ComplianceReview))!.GetCheckConstraints()
     .Any(x => x.Name == "CK_ComplianceReviews_NonCompliantReason"), "Noncompliant reason constraint missing");
 Check(model.FindEntityType(typeof(ClarificationRequest))!.GetCheckConstraints()
     .Any(x => x.Name == "CK_ClarificationRequests_OneRelatedRecord"), "Clarification record integrity missing");
-foreach (var type in new[] { typeof(Bid), typeof(TenderAward) })
+foreach (var type in new[] { typeof(Bid) })
     Check(model.FindEntityType(type)!.GetIndexes().All(x => !x.IsUnique),
         $"Unspecified business uniqueness imposed on {type.Name}");
 
@@ -109,9 +109,21 @@ if (migrations.Migrations.Count > 0)
         File.WriteAllText("docs/supplier-registration-migration.sql", context.GetService<IMigrator>().GenerateScript(
             "20261113001222_EmployeeDepartmentAssignment", "20261113120000_SupplierRegistrationUniqueness"));
     foreach (var (type, columns) in new[] { (typeof(TenderPurchaseRequisition), new[] { "TenderId" }), (typeof(TenderPurchaseRequisition), new[] { "PurchaseRequisitionId" }), (typeof(TenderSupplier), new[] { "TenderId", "SupplierProfileId" }), (typeof(Invitation), new[] { "TenderSupplierId" }) })
-        Check(model.FindEntityType(type)!.GetIndexes().Any(x => x.IsUnique && x.Properties.Select(p => p.Name).SequenceEqual(columns)), "Missing tender/invitation uniqueness: " + type.Name + ":" + string.Join(",",columns));
-    if(args.Contains("--write-tender-script"))
+        Check(model.FindEntityType(type)!.GetIndexes().Any(x => x.IsUnique && x.Properties.Select(p => p.Name).SequenceEqual(columns)), "Missing tender/invitation uniqueness: " + type.Name + ":" + string.Join(",", columns));
+    if (args.Contains("--write-tender-script"))
         File.WriteAllText("docs/tender-invitation-migration.sql", context.GetService<IMigrator>().GenerateScript("20261113120000_SupplierRegistrationUniqueness", "20261113180000_TenderInvitationIntegrity"));
+    var round = model.FindEntityType(typeof(TenderApproval))!;
+    Check(round.FindProperty("DecidedAt")!.IsNullable, "Pending rounds must not fabricate decision timestamps");
+    Check(round.FindProperty("RoundOpenedAt")!.IsNullable && round.FindProperty("RoundClosedAt")!.IsNullable, "Legacy approvals must not require round metadata");
+    Check(round.GetIndexes().Any(i => i.IsUnique && i.GetDatabaseName() == "UX_TenderApprovals_OpenTopRound"), "Missing one-open-round constraint");
+    Check(model.FindEntityType(typeof(CommitteeVote))!.GetIndexes().Any(i => i.IsUnique && i.Properties.Select(p => p.Name).SequenceEqual(new[] { "TenderApprovalId", "CommitteeMemberId" })), "Missing duplicate-vote protection");
+    Check(model.FindEntityType(typeof(TenderAward))!.GetIndexes().Any(i => i.IsUnique && i.Properties.Select(p => p.Name).SequenceEqual(new[] { "TenderId" })), "Missing duplicate-award protection");
+    Check(round.FindProperty("RoundMemberSnapshot")!.GetMaxLength() == 512, "Fixed round roster storage is missing");
+    var topRoundMigration = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_TopCommitteeVotingRounds")).Value, context.Database.ProviderName!);
+    Check(topRoundMigration.UpOperations.All(o => o is AddColumnOperation or AlterColumnOperation or AddCheckConstraintOperation or CreateIndexOperation or DropIndexOperation), "Unexpected destructive or data-changing round migration operation");
+    Check(topRoundMigration.UpOperations.OfType<AddColumnOperation>().Select(o => o.Name).Order().SequenceEqual(new[] { "RoundOpenedAt", "RoundClosedAt", "RoundCloseReason", "RoundMemberSnapshot" }.Order()), "Round migration must add only the four reviewed columns");
+    Check(topRoundMigration.UpOperations.OfType<AlterColumnOperation>().All(o => o.Table == "TenderApprovals" && o.Name == "DecidedAt" && o.IsNullable), "Unexpected round migration column alteration");
+    if (args.Contains("--write-top-committee-script")) File.WriteAllText("docs/top-committee-voting-migration.sql", context.GetService<IMigrator>().GenerateScript("20261114190000_EvaluationConfirmation", "20261114220000_TopCommitteeVotingRounds").TrimEnd()+Environment.NewLine);
     Check(!context.Database.HasPendingModelChanges(), "Model differs from migration snapshot");
     var clarification = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_ClarificationAttachments")).Value, context.Database.ProviderName!);
     Check(clarification.UpOperations.All(x => x is CreateTableOperation or CreateIndexOperation), "Clarification migration alters existing schema");

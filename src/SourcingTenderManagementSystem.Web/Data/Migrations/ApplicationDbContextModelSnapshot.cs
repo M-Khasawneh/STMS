@@ -666,6 +666,7 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
+                    b.HasIndex("TenderApprovalId", "CommitteeMemberId").IsUnique();
 
                     b.HasIndex("TenderId");
 
@@ -1359,7 +1360,7 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                     b.Property<Guid?>("CommitteeAssignmentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("DecidedAt")
+                    b.Property<DateTimeOffset?>("DecidedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Decision")
@@ -1374,6 +1375,11 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset?>("RoundOpenedAt").HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("RoundClosedAt").HasColumnType("datetimeoffset");
+                    b.Property<string>("RoundCloseReason").HasMaxLength(8000).HasColumnType("nvarchar(max)");
+                    b.Property<string>("RoundMemberSnapshot").HasMaxLength(512).HasColumnType("nvarchar(512)");
+
                     b.Property<string>("Stage")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1387,6 +1393,7 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                     b.HasIndex("ActorUserId");
 
                     b.HasIndex("TenderId");
+                    b.HasIndex("TenderId", "Stage").IsUnique().HasDatabaseName("UX_TenderApprovals_OpenTopRound").HasFilter("[Stage] = N'TopCommittee' AND [RoundOpenedAt] IS NOT NULL AND [RoundClosedAt] IS NULL");
 
                     b.HasIndex("CommitteeAssignmentId", "TenderId");
 
@@ -1396,6 +1403,7 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_TenderApprovals_Decision", "[Decision] IN (N'RecommendationPending', N'ManagerApproved', N'ManagerRejected', N'ReturnedForReview', N'CommitteeApproved', N'CommitteeRejected')");
 
+                            t.HasCheckConstraint("CK_TenderApprovals_TopRound", "([RoundOpenedAt] IS NULL AND [RoundMemberSnapshot] IS NULL AND [RoundClosedAt] IS NULL AND [RoundCloseReason] IS NULL AND [DecidedAt] IS NOT NULL) OR ([RoundOpenedAt] IS NOT NULL AND [RoundMemberSnapshot] IS NOT NULL AND ISJSON([RoundMemberSnapshot]) = 1 AND [Stage] = N'TopCommittee' AND [CommitteeAssignmentId] IS NOT NULL AND (([RoundClosedAt] IS NULL AND [DecidedAt] IS NULL AND [Decision] = N'RecommendationPending' AND [RoundCloseReason] IS NULL) OR ([RoundClosedAt] IS NOT NULL AND [RoundClosedAt] >= [RoundOpenedAt] AND [RoundCloseReason] IS NOT NULL AND LEN(LTRIM(RTRIM([RoundCloseReason]))) > 0 AND (([Decision] = N'RecommendationPending' AND [DecidedAt] IS NULL) OR ([Decision] IN (N'CommitteeApproved', N'CommitteeRejected', N'ReturnedForReview') AND [DecidedAt] IS NOT NULL AND [DecidedAt] >= [RoundOpenedAt] AND [DecidedAt] <= [RoundClosedAt])))))");
                             t.HasCheckConstraint("CK_TenderApprovals_Stage", "[Stage] IN (N'Manager', N'TopCommittee')");
                         });
                 });
@@ -1431,7 +1439,7 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
 
                     b.HasIndex("RecordedByUserId");
 
-                    b.HasIndex("TenderId");
+                    b.HasIndex("TenderId").IsUnique();
 
                     b.HasIndex("BidId", "TenderId");
 

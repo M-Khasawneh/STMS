@@ -11,5 +11,10 @@ public class TenderApproval
     public Guid? CommitteeAssignmentId { get; set; }
     public string Comments { get; set; } = string.Empty;
     public string Justification { get; set; } = string.Empty;
-    public DateTimeOffset DecidedAt { get; set; }
+    public DateTimeOffset? RoundOpenedAt { get; set; }
+    public DateTimeOffset? RoundClosedAt { get; set; }
+    // Server-written immutable JSON array of the four CommitteeMember IDs for this round.
+    public string? RoundMemberSnapshot { get; set; }
+    public string? RoundCloseReason { get; set; }
+    public DateTimeOffset? DecidedAt { get; set; }
 }

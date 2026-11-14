@@ -22,7 +22,7 @@
     @if (Model.CanReview) { <a asp-action="Review" asp-route-id="@Model.Tender.Id" class="btn btn-primary">Review &amp; decide recommendation</a> }
     @if (Model.Decisions.Count > 0) {
         <section class="bid-panel"><h2>Manager decisions</h2><ol class="requisition-history">
-        @foreach (var decision in Model.Decisions) { <li><strong>@decision.Decision</strong><small>@TenderTime.Display(decision.DecidedAt)</small><p class="compliance-text">@decision.Comments</p><a asp-action="Details" asp-route-id="@Model.Tender.Id" asp-route-reportId="@decision.EvaluationReportId">View the decided report version</a></li> }
+        @foreach (var decision in Model.Decisions) { <li><strong>@decision.Decision</strong><small>@(decision.DecidedAt.HasValue ? TenderTime.Display(decision.DecidedAt.Value) : "Pending")</small><p class="compliance-text">@decision.Comments</p><a asp-action="Details" asp-route-id="@Model.Tender.Id" asp-route-reportId="@decision.EvaluationReportId">View the decided report version</a></li> }
         </ol></section>
     }
     @if (Model.Versions.Count > 1) { <nav aria-label="Submitted report versions"><h2>Submitted versions</h2><ul>@foreach (var version in Model.Versions) { <li><a asp-action="Details" asp-route-id="@Model.Tender.Id" asp-route-reportId="@version.Id">Report submitted @TenderTime.Display(version.SubmittedAt!.Value)</a></li> }</ul></nav> }
