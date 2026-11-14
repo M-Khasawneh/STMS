@@ -1,0 +1,15 @@
+# User-approved demonstration data
+
+The explicit SchemaChecks mode `--populate-demo-data` populates the configured local database with synthetic records for browsing and exercising the implemented MVC workflows. It is never called by web startup, schema checks without that flag, migrations or tests.
+
+The dataset adds three departments, seven employee accounts, four supplier accounts/profiles, seven purchase requisitions, three tenders and five bids. Existing records remain in place. Names and transaction titles include DEMO. Supplier legal/contact identifiers are synthetic, contact emails use example.invalid, and every generated PDF visibly states that it is a demonstration document. The three approved suppliers and one pending supplier use the existing registration/review services.
+
+Requests cover Draft, Submitted, Returned, Approved and ConvertedToTender. Tenders cover Draft, Open and Closed. The Closed tender has three submitted offers and an assigned evaluation committee. The Open tender has a submitted offer, an editable draft and a pending invitation. Items, authoritative quantities, JOD totals, payment terms, offer validity, delivery and private technical proposals use the normal application services. Demonstration criteria of 60% technical and 40% commercial are configured by the sample officer and approved by the separate sample manager for these tenders only.
+
+An isolated clock in this command creates the historical tender scenario chronologically and closes it after its configured deadline. It does not replace the running application's TimeProvider. The Open tender's deadline is 21 days after the population's initial timestamp. This command does not prolong deadlines on rerun.
+
+Account usernames begin with demo. Passwords are independently generated and hashed through Identity. A local `src/SourcingTenderManagementSystem.Web/App_Data/DemoPopulation.json` stores account access information, the initial timestamp and a completion checkpoint. On Windows it receives a current-user-only access rule. App_Data is ignored by Git and is outside wwwroot. Credentials are not logged or committed.
+
+The preflight checks the approved local SQL target, connection, pending migrations and username collisions. Existing accounts are not reset or reassigned. A completed run performs verification without inserting duplicate records. If interrupted, the command locates its existing named records and continues normal workflow transitions. An ownership or identifier conflict stops the operation. Completed data is intentionally persistent and is not test-fixture cleanup data.
+
+Verification confirmed all eleven generated credentials match their Identity hashes and protected downloads verify the technical document bytes for all five offers. Before/after comparison preserved the existing non-demo Identity account records. Repeating the command confirmed completion without additional database writes. The solution build passed with zero warnings/errors. No schema, migration, production controller, business service or UI change was required.

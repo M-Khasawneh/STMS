@@ -15,6 +15,7 @@ if (args.Contains("--managed-networking"))
     AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
 
 var failures = new List<string>();
+if (args.Contains("--populate-demo-data")) return await DemoPopulation.RunAsync();
 if (args.Contains("--inspect-clarification-database") || args.Contains("--apply-clarification-migration"))
     return await ClarificationSchemaChecks.RunAsync(args.Contains("--apply-clarification-migration"));
 var options = new DbContextOptionsBuilder<ApplicationDbContext>()
