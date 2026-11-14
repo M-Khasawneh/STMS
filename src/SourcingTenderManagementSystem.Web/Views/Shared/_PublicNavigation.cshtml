@@ -9,8 +9,8 @@
 <button class="home-menu-toggle" type="button" aria-controls="home-navigation" aria-expanded="false" aria-label="Open public navigation" hidden><span>Menu</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
 <nav id="home-navigation" class="public-nav landing-navigation" aria-label="Main navigation">
     <a asp-controller="Home" asp-action="Index" asp-fragment="home" aria-current="@(controller == "Home" && action == "Index" ? "page" : null)">Home</a>
-    <a asp-controller="Home" asp-action="About" aria-current="@(controller == "Home" && action == "About" ? "page" : null)">About</a>
     <a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works">How It Works</a>
+    <a asp-controller="Home" asp-action="About" aria-current="@(controller == "Home" && action == "About" ? "page" : null)">About</a>
     <a asp-controller="Home" asp-action="Contact" aria-current="@(controller == "Home" && action == "Contact" ? "page" : null)">Contact</a>
     <a asp-controller="Account" asp-action="Login" class="public-login-link btn btn-primary" aria-current="@(controller == "Account" && action == "Login" ? "page" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h5v16h-5M3 12h12m-4-4 4 4-4 4" /></svg>Login</a>
     <a asp-controller="Suppliers" asp-action="Register" class="registration-link" aria-current="@(controller == "Suppliers" && action == "Register" ? "page" : null)">Supplier Registration <span aria-hidden="true">↗</span></a>

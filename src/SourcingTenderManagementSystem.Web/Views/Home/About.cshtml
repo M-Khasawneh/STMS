@@ -6,14 +6,20 @@
     <meta name="description" content="Learn how STMS is designed to connect purchase requests, sourcing teams and suppliers through a clear, traceable procurement process." />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home-motion.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/public-pages.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/about.css" asp-append-version="true" />
 }
-<div class="stms-landing stms-public-page" data-public-page="about">
+<div class="stms-landing about-page" data-public-page="about">
     <section class="public-page-hero" aria-labelledby="about-page-title">
         <nav class="public-page-breadcrumb" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">/</span><span aria-current="page">About</span></nav>
         <div class="public-page-hero-grid">
             <div data-animated-content data-ac-stagger="90"><div class="stms-eyebrow"><span class="stms-dot" aria-hidden="true"></span> ABOUT STMS</div><h1 id="about-page-title">One shared purpose.<br /><span>A clearer process.</span></h1><p class="public-page-lead">A central platform designed to organize purchasing digitally, from the first request to the final decision.</p><a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works" class="stms-text-link">Explore the sourcing workflow <span aria-hidden="true">&#8599;</span></a></div>
-            <div class="public-purpose-art" aria-hidden="true"><span class="purpose-ring"></span><span class="purpose-ring"></span><span class="purpose-ring"></span><div class="purpose-mark">st</div><span class="purpose-label purpose-label-one">Departments</span><span class="purpose-label purpose-label-two">Sourcing teams</span><span class="purpose-label purpose-label-three">Suppliers</span><span class="purpose-art-caption">ONE SHARED CONTEXT</span></div>
+            <aside class="about-context" aria-label="Platform purpose" data-animated-content>
+                <span class="about-context-kicker">CONNECTED BY DESIGN</span>
+                <h2>Different roles.<br />One clear direction.</h2>
+                <p>A shared structure for the people, information and decisions behind every sourcing process.</p>
+                <ul><li><span>01</span> Requesting departments</li><li><span>02</span> Sourcing teams</li><li><span>03</span> Suppliers</li></ul>
+                <div class="about-context-note">Clear responsibilities. Traceable decisions.</div>
+            </aside>
         </div>
     </section>
     <section class="public-mission" aria-labelledby="mission-title">

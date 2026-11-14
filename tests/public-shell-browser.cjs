@@ -21,6 +21,11 @@ const fs = require('fs'), path = require('path');
                 check(response.status() === 200, route + ' renders at ' + width);
                 check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ' fits ' + width);
                 check(await page.locator('#home-navigation > a').count() === 6, 'All required navigation destinations');
+                check(JSON.stringify((await page.locator('#home-navigation > a').allTextContents()).slice(0, 4).map(x => x.trim())) === JSON.stringify(['Home', 'How It Works', 'About', 'Contact']), 'Public navigation order');
+                if (route === '/Home/About') {
+                    check(await page.locator('.public-purpose-art, .purpose-mark, .about-page img').count() === 0, 'About content contains no decorative logo');
+                    check(await page.locator('.public-lifecycle-list > li').count() === 6, 'All six sourcing stages retained');
+                }
                 const shell = await page.locator('.public-topbar').evaluate(header => {
                     const style = getComputedStyle(header), login = getComputedStyle(header.querySelector('.public-login-link'));
                     return [Math.round(header.getBoundingClientRect().height), style.backgroundColor, style.borderRadius, login.backgroundColor, login.color, login.fontSize];
@@ -45,7 +50,7 @@ const fs = require('fs'), path = require('path');
                     await page.getByRole('button', { name: 'Hide', exact: true }).click();
                     check(await page.locator('#Password').getAttribute('type') === 'password', 'Password can be concealed');
                 }
-                if ((width === 1440 || width === 390) && ['/', '/Home/Contact', '/Account/Login'].includes(route)) await page.screenshot({ path: path.join(output, (route === '/' ? 'home' : route.split('/').at(-1)) + '-' + width + '.png'), fullPage: true });
+                if ((width === 1440 || width === 390) && ['/', '/Home/About', '/Home/Contact', '/Account/Login'].includes(route)) await page.screenshot({ path: path.join(output, (route === '/' ? 'home' : route.split('/').at(-1)) + '-' + width + '.png'), fullPage: true });
             }
         }
         await page.goto(base + '/Home/Contact');
