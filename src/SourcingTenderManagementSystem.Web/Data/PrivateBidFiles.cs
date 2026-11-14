@@ -23,10 +23,12 @@ public sealed class PrivateBidFiles : IPrivateBidFiles
     private readonly string appData;
     private readonly string root;
     private static readonly Regex Reference = new("^([a-f0-9]{32})/([a-f0-9]{64})-([a-f0-9]{64})\\.bin\\z", RegexOptions.CultureInvariant);
-    public PrivateBidFiles(IWebHostEnvironment environment)
+    public PrivateBidFiles(IWebHostEnvironment environment) : this(environment, "BidDocuments") { }
+    public static PrivateBidFiles ForClarifications(IWebHostEnvironment environment) => new(environment, "ClarificationDocuments");
+    private PrivateBidFiles(IWebHostEnvironment environment, string directory)
     {
         appData = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "App_Data"));
-        root = Path.Combine(appData, "BidDocuments");
+        root = Path.Combine(appData, directory);
         var web = Path.TrimEndingDirectorySeparator(Path.GetFullPath(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot")));
         if (root.Equals(web, StringComparison.OrdinalIgnoreCase) || root.StartsWith(web + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Bid storage must be outside the web root.");

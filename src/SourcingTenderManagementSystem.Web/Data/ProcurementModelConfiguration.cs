@@ -286,6 +286,13 @@ internal static class ProcurementModelConfiguration
         modelBuilder.Entity<PurchaseRequisition>().HasIndex(x => new { x.DepartmentId, x.Status });
         modelBuilder.Entity<Tender>().HasIndex(x => new { x.Status, x.SubmissionDeadline });
 
+        modelBuilder.Entity<ClarificationAttachment>(entity =>
+        {
+            entity.ToTable("ClarificationAttachments", table =>
+                table.HasCheckConstraint("CK_ClarificationAttachments_Size", "[Size] > 0 AND [Size] <= 5242880"));
+            entity.HasOne<ClarificationResponse>().WithMany().HasForeignKey(x => x.ClarificationResponseId).OnDelete(DeleteBehavior.NoAction);
+            entity.Property(x => x.Sha256).HasMaxLength(64);
+        });
         ConfigureStorage(modelBuilder);
     }
 

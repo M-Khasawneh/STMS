@@ -15,6 +15,8 @@ if (args.Contains("--managed-networking"))
     AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
 
 var failures = new List<string>();
+if (args.Contains("--inspect-clarification-database") || args.Contains("--apply-clarification-migration"))
+    return await ClarificationSchemaChecks.RunAsync(args.Contains("--apply-clarification-migration"));
 var options = new DbContextOptionsBuilder<ApplicationDbContext>()
     .UseSqlServer("Server=localhost;Database=SchemaVerificationOnly;Integrated Security=True;TrustServerCertificate=True")
     .Options;
@@ -22,6 +24,11 @@ using var context = new ApplicationDbContext(options);
 var model = context.GetService<IDesignTimeModel>().Model;
 var expectedTables = new[] { "Departments", "SupplierProfiles", "SupplierDocuments", "PurchaseRequisitions", "PurchaseRequisitionItems", "PurchaseRequisitionReviews", "Tenders", "TenderSuppliers", "Invitations", "Bids", "BidItems", "BidDocuments", "EvaluationCriteria", "TechnicalEvaluations", "FinancialEvaluations", "BidCostComponents", "EvaluationReports", "TenderApprovals", "CommitteeAssignments", "CommitteeMembers", "CommitteeVotes", "ComplianceReviews", "ClarificationRequests", "ClarificationResponses", "Notifications", "AuditLogs", "AiBidAnalyses", "TenderAwards", "TenderPurchaseRequisitions", "AspNetUsers", "AspNetRoles", "AspNetUserRoles", "AspNetUserClaims", "AspNetRoleClaims", "AspNetUserLogins", "AspNetUserTokens" };
 var actualTables = model.GetEntityTypes().Select(x => x.GetTableName()).ToHashSet();
+Check(actualTables.Contains("ClarificationAttachments"), "Missing clarification attachment table");
+var attachmentModel = model.FindEntityType(typeof(ClarificationAttachment))!;
+Check(attachmentModel.GetForeignKeys().Single().PrincipalEntityType.ClrType == typeof(ClarificationResponse), "Attachment must belong to a clarification response");
+Check(attachmentModel.FindProperty(nameof(ClarificationAttachment.Sha256))!.GetMaxLength() == 64, "Attachment hash precision");
+Check(attachmentModel.GetCheckConstraints().Any(x => x.Name == "CK_ClarificationAttachments_Size"), "Attachment size constraint missing");
 foreach (var table in expectedTables)
     Check(actualTables.Contains(table), $"Missing required table: {table}");
 
@@ -102,6 +109,9 @@ if (migrations.Migrations.Count > 0)
     if(args.Contains("--write-tender-script"))
         File.WriteAllText("docs/tender-invitation-migration.sql", context.GetService<IMigrator>().GenerateScript("20261113120000_SupplierRegistrationUniqueness", "20261113180000_TenderInvitationIntegrity"));
     Check(!context.Database.HasPendingModelChanges(), "Model differs from migration snapshot");
+    var clarification = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_ClarificationAttachments")).Value, context.Database.ProviderName!);
+    Check(clarification.UpOperations.All(x => x is CreateTableOperation or CreateIndexOperation), "Clarification migration alters existing schema");
+    Check(clarification.UpOperations.OfType<CreateTableOperation>().Select(x => x.Name).SequenceEqual(new[] { "ClarificationAttachments" }), "Clarification migration must add only its attachment table");
     var sql = context.GetService<IMigrator>().GenerateScript(options: MigrationsSqlGenerationOptions.Idempotent);
     Check(!sql.Contains("DROP TABLE", StringComparison.OrdinalIgnoreCase), "Forward migration drops tables");
     Console.WriteLine($"Migrations verified: {migrations.Migrations.Count}");
@@ -116,7 +126,7 @@ if (failures.Count > 0)
     foreach (var failure in failures) Console.Error.WriteLine($"FAIL: {failure}");
     return 1;
 }
-Console.WriteLine($"PASS: model, keys, constrained relationships, decimal storage, non-destructive deletes and Identity stores ({expectedTables.Length} required tables).");
+Console.WriteLine($"PASS: model, keys, constrained relationships, decimal storage, non-destructive deletes and Identity stores ({expectedTables.Length + 1} required tables).");
 
 if (args.Contains("--inspect-database"))
 {

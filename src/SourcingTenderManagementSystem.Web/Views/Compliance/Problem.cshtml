@@ -1,0 +1,4 @@
+@model string
+@{ ViewData["Title"] = "Clarification unavailable"; }
+<section class="bid-panel"><h1>Action unavailable</h1><p role="alert">@Model</p>
+<a asp-action="Details" asp-route-id="@Context.Request.RouteValues["id"]">Reload compliance &amp; clarifications</a></section>

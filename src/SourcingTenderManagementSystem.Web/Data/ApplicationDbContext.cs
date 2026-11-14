@@ -32,6 +32,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ComplianceReview> ComplianceReviews => Set<ComplianceReview>();
     public DbSet<ClarificationRequest> ClarificationRequests => Set<ClarificationRequest>();
     public DbSet<ClarificationResponse> ClarificationResponses => Set<ClarificationResponse>();
+    public DbSet<ClarificationAttachment> ClarificationAttachments => Set<ClarificationAttachment>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AiBidAnalysis> AiBidAnalyses => Set<AiBidAnalysis>();

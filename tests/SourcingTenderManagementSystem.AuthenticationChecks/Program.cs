@@ -21,6 +21,15 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--compliance-checks-only", StringComparer.Ordinal)) {
+    await ComplianceChecks.RunAsync();
+    await BidPhase3Checks.RunAsync(complianceChecks: true);
+    return;
+}
+if (args.Contains("--compliance-browser-fixture", StringComparer.Ordinal)) {
+    await BidPhase3Checks.RunAsync(browserFixture: true, complianceChecks: true);
+    return;
+}
 if (args.Contains("--bid-phase4-browser-fixture", StringComparer.Ordinal)) {
     await BidPhase3Checks.RunAsync(browserFixture: true, phase4Checks: true);
     return;

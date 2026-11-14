@@ -1,0 +1,74 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.CompliancePage
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ ViewData["Title"] = "Compliance & clarifications"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" /> }
+<div class="bid-workspace compliance-workspace">
+    <header class="page-heading"><div><span class="eyebrow">OFFER REVIEW</span><h1>Compliance &amp; clarifications</h1><p>@Model.TenderTitle</p></div></header>
+    <div class="bid-toolbar"><a asp-controller="@(User.IsInRole("Supplier") ? "Bids" : "ReviewBids")" asp-action="Details" asp-route-id="@Model.BidId">← Offer details</a></div>
+    @if (TempData["ComplianceMessage"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <section class="bid-panel" aria-labelledby="review-history">
+        <h2 id="review-history">Compliance record</h2>
+        @if (Model.Reviews.Count == 0) { <p>No compliance decision has been recorded.</p> }
+        <ol class="requisition-history">
+        @foreach (var review in Model.Reviews) {
+            <li><strong>@(review.Outcome == ComplianceStatus.PendingClarification ? "Pending clarification" : review.Outcome == ComplianceStatus.NonCompliant ? "Non-compliant" : "Compliant")</strong><small>@TenderTime.Display(review.ReviewedAt)</small><p class="compliance-text">@review.Reasons</p></li>
+        }
+        </ol>
+    </section>
+    @if (Model.CanReview) {
+        <div class="compliance-forms">
+            <section class="bid-panel"><h2>Record a decision</h2>
+                <form asp-action="Decide" asp-route-id="@Model.BidId" method="post">
+                    <input type="hidden" name="Version" value="@Model.Version" />
+                    <label for="outcome">Outcome</label><select id="outcome" name="Outcome" class="form-select" required>
+                        <option value="">Choose outcome</option><option value="Compliant">Compliant</option><option value="NonCompliant">Non-compliant</option><option value="PendingClarification">Pending clarification</option>
+                    </select>
+                    <label for="reasons">Review notes / reason</label>@Html.TextArea("Reasons", null, new { id = "reasons", @class = "form-control", maxlength = "8000", rows = "4", aria_describedby = "reason-help" })
+                    <small id="reason-help">A reason is required for a non-compliant decision.</small>
+                    <button class="btn btn-primary" type="submit">Record decision</button>
+                </form>
+            </section>
+            <section class="bid-panel"><h2>Ask the supplier</h2>
+                <form asp-action="Ask" asp-route-id="@Model.BidId" method="post">
+                    <input type="hidden" name="Version" value="@Model.Version" />
+                    <label for="subject">Subject</label>@Html.TextBox("Subject", null, new { id = "subject", @class = "form-control", required = "required", maxlength = "256" })
+                    <label for="question">Question</label>@Html.TextArea("Description", null, new { id = "question", @class = "form-control", required = "required", maxlength = "8000", rows = "4" })
+                    <small>The offer is marked pending clarification. Its submitted contents stay fixed.</small>
+                    <button class="btn btn-primary" type="submit">Send clarification</button>
+                </form>
+            </section>
+        </div>
+    }
+    <section aria-labelledby="clarifications"><h2 id="clarifications">Clarifications</h2>
+        @if (Model.Threads.Count == 0) { <p>No clarification requests have been sent.</p> }
+        @foreach (var thread in Model.Threads) {
+            var request = thread.Request;
+            <article class="bid-panel clarification-thread">
+                <header><h3>@request.Subject</h3><span class="bid-status">@request.Status</span></header>
+                <small>Requested @TenderTime.Display(request.CreatedAt)</small><p class="compliance-text">@request.Description</p>
+                @foreach (var reply in thread.Replies) {
+                    <div class="clarification-reply"><strong>Supplier response</strong><small>@TenderTime.Display(reply.Response.RespondedAt)</small><p class="compliance-text">@reply.Response.Response</p>
+                        <ul>@foreach (var file in reply.Attachments) {
+                            <li><a asp-action="Document" asp-route-id="@Model.BidId" asp-route-attachmentId="@file.Id">@file.OriginalName</a> <small>@((file.Size / 1024m).ToString("N0")) KB</small></li>
+                        }</ul>
+                    </div>
+                }
+                @if (Model.Supplier && request.RecipientUserId == Model.UserId && request.Status == ClarificationStatus.Pending) {
+                    <form asp-action="Reply" asp-route-id="@Model.BidId" asp-route-requestId="@request.Id" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="Version" value="@Model.Version" />
+                        <label for="reply-@request.Id">Your response</label>@Html.TextArea("Response", null, new { id = "reply-" + request.Id, @class = "form-control", required = "required", maxlength = "8000", rows = "4" })
+                        <label for="files-@request.Id">Optional explanatory attachments</label><input id="files-@request.Id" name="Files" class="form-control" type="file" multiple accept=".pdf,.jpg,.png" aria-describedby="file-help-@request.Id" />
+                        <small id="file-help-@request.Id">PDF, JPG or PNG · 5 MB per file · up to 10 files. The response and attachments become read-only when sent. They cannot change the submitted offer or prices.</small>
+                        <button class="btn btn-primary" type="submit">Send response</button>
+                    </form>
+                }
+                @if (Model.CanReview && request.SenderUserId == Model.UserId && request.Status == ClarificationStatus.Answered) {
+                    <form asp-action="Resolve" asp-route-id="@Model.BidId" asp-route-requestId="@request.Id" method="post"><input type="hidden" name="version" value="@Model.Version" /><button class="btn btn-outline-primary" type="submit">Mark resolved</button></form>
+                }
+            </article>
+        }
+    </section>
+</div>
+@section Scripts { <script src="~/js/compliance.js" asp-append-version="true"></script> }

@@ -29,7 +29,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -73,6 +73,7 @@ public static class BidPhase3Checks
         builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
         builder.Services.AddScoped<BidManagement>();
         builder.Services.AddScoped<BidReviewPages>();
+        if (complianceChecks) builder.Services.AddSingleton<IComplianceManagement, ComplianceMvcFixture>();
         builder.Services.AddScoped<BidDocumentManagement>();
         builder.Services.AddScoped<SupplierBidPages>();
         await using var app = builder.Build();
@@ -95,6 +96,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (complianceChecks) { await ComplianceChecks.HttpAsync(client); return; }
             if (phase4Checks) { await BidPhase4Checks.RunAsync(client, app.Services, f); return; }
             if (adminChecks) { await AdminDashboardChecks.HttpAsync(client, (TestAdminDashboard)app.Services.GetRequiredService<IAdminDashboard>()); return; }
             if (workspaceChecks) { await WorkspaceUiChecks.RunAsync(client); return; }

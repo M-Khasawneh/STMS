@@ -1,0 +1,14 @@
+.compliance-workspace { display: grid; gap: 1.5rem; }
+.compliance-workspace .page-heading, .compliance-workspace .bid-toolbar { margin: 0; }
+.compliance-forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.compliance-workspace .bid-panel { padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--border, #d9d9d4); border-radius: 1.25rem; background: var(--surface, #fff); min-width: 0; }
+.compliance-workspace form { display: grid; gap: .65rem; }
+.compliance-workspace form label { margin-top: .5rem; font-weight: 600; }
+.compliance-workspace form button { justify-self: start; margin-top: .5rem; }
+.clarification-thread { margin-top: 1rem; }
+.clarification-thread header { display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; }
+.clarification-reply { margin: 1rem 0; padding: 1rem; border-inline-start: 3px solid var(--primary, #a4792b); background: var(--bg, #f6f3ed); border-radius: .5rem; }
+.clarification-reply small { display: block; }
+.compliance-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.clarification-thread a { overflow-wrap: anywhere; }
+@media (max-width: 760px) { .compliance-forms { grid-template-columns: 1fr; } }
