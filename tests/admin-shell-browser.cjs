@@ -27,7 +27,7 @@ const {chromium}=require(process.env.STMS_PLAYWRIGHT||'playwright');const fs=req
       await frame.locator('html.workspace-popup-embed').waitFor();
       ok(await frame.locator('.sidebar').isHidden()&&await frame.locator('.topbar').isHidden(),'popup has no duplicate Admin shell '+width+'px');
       ok(await frame.locator('html').evaluate(e=>e.scrollWidth<=innerWidth),'Admin popup fits '+width+'px');
-      ok(await frame.locator('main button[type=submit]').evaluate(e=>getComputedStyle(e).backgroundColor)==='rgb(37, 99, 235)','popup primary action uses dashboard blue');
+      ok(await frame.locator('main button[type=submit]').evaluate(e=>getComputedStyle(e).backgroundColor)==='rgb(21, 43, 64)','popup primary action uses brand navy');
       if(width===390){await page.waitForTimeout(800);await page.screenshot({path:path.join(output,'department-popup-mobile.png'),fullPage:true});}
       await page.getByRole('button',{name:'Close form',exact:true}).click();
     }

@@ -27,13 +27,14 @@
     @await RenderSectionAsync("Styles", required: false)
     @if (authenticated) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/brand-identity.css" asp-append-version="true" />
 </head>
 <body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
     @if (authenticated)
     {
         <aside class="sidebar" id="workspace-navigation" aria-label="Workspace navigation">
-            <a class="brand" asp-controller="Workspace" asp-action="Index"><span class="brand-mark" aria-hidden="true">s<span>t</span></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
+            <a class="brand" asp-controller="Workspace" asp-action="Index"><span class="brand-mark brand-logo"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="52" height="52" /></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
             <div class="nav-label">WORKSPACE</div>
             <nav class="side-links" aria-label="Main navigation">
                 <a class="side-link @(controller == "Workspace" ? "active" : "")" aria-current="@(controller == "Workspace" ? "page" : null)" asp-controller="Workspace" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 3l9 7v11h-6v-7H9v7H3Z"/></svg>Dashboard</a>
@@ -72,7 +73,7 @@
             }
             else
             {
-                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark" aria-hidden="true">s<span>t</span></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
+                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark brand-logo"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="52" height="52" /></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
                 @if (publicWebsite)
                 {
                     <button class="home-menu-toggle" type="button" aria-controls="home-navigation" aria-expanded="false" hidden>Menu <span aria-hidden="true">&#9776;</span></button>
@@ -97,7 +98,7 @@
         @if (ViewData["PremiumLanding"] is true)
         {
             <footer class="landing-footer">
-                <div><a asp-controller="Home" asp-action="Index" class="landing-footer-brand">STMS</a><p>Sourcing &amp; Tender Management System</p><p>A connected process, from request to decision.</p></div>
+                <div><a asp-controller="Home" asp-action="Index" class="landing-footer-brand"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="64" height="64" /> STMS</a><p>Sourcing &amp; Tender Management System</p><p>A connected process, from request to decision.</p></div>
                 <nav aria-label="Footer platform navigation"><h2>Platform</h2><a asp-controller="Home" asp-action="About">About</a><a href="#how-it-works">How It Works</a><a asp-controller="Home" asp-action="Contact">Contact</a></nav>
                 <nav aria-label="Footer account navigation"><h2>Your workspace</h2><a asp-controller="Account" asp-action="Login">Login</a><a asp-controller="Suppliers" asp-action="Register">Supplier Registration</a><a asp-controller="Home" asp-action="Privacy">Privacy</a></nav>
                 <div class="landing-footer-bottom"><span>&copy; 2026 Sourcing &amp; Tender</span><a href="#home">Back to top ↑</a></div>
