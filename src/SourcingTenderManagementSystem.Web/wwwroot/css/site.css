@@ -1,20 +1,20 @@
 /* Sourcing & Tender ? shared tokens, shell, components and motion. No remote dependencies. */
 :root {
-  --ink:#183331;
-  --muted:#637371;
-  --paper:#f6f7f3;
+  --ink:#152b40;
+  --muted:#626e77;
+  --paper:#f6f3ed;
   --surface:#fff;
-  --line:#dfe6df;
-  --accent:#176b58;
-  --accent-dark:#105342;
-  --lime:#d6edac;
+  --line:#dedbd3;
+  --accent:#152b40;
+  --accent-dark:#24465f;
+  --lime:#e7c57e;
   --danger:#ab3040;
   --radius:18px;
   --shadow:0 16px 50px -28px #173b342e;
   --ease:cubic-bezier(.22,1,.36,1);
   --sidebar:252px;
-  --bs-primary:#176b58;
-  --bs-link-color:#176b58;
+  --bs-primary:#152b40;
+  --bs-link-color:#152b40;
   --bs-body-color:var(--ink)
 }
 * {
@@ -45,7 +45,7 @@ button,a,input,select,textarea {
   -webkit-tap-highlight-color:transparent
 }
 ::selection {
-  background:#d6edac;
+  background:#e7c57e;
   color:var(--ink)
 }
 :focus-visible {
@@ -188,7 +188,7 @@ strong {
   transform:translateX(3px)
 }
 .side-link.active {
-  background:#d6edac;
+  background:#e7c57e;
   color:var(--ink);
   font-weight:600;
   box-shadow:0 5px 20px #0000000a
@@ -268,7 +268,7 @@ strong {
   justify-content:space-between;
   padding:0 46px;
   border-bottom:1px solid var(--line);
-  background:#f6f7f3eb;
+  background:#f6f3edeb;
   z-index:30
 }
 .topbar-context {
@@ -580,7 +580,7 @@ strong {
 .form-control:focus,.form-select:focus {
   background:#fff;
   border-color:var(--accent);
-  box-shadow:0 0 0 4px #176b5810;
+  box-shadow:0 0 0 4px #152b4010;
   color:var(--ink)
 }
 .mb-3:focus-within>.form-label {
@@ -614,7 +614,7 @@ strong {
 }
 .form-check-input:focus {
   border-color:var(--accent);
-  box-shadow:0 0 0 3px #176b5822
+  box-shadow:0 0 0 3px #152b4022
 }
 .form-check-label {
   font-size:.81rem
@@ -675,11 +675,11 @@ strong {
   --bs-btn-hover-border-color:var(--accent-dark);
   --bs-btn-active-bg:var(--accent-dark);
   background:var(--accent);
-  box-shadow:0 5px 12px #176b5812;
+  box-shadow:0 5px 12px #152b4012;
   color:white
 }
 .btn-primary:hover {
-  box-shadow:0 7px 20px #176b5826
+  box-shadow:0 7px 20px #152b4026
 }
 .btn-outline-secondary {
   --bs-btn-color:var(--ink);
@@ -706,7 +706,7 @@ strong {
   animation:spin .7s linear infinite
 }
 .btn:focus-visible {
-  box-shadow:0 0 0 4px #176b582a
+  box-shadow:0 0 0 4px #152b402a
 }
 .document-panel,.message-panel {
   background:white;
@@ -817,9 +817,9 @@ strong {
 .orbit {
   position:absolute;
   inset:0;
-  border:1px solid #d6edac44;
+  border:1px solid #e7c57e44;
   border-radius:50%;
-  box-shadow:inset 0 0 25px #d6edac08
+  box-shadow:inset 0 0 25px #e7c57e08
 }
 .orbit-one {
   transform:rotateX(58deg) rotateZ(-30deg)
@@ -829,7 +829,7 @@ strong {
 }
 .orbit-three {
   inset:40px;
-  border-color:#d6edac77
+  border-color:#e7c57e77
 }
 .orbit-core {
   position:absolute;
@@ -857,7 +857,7 @@ strong {
   border-radius:50%;
   left:25px;
   top:70px;
-  box-shadow:0 0 20px #d6edac66
+  box-shadow:0 0 20px #e7c57e66
 }
 /* Public foundation: abstract composition, no invented application data */
 .home-hero {
@@ -956,7 +956,7 @@ strong {
 .layer-three {
   transform:translateZ(40px) translate(0,-40px);
   border-color:#214b3b;
-  background:linear-gradient(130deg,#254e4033,#d6edac33)
+  background:linear-gradient(130deg,#254e4033,#e7c57e33)
 }
 /* Motion always leaves content visible if scripts fail. */
 @keyframes spin {

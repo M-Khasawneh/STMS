@@ -12,24 +12,17 @@
 <div class="stms-landing landing-redesign">
     <section id="home" class="lp-hero" aria-labelledby="home-title">
         <div class="lp-grid" aria-hidden="true"></div>
-        <div class="lp-container lp-hero-grid">
-            <div class="lp-hero-copy">
-                <p class="lp-kicker" data-enter>SOURCING &amp; TENDER MANAGEMENT SYSTEM</p>
-                <h1 id="home-title" data-enter>Unified Platform for <span>Sourcing &amp; Tender Management</span></h1>
-                <p class="lp-lead" data-enter>From the first request to the final decision. Bring your departments, sourcing teams and suppliers together through one clear, connected process.</p>
-                <div class="lp-actions" data-enter>
-                    <a asp-controller="Account" asp-action="Login" class="lp-button lp-button-primary">Access your workspace <span aria-hidden="true">↗</span></a>
-                    <a href="#how-it-works" class="lp-button lp-button-outline">Explore the process <span aria-hidden="true">↓</span></a>
-                </div>
-                <p class="lp-hero-note" data-enter>Role-based access. Documents and decisions in context.</p>
+        <div class="lp-container lp-editorial-hero">
+            <p class="lp-kicker" data-enter>SOURCING &amp; TENDER MANAGEMENT SYSTEM</p>
+            <h1 id="home-title" data-enter>Unified Platform for<br /><span>Sourcing &amp; Tender Management</span></h1>
+            <p class="lp-lead" data-enter>Every request has a purpose. Every decision needs clarity. Connect your departments, sourcing teams and suppliers through one structured purchasing process.</p>
+            <div class="lp-actions" data-enter>
+                <a asp-controller="Suppliers" asp-action="Register" class="lp-button lp-button-primary">Register your company <span aria-hidden="true">↗</span></a>
+                <a asp-controller="Account" asp-action="Login" class="lp-button lp-button-outline">Access your workspace <span aria-hidden="true">→</span></a>
             </div>
-            <div class="lp-visual" data-enter role="img" aria-label="Illustration of a connected sourcing process linking requests, tenders and suppliers.">
-                <div class="lp-orbit lp-orbit-one"></div><div class="lp-orbit lp-orbit-two"></div><div class="lp-orbit lp-orbit-three"></div>
-                <div class="lp-orbit-center lp-logo-center"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="250" height="250" fetchpriority="high" /></div>
-                <div class="lp-orbit-label lp-label-request"><span aria-hidden="true">↗</span> Purchase requests</div>
-                <div class="lp-orbit-label lp-label-tender"><span aria-hidden="true">▤</span> Tender management</div>
-                <div class="lp-orbit-label lp-label-supplier"><span aria-hidden="true">◇</span> Supplier participation</div>
-                <div class="lp-visual-caption">STRUCTURED FROM THE START</div>
+            <a href="#how-it-works" class="lp-hero-explore" data-enter>Discover how it works <span aria-hidden="true">↓</span></a>
+            <div class="lp-hero-process" data-enter aria-label="Connected sourcing process">
+                <span>Purchase requests</span><i aria-hidden="true">→</i><span>Sourcing &amp; tenders</span><i aria-hidden="true">→</i><span>Supplier offers</span><i aria-hidden="true">→</i><span>Informed decisions</span>
             </div>
         </div>
         <div class="lp-container lp-metrics" aria-label="Public system statistics">

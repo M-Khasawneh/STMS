@@ -9,7 +9,6 @@
     const steps = [...root.querySelectorAll('.lp-steps li')];
     const meter = root.querySelector('.lp-workflow-meter');
     const meterLabel = root.querySelector('[data-workflow-label]');
-    const visual = root.querySelector('.lp-visual');
     let pointerFrame = 0;
     let scrollFrame = 0;
 
@@ -54,33 +53,20 @@
     root.addEventListener('pointermove', event => {
         if (reduced.matches || !fine.matches || pointerFrame) return;
         const card = event.target.closest('.lp-feature');
-        const inVisual = visual?.contains(event.target);
-        if (!card && !inVisual) return;
+        if (!card) return;
         const x = event.clientX, y = event.clientY;
         pointerFrame = requestAnimationFrame(() => {
             pointerFrame = 0;
-            const target = card || visual;
-            const box = target.getBoundingClientRect();
-            if (card) {
-                card.style.setProperty('--card-x', `${x - box.left}px`);
-                card.style.setProperty('--card-y', `${y - box.top}px`);
-            } else {
-                visual.style.setProperty('--visual-y', `${(x - box.left - box.width / 2) * .015}deg`);
-                visual.style.setProperty('--visual-x', `${-(y - box.top - box.height / 2) * .015}deg`);
-            }
+            const box = card.getBoundingClientRect();
+            card.style.setProperty('--card-x', `${x - box.left}px`);
+            card.style.setProperty('--card-y', `${y - box.top}px`);
         });
     }, { passive: true });
-    const resetVisual = () => {
-        visual?.style.removeProperty('--visual-x');
-        visual?.style.removeProperty('--visual-y');
-    };
-    visual?.addEventListener('pointerleave', resetVisual);
     function resetMotion() {
         cancelAnimationFrame(pointerFrame);
         pointerFrame = 0;
         active.forEach(animation => animation.cancel());
         active.clear();
-        resetVisual();
     }
     reduced.addEventListener('change', resetMotion);
     fine.addEventListener('change', resetMotion);
