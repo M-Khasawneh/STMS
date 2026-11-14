@@ -2,8 +2,8 @@
 @{ ViewData["Title"] = "Account login"; }
 <div class="login-composition"><div class="login-form-wrap">
     <section class="login-panel" aria-labelledby="login-title">
-        <div class="eyebrow">YOUR WORKSPACE AWAITS</div><h1 id="login-title">Account login</h1>
-        <p>Employees use an administrator-provided account. Suppliers can sign in after their company application is approved.</p>
+        <div class="login-access-label"><span aria-hidden="true"></span> YOUR STMS WORKSPACE</div><h1 id="login-title">Welcome back.</h1>
+        <p>Sign in to continue where you left off. Employees and approved suppliers can access their workspace below.</p>
         <form asp-controller="Account" asp-action="Login" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <input asp-for="ReturnUrl" type="hidden" />
@@ -14,10 +14,10 @@
             </div>
             <div class="mb-3">
                 <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" autocomplete="current-password" value="" />
+                <div class="password-control"><input asp-for="Password" class="form-control" autocomplete="current-password" value="" /><button type="button" class="password-toggle" aria-controls="Password" aria-pressed="false" hidden>Show</button></div>
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Log in <span aria-hidden="true">&#8599;</span></button>
+            <button type="submit" class="btn btn-primary">Log in to your workspace <span aria-hidden="true">&#8599;</span></button>
         </form>
         <div class="login-supplier-callout"><span>NEW TO STMS?</span><h2>Register your company.</h2><p>Suppliers can apply for an account and submit official company documents.</p><a asp-controller="Suppliers" asp-action="Register" class="login-registration-button">Supplier Registration <span aria-hidden="true">↗</span></a></div>
     </section>

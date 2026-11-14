@@ -84,7 +84,7 @@ const path = require('path');
             await page.setViewportSize({ width, height: 1000 });
             const response = await page.goto(base + '/Account/Login');
             check(response.status() === 200, 'Login renders');
-            check(await page.locator('img[src*="stms-logo"]').count() === 0, 'Login logo removed');
+            check(await page.locator('.login-panel img').count() === 0, 'Login form remains free of decorative logos');
             check(await page.locator('.login-story').count() === 0, 'Requested side section removed from markup');
             check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Login fits ' + width);
             if (width !== 320) await page.screenshot({ path: path.join(output, 'login-' + width + '.png'), fullPage: true });

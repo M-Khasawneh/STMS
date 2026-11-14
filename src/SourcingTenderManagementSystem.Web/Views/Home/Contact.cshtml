@@ -1,32 +1,23 @@
-﻿@{
-    ViewData["Title"] = "Contact";
-    ViewData["PublicWebsite"] = true;
-}
-@section Styles {
-    <meta name="description" content="Find STMS account access and supplier registration information, and check the availability of public contact details." />
-    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/home-motion.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/public-pages.css" asp-append-version="true" />
-}
-<div class="stms-landing stms-public-page" data-public-page="contact">
-    <section class="public-page-hero public-contact-hero" aria-labelledby="contact-page-title">
-        <nav class="public-page-breadcrumb" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">/</span><span aria-current="page">Contact</span></nav>
-        <div class="public-page-hero-grid"><div data-animated-content data-ac-stagger="90"><div class="stms-eyebrow"><span class="stms-dot" aria-hidden="true"></span> CONTACT &amp; ACCESS</div><h1 id="contact-page-title">Find your way<br /><span>into STMS.</span></h1><p class="public-page-lead">Use the available account and registration routes below. Public contact details have not yet been configured.</p></div><div class="public-contact-art" aria-hidden="true"><span></span><span></span><svg viewBox="0 0 120 100"><rect x="15" y="22" width="90" height="60" rx="10"/><path d="m17 27 43 31 43-31"/></svg></div></div>
-    </section>
-    <section class="public-contact-details" aria-labelledby="official-contact-title">
-        <div data-animated-content><div class="stms-eyebrow">PUBLIC CONTACT INFORMATION</div><h2 id="official-contact-title">Official details.<br /><span>When available.</span></h2></div>
-        <div class="public-contact-notice" data-animated-content><span class="public-notice-label"><i aria-hidden="true"></i> Not yet configured</span><h3>Contact enquiries are currently unavailable.</h3><p>No public email address, phone number or office address has been configured for this website.</p><p>There is currently no enquiry submission service on this page.</p></div>
-    </section>
-    <section class="public-access-section" aria-labelledby="access-title">
-        <div class="public-section-heading" data-animated-content><div><div class="stms-eyebrow">AVAILABLE NOW</div><h2 id="access-title">Choose your<br /><span>next step.</span></h2></div><p>These links lead to existing STMS account and supplier registration pages.</p></div>
-        <div class="public-access-grid">
-            <article class="public-access-card" data-animated-content><span class="public-access-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="11" r="5"/><path d="M6 28v-3a10 10 0 0 1 20 0v3"/></svg></span><span class="public-access-kicker">EXISTING ACCOUNTS</span><h3>Access your account.</h3><p>Employees sign in with credentials created by the administrator. Suppliers sign in after their registration has been approved.</p><a asp-controller="Account" asp-action="Login" class="stms-button stms-button-primary">Account login <span aria-hidden="true">&#8599;</span></a></article>
-            <article class="public-access-card public-access-supplier" data-animated-content><span class="public-access-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 28V7h20v21M11 12h3m4 0h3M11 17h3m4 0h3M13 28v-6h6v6"/></svg></span><span class="public-access-kicker">NEW SUPPLIERS</span><h3>Register your company.</h3><p>Submit your company information and required official documents. An administrator reviews your application before account access is activated.</p><a asp-controller="Suppliers" asp-action="Register" class="stms-button stms-button-primary">Supplier Registration <span aria-hidden="true">&#8599;</span></a></article>
-        </div>
-    </section>
-    <section class="public-contact-footnote" data-animated-content><p>Looking for an overview of the sourcing process?</p><a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works" class="stms-text-link">Explore How It Works <span aria-hidden="true">&#8599;</span></a></section>
+@model SourcingTenderManagementSystem.Web.Models.ContactMessageForm
+@{ ViewData["Title"] = "Contact"; ViewData["PublicWebsite"] = true; }
+<div class="contact-page">
+    <nav class="contact-breadcrumb" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">/</span><span aria-current="page">Contact</span></nav>
+    <div class="contact-page-grid">
+        <section class="contact-copy" aria-labelledby="contact-title"><span class="public-kicker">LET’S CONNECT</span><h1 id="contact-title">A conversation.<br /><span>A clearer next step.</span></h1><p>Have a question about STMS or getting started? Send a message directly to the system administrator.</p>
+            <div class="contact-delivery-note"><span aria-hidden="true">↗</span><div><h2>Direct to administration</h2><p>Your message is delivered privately through the administrator’s in-app notifications.</p></div></div>
+            <div class="contact-help-links"><span>Looking for account access?</span><a asp-controller="Account" asp-action="Login">Sign in to your workspace ↗</a><a asp-controller="Suppliers" asp-action="Register">Register your supplier company ↗</a></div>
+        </section>
+        <section class="contact-form-panel" aria-labelledby="contact-form-title">
+            <div class="public-form-heading"><span class="public-kicker">CONTACT STMS</span><h2 id="contact-form-title">How can we help?</h2><p>All fields are required.</p></div>
+            @if (TempData["ContactSent"] is string sent) { <div class="alert alert-success" role="status">@sent</div> }
+            <form asp-action="Contact" method="post" data-contact-form>
+                <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+                <div class="public-form-grid"><div><label asp-for="SenderName"></label><input asp-for="SenderName" class="form-control" autocomplete="name" maxlength="100" required /><span asp-validation-for="SenderName" class="text-danger"></span></div><div><label asp-for="Email"></label><input asp-for="Email" type="email" class="form-control" autocomplete="email" maxlength="254" required /><span asp-validation-for="Email" class="text-danger"></span></div></div>
+                <div><label asp-for="Subject"></label><input asp-for="Subject" class="form-control" maxlength="180" required /><span asp-validation-for="Subject" class="text-danger"></span></div>
+                <div><label asp-for="Message"></label><textarea asp-for="Message" class="form-control" rows="6" maxlength="4000" required aria-describedby="contact-message-help"></textarea><span asp-validation-for="Message" class="text-danger"></span><small id="contact-message-help">Up to 4,000 characters. Your name and email are included with the message.</small></div>
+                <button class="public-submit" type="submit">Send message <span aria-hidden="true">↗</span></button>
+            </form>
+        </section>
+    </div>
 </div>
-@section Scripts {
-    <script src="~/js/home.js" asp-append-version="true"></script>
-    <script src="~/js/home-motion.js" asp-append-version="true"></script>
-}
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

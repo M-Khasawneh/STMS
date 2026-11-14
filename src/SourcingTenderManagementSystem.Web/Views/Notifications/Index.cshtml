@@ -6,7 +6,7 @@
 <ol class="requisition-history">
 @foreach (var item in Model) {
     <li>
-        <strong>@item.Subject</strong><small>@TenderTime.Display(item.CreatedAt)</small><p>@item.Message</p>
+        <strong>@item.Subject</strong><small>@TenderTime.Display(item.CreatedAt)</small><p class="notification-message">@item.Message</p>
         @if (item.BidId.HasValue) {
             var destination = User.IsInRole("Supplier") ? "Bids" : "ReviewBids";
             if (item.Subject is "Clarification requested" or "Clarification answered") { destination = "Compliance"; }

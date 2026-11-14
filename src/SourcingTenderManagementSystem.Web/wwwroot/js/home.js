@@ -2,11 +2,11 @@
 (() => {
   'use strict';
   const body = document.body;
-  if (!body.classList.contains('stms-home')) return;
+  if (!body.classList.contains('public-shell')) return;
   const toggle = document.querySelector('.home-menu-toggle');
   const nav = document.getElementById('home-navigation');
   const header = document.querySelector('.topbar');
-  const compact = matchMedia('(max-width: 850px)');
+  const compact = matchMedia('(max-width: 1050px)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   if (toggle && nav) {
     body.classList.add('home-nav-ready');
@@ -39,7 +39,7 @@
       return normalized === '/home/index' ? '/' : normalized;
     };
     const currentPath = normalizePath(location.pathname);
-    const links = [...nav.querySelectorAll('a')].slice(0, 4);
+    const links = [...nav.querySelectorAll('a')];
     const pageLink = links.find(link => {
       const url = new URL(link.href);
       return normalizePath(url.pathname) === currentPath && !url.hash;

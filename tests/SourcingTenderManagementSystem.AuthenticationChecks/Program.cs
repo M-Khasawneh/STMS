@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--contact-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(); return; }
+if (args.Contains("--contact-checks-only", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(contactChecks: true); return; }
 if (args.Contains("--profile-picture-checks-only", StringComparer.Ordinal)) { await ProfilePictureChecks.RunAsync(); return; }
 if (args.Contains("--notes-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, notesPreview: true); return; }
 if (args.Contains("--report-checks-only", StringComparer.Ordinal) || args.Contains("--report-browser-fixture", StringComparer.Ordinal)) {
@@ -166,6 +168,9 @@ builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 builder.Services.AddControllersWithViews().AddApplicationPart(typeof(ProtectionController).Assembly);
 builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
+builder.Services.AddPublicContact();
+builder.Services.RemoveAll<IContactMessageStore>();
+builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();
 builder.Services.AddSingleton<IAdminDashboard>(s => new TestAdminDashboard(s.GetRequiredService<IHttpContextAccessor>(), TimeProvider.System));
 builder.Services.AddSingleton<IRoleDashboard, TestRoleDashboard>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("Server=localhost;Database=NoSqlSupplierGetOnly;Integrated Security=True;TrustServerCertificate=True"));
@@ -202,6 +207,8 @@ if (experienceBrowser) {
     app.Use(async (context, next) => { context.Response.Headers["X-STMS-Experience-Fixture"] = "memory-only"; await next(); });
     app.UseStaticFiles();
 }
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
@@ -264,7 +271,7 @@ try
     // Public metrics must distinguish unavailable data from a genuine zero.
     if (!args.Contains("--workspace-auth-regressions-only", StringComparer.Ordinal)) {
         Check(publicHtml.Contains("Unavailable") && !publicHtml.Contains("data-count=\"0\""), "unavailable statistics are not misreported as zero");
-        Check(publicHtml.Contains("Public contact details are not yet configured") && publicHtml.Contains("Register your company"), "public home retains Contact dependency and links implemented Supplier Registration");
+        Check(publicHtml.Contains("Send a message directly to the STMS administrator") && publicHtml.Contains("Register your company"), "public home links the real Contact form and Supplier Registration");
     }
     using var employeeSessionHandler = new HttpClientHandler
     {

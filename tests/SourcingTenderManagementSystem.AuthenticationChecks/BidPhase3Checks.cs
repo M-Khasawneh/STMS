@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
@@ -25,11 +27,12 @@ using SourcingTenderManagementSystem.Web.Security;
 
 namespace SourcingTenderManagementSystem.AuthenticationChecks;
 
-// Runs the real compiled Razor views, MVC filters/binding and bid services, with no SQL provider/store registered.
+// Runs compiled Razor views, MVC filters/binding and bid services without a SQL connection.
+// Optional public preview metadata uses a connection-blocking interceptor for the supplier GET constructor.
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -44,6 +47,15 @@ public static class BidPhase3Checks
         builder.WebHost.ConfigureKestrel(o => o.Listen(IPAddress.Loopback, 0));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddControllersWithViews();
+        if (notesPreview || contactChecks) {
+            builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer("Server=unused;Database=unused;Integrated Security=True").AddInterceptors(new NoSqlContactFixture()));
+            builder.Services.AddScoped<SupplierRegistration>();
+            builder.Services.AddScoped<SupplierReview>();
+            builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
+        }
+        builder.Services.AddPublicContact();
+        builder.Services.RemoveAll<IContactMessageStore>();
+        builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();
         if (notesPreview) {
             builder.Services.AddControllersWithViews().AddApplicationPart(typeof(NotesPreviewController).Assembly);
             builder.Services.AddSingleton<IWorkspacePresentation, NotesPresentation>();
@@ -84,7 +96,7 @@ public static class BidPhase3Checks
         builder.Services.AddScoped<SupplierBidPages>();
         await using var app = builder.Build();
         app.Use(async (context, next) => { context.Response.Headers["X-STMS-Bid-Fixture"] = "memory-only"; await next(); });
-        app.UseStaticFiles(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+        app.UseStaticFiles(); app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
         app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
         try
         {
@@ -102,6 +114,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (contactChecks) { await PublicContactChecks.RunAsync(client, app.Services); return; }
             if (complianceChecks) { await ComplianceChecks.HttpAsync(client); return; }
             if (evaluationChecks) { await EvaluationPresentationChecks.RunAsync(client); return; }
             if (reportChecks) { await UnifiedReportPresentationChecks.RunAsync(client, app.Services); return; }

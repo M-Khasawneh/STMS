@@ -38,6 +38,7 @@
 .history-current-label { display: inline-block; margin: 8px 0 0; padding: 3px 9px; border-radius: 20px; background: #f2e7cf; color: #79561c; font-size: .68rem; font-weight: 650; }
 .workspace .workspace-notification-bell { position: relative; overflow: visible; }
 .notification-count { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 20px; background: var(--brand-gold); color: #fff; border: 2px solid #fffefa; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+.notification-message { white-space: pre-line; overflow-wrap: anywhere; }
 .avatar, .admin-header-identity > span { position: relative; overflow: hidden; }
 .profile-picture { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; border-radius: inherit; background: #fff; }
 .profile-settings-photo { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 18px; border: 1px solid var(--brand-border); margin-bottom: 20px; }

@@ -1,0 +1,119 @@
+/* One public shell: Home, About, Contact, account access and supplier registration. */
+body.public-shell { background: var(--brand-canvas); color: var(--brand-ink); }
+.public-shell .topbar.public-topbar { position: sticky; z-index: 100; top: 18px; width: calc(100% - 48px); max-width: 1240px; min-height: 82px; height: auto; margin: 24px auto 0; padding: 13px 20px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 28px; border: 1px solid #e2dcd0; border-radius: 20px; background: #fffefaF5; box-shadow: 0 6px 24px #152b4007; backdrop-filter: blur(16px); transform: none; transition: box-shadow .25s, transform .25s, border-color .25s; }
+.public-shell.home-is-scrolled .topbar.public-topbar { max-width: 1240px; transform: translateY(-4px); background: #fffefaf5; border-color: #cdbb97; box-shadow: 0 14px 40px #152b4010; }
+.public-shell .topbar.public-topbar::after { display: none; }
+.public-shell .public-topbar .public-brand { flex: 0 0 auto; display: flex; align-items: center; gap: 11px; font-size: 1.25rem; font-weight: 700; letter-spacing: -.04em; color: var(--brand-ink); }
+.public-shell .public-topbar .brand-logo { display: block; width: 46px; height: 46px; padding: 0; background: transparent; border-radius: 12px; }
+.public-shell .public-topbar .brand-logo img { display: block; width: 46px; height: 46px; border-radius: 12px; object-fit: cover; }
+.public-shell .public-topbar .brand-sub { display: block; margin-top: 3px; font-size: .62rem; letter-spacing: .02em; font-weight: 500; color: #626e77; }
+.public-shell .public-topbar .public-nav { position: relative; display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 5px; margin: 0; padding: 0; font-size: .78rem; }
+.public-shell .public-topbar .public-nav::before { display: none; }
+.public-shell .public-topbar .public-nav > a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 11px 13px; margin: 0; border-radius: 10px; font-weight: 550; font-size: .78rem; line-height: 1.4; text-decoration: none; white-space: nowrap; color: #465462; background: transparent; border: 1px solid transparent; transition: background .18s, color .18s, border-color .18s, box-shadow .18s; }
+.public-shell .public-topbar .public-nav > a:not(.btn):not(.registration-link):hover, .public-shell .public-topbar .public-nav > a:not(.btn):not(.registration-link)[aria-current] { color: var(--brand-ink); background: #f1ece2; }
+body.public-shell .public-topbar .public-nav > a.public-login-link { background: var(--brand-ink); color: #fff; padding-inline: 17px; border: 1px solid var(--brand-ink); box-shadow: 0 3px 8px #152b4012; }
+body.public-shell .public-topbar .public-nav > a.public-login-link:hover { color: #fff; background: #27465e; border-color: #27465e; box-shadow: 0 5px 14px #152b4020; }
+.public-login-link svg, .home-menu-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+body.public-shell .public-topbar .public-nav > a.registration-link { color: #72541f; border-color: #d9c7a2; background: #fbf6eb; padding-inline: 15px; }
+body.public-shell .public-topbar .public-nav > a.registration-link:hover { background: #f1e5ca; border-color: #b99b60; }
+.public-shell .public-topbar .home-menu-toggle { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 10px 12px; background: #f7f3ea; color: var(--brand-ink); border: 1px solid var(--brand-border); border-radius: 10px; font-size: .78rem; }
+.public-shell .public-topbar .home-menu-toggle[hidden] { display: none; }
+.public-shell :is(.public-topbar, .public-footer) a:focus-visible, .public-shell .home-menu-toggle:focus-visible, .password-toggle:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; }
+.public-shell .public-footer { margin-top: 70px; padding: 58px max(24px, calc((100% - 1160px) / 2)) 22px; background: #152b40; color: #dce2e5; border-top: 3px solid #b79453; }
+.public-footer-main { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 64px; padding-bottom: 44px; }
+.public-footer-brand { display: inline-flex; flex-direction: column; gap: 9px; color: #fff; text-decoration: none; font-size: 2.2rem; font-weight: 650; letter-spacing: -.06em; }
+.public-footer-brand:hover { color: #e7c57e; }
+.public-footer-brand span { font-size: .7rem; font-weight: 450; letter-spacing: .02em; color: #d1d9de; }
+.public-footer p { font-size: .82rem; line-height: 1.85; color: #b4c1cb; margin-top: 22px; max-width: 36ch; }
+.public-footer .public-footer-contact { display: inline-flex; align-items: center; gap: 32px; min-height: 44px; margin-top: 9px; padding-bottom: 7px; color: #e7c57e; border-bottom: 1px solid #a58b5c; text-decoration: none; font-size: .85rem; }
+.public-footer nav h2 { margin: 8px 0 20px; font-size: .77rem; font-weight: 600; color: #e7c57e; }
+.public-footer nav > a { display: block; width: fit-content; padding: 9px 0; color: #eef2f5; text-decoration: none; font-size: .82rem; }
+.public-footer nav > a:hover { color: #e7c57e; }
+.public-footer-bottom { border-top: 1px solid #ffffff24; padding-top: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; color: #bdc9d1; font-size: .7rem; }
+.public-footer-bottom > div { display: flex; gap: 28px; }
+.public-footer-bottom a { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; color: #dce2e5; text-decoration: none; }
+
+/* Quiet, centered account access. The shared navigation stays identical to Home. */
+.public-shell.account-login-page .content-area { max-width: 1160px; padding: 52px 24px 12px; }
+.public-shell.account-login-page .login-composition { width: 100%; max-width: 510px; margin: 0 auto; border-radius: 24px; border: 1px solid #e0d9cd; box-shadow: 0 18px 65px #152b4008; background: #fffefa; }
+.public-shell.account-login-page .login-form-wrap { padding: 40px; background: #fffefa; }
+.login-access-label { display: inline-flex; align-items: center; gap: 8px; font-size: .61rem; letter-spacing: .12em; font-weight: 600; color: #795d2b; }
+.login-access-label > span { width: 7px; height: 7px; border-radius: 50%; background: #a4792b; }
+.public-shell.account-login-page .login-panel h1 { font-size: 2.15rem; margin: 20px 0 15px; letter-spacing: -.045em; }
+.public-shell.account-login-page .login-panel > p { font-size: .84rem; line-height: 1.8; color: #626e77; }
+.public-shell.account-login-page .login-panel form { margin-top: 28px; }
+.public-shell.account-login-page .login-panel .form-label { font-size: .78rem; margin-bottom: 9px; }
+.public-shell.account-login-page .login-panel .form-control { min-height: 50px; background: #fff; border-color: #d8d1c5; border-radius: 10px; }
+.public-shell.account-login-page .login-panel .btn-primary { border-radius: 10px; min-height: 50px; font-size: .8rem; margin-top: 8px; }
+.password-control { position: relative; }
+.password-control .form-control { padding-right: 65px; }
+.password-toggle { position: absolute; right: 5px; top: 5px; min-height: 40px; padding: 7px 10px; color: #465462; border: 0; background: transparent; font-size: .72rem; font-weight: 600; border-radius: 7px; }
+.password-toggle[hidden] { display: none; }
+.password-toggle:hover { background: #f4eee2; }
+.public-shell .login-supplier-callout { padding: 22px; margin-top: 26px; background: #f6f2e9; border: 1px solid #e7dfcf; border-radius: 14px; }
+.public-shell .login-supplier-callout h2 { font-size: 1.05rem; }
+.public-shell .login-supplier-callout p { line-height: 1.7; font-size: .76rem; }
+.public-shell .login-registration-button { color: var(--brand-ink); background: #fffefa; border-color: #d7c5a0; min-height: 44px; font-size: .76rem; }
+.public-shell .login-registration-button:hover { background: #efe3c9; color: var(--brand-ink); }
+
+.contact-page { max-width: 1160px; margin: 0 auto; padding: 36px 24px 20px; }
+.contact-breadcrumb { display: flex; gap: 14px; align-items: center; font-size: .74rem; margin-bottom: 42px; color: #626e77; }
+.contact-breadcrumb a { color: #465462; min-height: 40px; display: inline-flex; align-items: center; }
+.contact-page-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 70px; align-items: start; }
+.public-kicker { font-size: .64rem; font-weight: 650; letter-spacing: .13em; color: #795d2b; }
+.contact-copy h1 { font-size: clamp(2.4rem, 4vw, 3.55rem); line-height: 1.1; font-weight: 550; letter-spacing: -.055em; margin: 22px 0 24px; }
+.contact-copy h1 span { color: #8d6a2a; }
+.contact-copy > p { font-size: .95rem; color: #626e77; line-height: 1.85; max-width: 43ch; }
+.contact-delivery-note { display: flex; gap: 18px; padding: 24px 0; margin-top: 28px; border-block: 1px solid var(--brand-border); }
+.contact-delivery-note > span { flex: 0 0 40px; height: 40px; display: grid; place-items: center; color: #795d2b; background: #eee4ce; border-radius: 12px; }
+.contact-delivery-note h2 { font-size: .88rem; margin: 3px 0 10px; }
+.contact-delivery-note p { font-size: .8rem; color: #626e77; line-height: 1.8; margin: 0; }
+.contact-help-links { display: grid; gap: 10px; margin-top: 28px; font-size: .79rem; }
+.contact-help-links > span { color: #626e77; }
+.contact-help-links a { padding-block: 6px; color: var(--brand-ink); width: fit-content; }
+.contact-form-panel { border: 1px solid #e1d9cc; border-radius: 22px; padding: 32px; background: #fffefa; box-shadow: 0 12px 40px #152b4006; }
+.public-form-heading h2 { font-size: 1.65rem; margin: 13px 0 10px; letter-spacing: -.035em; }
+.public-form-heading p { color: #626e77; font-size: .75rem; }
+.contact-form-panel form > div { margin-top: 22px; }
+.public-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.public-form-grid > div { min-width: 0; }
+.contact-form-panel label { display: block; font-size: .77rem; font-weight: 600; margin-bottom: 9px; }
+.contact-form-panel :is(.form-control, .form-select) { background: #fff; min-height: 48px; border-color: #d8d1c5; border-radius: 10px; }
+.contact-form-panel textarea { resize: vertical; }
+.contact-form-panel small { display: block; margin-top: 10px; font-size: .7rem; color: #626e77; line-height: 1.7; }
+.contact-form-panel .field-validation-error { display: block; margin-top: 8px; font-size: .74rem; }
+.contact-form-panel .validation-summary-valid { display: none; }
+.contact-form-panel .validation-summary-errors { padding: 14px 16px; border: 1px solid #e5bcbc; border-radius: 10px; background: #fff5f4; font-size: .8rem; }
+.contact-form-panel .validation-summary-errors ul { margin: 0; padding-left: 18px; }
+.public-submit { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 26px; padding: 15px 19px; min-height: 50px; border: 1px solid var(--brand-ink); border-radius: 10px; background: var(--brand-ink); color: #fff; font-size: .82rem; font-weight: 600; }
+.public-submit:hover { background: #27465e; }
+@media (max-width: 1050px) {
+    .public-shell .topbar.public-topbar { gap: 16px; width: calc(100% - 32px); flex-wrap: wrap; min-height: 74px; padding: 12px 16px; top: 12px; margin-top: 16px; }
+    .public-shell.home-nav-ready .topbar.public-topbar { flex-wrap: nowrap; height: auto; padding: 12px 16px; }
+    .public-shell .public-topbar .public-nav { flex: 1 0 100%; flex-wrap: wrap; justify-content: flex-start; }
+    .public-shell.home-nav-ready .public-topbar #home-navigation { opacity: 1; visibility: visible; transform: none; width: auto; max-height: calc(100dvh - 130px); overflow-y: auto; position: absolute; top: calc(100% + 10px); left: 0; right: 0; display: none; padding: 12px; background: #fffefa; border: 1px solid var(--brand-border); border-radius: 16px; box-shadow: 0 16px 40px #152b4015; }
+    .public-shell.home-nav-ready.home-nav-open .public-topbar #home-navigation { display: flex; flex-direction: column; align-items: stretch; }
+    .public-shell .public-topbar .public-nav > a { justify-content: flex-start; padding: 13px 16px; }
+    .contact-page-grid { gap: 36px; }
+    .public-footer-main { gap: 32px; }
+}
+@media (max-width: 760px) {
+    .contact-page-grid { grid-template-columns: minmax(0, 1fr); }
+    .contact-copy h1 { max-width: 15ch; }
+    .contact-help-links { margin-bottom: 16px; }
+    .public-footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 22px; }
+    .public-footer-intro { grid-column: 1 / -1; }
+    .public-footer p { max-width: 48ch; }
+}
+@media (max-width: 480px) {
+    .public-shell.account-login-page .content-area { padding: 30px 16px 0; }
+    .public-shell.account-login-page .login-form-wrap { padding: 28px 22px; }
+    .public-shell .login-supplier-callout { padding: 18px; }
+    .contact-page { padding: 22px 16px; }
+    .contact-page .contact-breadcrumb { margin-bottom: 26px; }
+    .contact-form-panel { padding: 24px 18px; border-radius: 18px; }
+    .public-form-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    .public-footer-main { grid-template-columns: minmax(0, 1fr); }
+    .public-shell .public-footer { padding: 40px 24px 18px; margin-top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .public-shell .topbar.public-topbar, .public-shell .public-topbar .public-nav > a { transition: none; } }

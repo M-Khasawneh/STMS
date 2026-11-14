@@ -20,6 +20,7 @@ if (provisionFirstAdmin)
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddPublicContact();
 builder.Services.AddScoped<IPublicStatistics, PublicStatistics>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
 builder.Services.AddScoped<IRoleDashboard, RoleDashboard>();
@@ -88,6 +89,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

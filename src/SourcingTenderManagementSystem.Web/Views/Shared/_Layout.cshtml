@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/brand-identity.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/workspace-refinements.css" asp-append-version="true" />
+    @if (!authenticated) { <link rel="stylesheet" href="~/css/public-shell.css" asp-append-version="true" /> }
 </head>
 <body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -71,7 +72,7 @@
         <button class="sidebar-scrim" type="button" aria-label="Close navigation" tabindex="-1" hidden></button>
     }
     <div class="app-frame">
-        <header class="topbar">
+        <header class="topbar @(!authenticated ? "public-topbar" : "")">
             @if (authenticated)
             {
                 <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
@@ -82,19 +83,7 @@
             }
             else
             {
-                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark brand-logo">@if (controller != "Account" || action != "Login") { <img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="52" height="52" /> }</span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
-                @if (publicWebsite)
-                {
-                    <button class="home-menu-toggle" type="button" aria-controls="home-navigation" aria-expanded="false" hidden>Menu <span aria-hidden="true">&#9776;</span></button>
-                }
-                <nav id="@(publicWebsite ? "home-navigation" : null)" class="public-nav landing-navigation" aria-label="Main navigation">
-                    <a asp-controller="Home" asp-action="Index" asp-fragment="home">Home</a>
-                    <a asp-controller="Home" asp-action="About">About</a>
-                    <a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works">How It Works</a>
-                    <a asp-controller="Home" asp-action="Contact">Contact</a>
-                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Login</a>
-                    <a asp-controller="Suppliers" asp-action="Register" class="registration-link">Supplier Registration</a>
-                </nav>
+                <partial name="_PublicNavigation" />
             }
         </header>
         <main id="main-content" class="content-area" tabindex="-1">
@@ -105,24 +94,16 @@
             @if (TempData["UiFeedback"] is string feedback) { <div class="alert alert-success" role="status">@feedback</div> }
             @RenderBody()
         </main>
-        @if (ViewData["PremiumLanding"] is true)
-        {
-            <footer class="landing-footer">
-                <div><a asp-controller="Home" asp-action="Index" class="landing-footer-brand"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="64" height="64" /> STMS</a><p>Sourcing &amp; Tender Management System</p><p>A connected process, from request to decision.</p></div>
-                <nav aria-label="Footer platform navigation"><h2>Platform</h2><a asp-controller="Home" asp-action="About">About</a><a href="#how-it-works">How It Works</a><a asp-controller="Home" asp-action="Contact">Contact</a></nav>
-                <nav aria-label="Footer account navigation"><h2>Your workspace</h2><a asp-controller="Account" asp-action="Login">Login</a><a asp-controller="Suppliers" asp-action="Register">Supplier Registration</a><a asp-controller="Home" asp-action="Privacy">Privacy</a></nav>
-                <div class="landing-footer-bottom"><span>&copy; 2026 Sourcing &amp; Tender</span><a href="#home">Back to top ↑</a></div>
-            </footer>
-        }
-        else
-        {
-        <footer class="app-footer"><span>&copy; 2026 Sourcing &amp; Tender</span>@if (controller == "Home" && action == "Index" && !signedIn) { <a asp-controller="Home" asp-action="Privacy">Privacy</a> }<span class="footer-note">A considered workspace.</span></footer>
+        @if (!authenticated) { <partial name="_PublicFooter" /> }
+        else {
+            <footer class="app-footer"><span>&copy; @DateTime.UtcNow.Year Sourcing &amp; Tender</span><span class="footer-note">A considered workspace.</span></footer>
         }
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/workspace-refinements.js" asp-append-version="true"></script>
+    @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script> }
