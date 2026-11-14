@@ -21,6 +21,10 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--compliance-sql-checks-only", StringComparer.Ordinal)) {
+    await ComplianceSqlChecks.RunAsync();
+    return;
+}
 if (args.Contains("--compliance-checks-only", StringComparer.Ordinal)) {
     await ComplianceChecks.RunAsync();
     await BidPhase3Checks.RunAsync(complianceChecks: true);
