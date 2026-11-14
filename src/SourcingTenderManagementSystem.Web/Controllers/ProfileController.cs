@@ -9,8 +9,42 @@ namespace SourcingTenderManagementSystem.Web.Controllers;
 
 [Authorize(Policy = "SignedInAccount"), AutoValidateAntiforgeryToken]
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-public sealed class ProfileController(ProfileManagement profiles, SignInManager<IdentityUser> signIn) : Controller
+public sealed class ProfileController(ProfileManagement profiles, SignInManager<IdentityUser> signIn, IServiceProvider services) : Controller
 {
+    private async Task<IdentityUser> PictureAccount()
+    {
+        var user = await profiles.UserAsync(User);
+        var roles = await services.GetRequiredService<UserManager<IdentityUser>>().GetRolesAsync(user);
+        if (roles.Contains(SourcingTenderManagementSystem.Web.Security.ApplicationRoles.Supplier)) throw new UnauthorizedAccessException();
+        return user;
+    }
+    [HttpGet] public async Task<IActionResult> Avatar(CancellationToken ct)
+    {
+        var user = await PictureAccount();
+        var image = await services.GetRequiredService<ProfilePictures>().ReadAsync(user.Id, ct);
+        if (image is null) return NotFound();
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return File(image.Value.Bytes, image.Value.Type);
+    }
+    [HttpPost, RequestSizeLimit(6 * 1024 * 1024)]
+    public async Task<IActionResult> Picture(IFormFile? picture, CancellationToken ct)
+    {
+        var user = await PictureAccount();
+        try {
+            await services.GetRequiredService<ProfilePictures>().SaveAsync(user.Id, picture, ct);
+            TempData["ProfileStatus"] = "Profile picture updated.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (InvalidDataException e) { ModelState.AddModelError("", e.Message); return View("Index", await profiles.ReadAsync(User)); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Response.StatusCode = 503; ModelState.AddModelError("", "Picture storage is temporarily unavailable."); return View("Index", await profiles.ReadAsync(User)); }
+    }
+    [HttpPost] public async Task<IActionResult> RemovePicture()
+    {
+        var user = await PictureAccount();
+        services.GetRequiredService<ProfilePictures>().Remove(user.Id);
+        TempData["ProfileStatus"] = "Profile picture removed.";
+        return RedirectToAction(nameof(Index));
+    }
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var result = await next();

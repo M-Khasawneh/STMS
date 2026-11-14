@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--profile-picture-checks-only", StringComparer.Ordinal)) { await ProfilePictureChecks.RunAsync(); return; }
+if (args.Contains("--notes-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, notesPreview: true); return; }
 if (args.Contains("--report-checks-only", StringComparer.Ordinal) || args.Contains("--report-browser-fixture", StringComparer.Ordinal)) {
     await BidPhase3Checks.RunAsync(browserFixture: args.Contains("--report-browser-fixture", StringComparer.Ordinal), reportChecks: true);
     return;
@@ -192,6 +194,8 @@ builder.Services.AddSingleton<IEmployeeData>(employeeData);
 builder.Services.AddScoped<EmployeeManagement>();
 builder.Services.AddScoped<IProfileTransactions, MemoryProfileTransactions>();
 builder.Services.AddScoped<ProfileManagement>();
+using var pictureFixture = new ProfilePictureChecks.PictureFixture();
+builder.Services.AddSingleton(pictureFixture.Pictures);
 await using var app = builder.Build();
 if (experienceBrowser) {
     app.Use(async (context, next) => { context.Response.Headers["X-STMS-Experience-Fixture"] = "memory-only"; await next(); });

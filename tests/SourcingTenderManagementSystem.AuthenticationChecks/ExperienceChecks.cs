@@ -61,6 +61,22 @@ public static class ExperienceChecks
         await Login(client, currentPassword); using var other = anotherClient(); await Login(other, currentPassword);
         var employee = memory.Users.Values.Single(x => x.UserName == "employee"); var admin = memory.Users.Values.Single(x => x.UserName == "admin");
         var adminHash = admin.PasswordHash; var adminEmail = admin.Email; var roles = memory.Roles[employee.Id].ToArray();
+        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==");
+        Check((await client.PostAsync("/Profile/Picture", new FormUrlEncodedContent([]))).StatusCode == HttpStatusCode.BadRequest, "picture upload requires antiforgery");
+        using (var upload = new MultipartFormDataContent()) {
+            upload.Add(new StringContent(await Token(client, "/Profile")), "__RequestVerificationToken");
+            upload.Add(new ByteArrayContent(png), "picture", "avatar.png");
+            Check((await client.PostAsync("/Profile/Picture", upload)).StatusCode == HttpStatusCode.Redirect, "authenticated picture upload succeeds");
+        }
+        var picture = await client.GetAsync("/Profile/Avatar");
+        Check(picture.StatusCode == HttpStatusCode.OK && (await picture.Content.ReadAsByteArrayAsync()).SequenceEqual(png) && picture.Content.Headers.ContentType?.MediaType == "image/png", "own protected picture returns verified image bytes");
+        using (var separate = anotherClient()) {
+            var login = new Dictionary<string, string> { ["UserName"] = "admin", ["Password"] = currentPassword, ["__RequestVerificationToken"] = await Token(separate, "/Account/Login") };
+            await separate.PostAsync("/Account/Login", new FormUrlEncodedContent(login));
+            Check((await separate.GetAsync("/Profile/Avatar?userId=" + employee.Id)).StatusCode == HttpStatusCode.NotFound, "another employee cannot select someone else's picture");
+        }
+        Check((await client.PostAsync("/Profile/RemovePicture", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = await Token(client, "/Profile") }))).StatusCode == HttpStatusCode.Redirect, "picture removal requires authenticated POST");
+        Check((await client.GetAsync("/Profile/Avatar")).StatusCode == HttpStatusCode.NotFound, "removed picture is unavailable");
         var email = "self@example.test";
         Check((await client.PostAsync("/Profile/Password",new FormUrlEncodedContent([]))).StatusCode==HttpStatusCode.BadRequest,"password change requires antiforgery");
         var contact = new Dictionary<string,string> { ["Contact.Email"]=email,["Contact.PhoneNumber"]="+962790000000",["UserId"]=admin.Id,["Roles[0]"]=ApplicationRoles.Admin };

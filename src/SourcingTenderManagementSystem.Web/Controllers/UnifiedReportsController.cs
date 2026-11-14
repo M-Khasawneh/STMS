@@ -26,7 +26,7 @@ public sealed class UnifiedReportsController(IUnifiedReportManagement reports) :
     public async Task<IActionResult> Save(Guid id, [Bind(Prefix = "Form")] UnifiedReportForm form, CancellationToken ct)
     {
         if (ModelState.IsValid) {
-            try { await reports.SaveAsync(User, id, form, false, ct); return RedirectToAction(nameof(Details), new { id }); }
+            try { await reports.SaveAsync(User, id, form, false, ct); TempData["UiFeedback"] = "Report draft saved."; return RedirectToAction(nameof(Details), new { id }); }
             catch (BidException error) when (error.Status == 400) { ModelState.AddModelError(string.Empty, error.Message); }
         }
         Response.StatusCode = 400;
@@ -40,7 +40,7 @@ public sealed class UnifiedReportsController(IUnifiedReportManagement reports) :
         BidRules.Require(accept, 400, "Confirm that the saved report is ready for manager review.");
         var page = await reports.PageAsync(User, id, ct);
         page.Form.Version = version;
-        await reports.SaveAsync(User, id, page.Form, true, ct);
+        await reports.SaveAsync(User, id, page.Form, true, ct); TempData["UiFeedback"] = "Unified report submitted for manager review.";
         return RedirectToAction(nameof(Details), new { id });
     }
 }

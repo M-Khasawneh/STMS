@@ -70,7 +70,7 @@
     const ended = controller !== 'Profile' && !isEditor(new URL(location.href)) && !forms().some(form => !key || formKey(form) === key);
     if (frame.dataset.submitted === 'true' && (key ? success || ended : ended)) {
       dirty = false;
-      parent.workspacePopup?.complete();
+      parent.workspacePopup?.complete(main.querySelector('.alert-success')?.textContent.trim());
     }
     return;
   }
@@ -135,7 +135,8 @@
   }
   window.workspacePopup = {
     close: () => closePopup(),
-    complete: () => {
+    complete: message => {
+      if (message) window.workspaceFeedback?.remember(message);
       // A direct editor URL remains a working fallback. After a terminal action, do not
       // reload an editor that has just become read-only (for example a submitted bid).
       if (editorActions.has(action) && !iframe.dataset.formKey) {

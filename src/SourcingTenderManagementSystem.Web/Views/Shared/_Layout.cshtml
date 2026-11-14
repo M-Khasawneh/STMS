@@ -1,3 +1,5 @@
+@using SourcingTenderManagementSystem.Web.Data
+@inject IServiceProvider Services
 @using SourcingTenderManagementSystem.Web.Security
 @{
     var signedIn = User.Identity?.IsAuthenticated == true;
@@ -8,6 +10,9 @@
     var authenticated = signedIn && !publicWebsite;
     var adminDashboard = admin && ViewData["AdminDashboard"] is true;
     var adminWorkspace = authenticated && admin && !publicWebsite;
+    var presentation = Services.GetService<IWorkspacePresentation>();
+    var unread = authenticated && presentation is not null ? await presentation.UnreadAsync(User) : null;
+    var hasPicture = authenticated && presentation?.HasAvatar(User) == true;
     var roleName = admin ? "Administrator" : string.Join(" · ", new[] {
         (ApplicationRoles.Supplier, "Supplier"), (ApplicationRoles.RequestingDepartment, "Requesting department"),
         (ApplicationRoles.SourcingOfficer, "Sourcing officer"), (ApplicationRoles.SourcingManager, "Sourcing manager"),
@@ -28,6 +33,7 @@
     @if (authenticated) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/brand-identity.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workspace-refinements.css" asp-append-version="true" />
 </head>
 <body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -58,7 +64,7 @@
             </nav>
             <div class="sidebar-bottom">
                 <a class="side-link @(controller == "Profile" ? "active" : "")" aria-current="@(controller == "Profile" ? "page" : null)" asp-controller="Profile" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>Profile settings</a>
-                <div class="account-block"><span class="avatar" aria-hidden="true">@(string.IsNullOrEmpty(User.Identity?.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpperInvariant())</span><span class="account-name">@User.Identity?.Name<small>@roleName</small></span></div>
+                <div class="account-block"><span class="avatar" aria-hidden="true">@if (hasPicture) { <img class="profile-picture" src="@Url.Action("Avatar", "Profile")" alt="" /> }@(string.IsNullOrEmpty(User.Identity?.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpperInvariant())</span><span class="account-name">@User.Identity?.Name<small>@roleName</small></span></div>
                 <form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="logout-button">Log out <span aria-hidden="true">&#8599;</span></button></form>
             </div>
         </aside>
@@ -70,13 +76,13 @@
             {
                 <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
                 <div class="topbar-context">Workspace <span aria-hidden="true">/</span> <strong>@(adminDashboard ? "Administration" : controller == "Home" ? ViewData["Title"] : controller)</strong></div>
-                <a class="workspace-notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="Notifications" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></a>
-                <a class="admin-header-identity workspace-profile-link" asp-controller="Profile" asp-action="Index" aria-label="Profile settings"><span aria-hidden="true">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant() ?? "U")</span><div><strong>@User.Identity?.Name</strong><small>@roleName</small></div></a>
+                <a class="workspace-notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>@if (unread > 0) { <span class="notification-count">@(unread > 99 ? "99+" : unread.ToString())</span> }</a>
+                <a class="admin-header-identity workspace-profile-link" asp-controller="Profile" asp-action="Index" aria-label="Profile settings"><span aria-hidden="true">@if (hasPicture) { <img class="profile-picture" src="@Url.Action("Avatar", "Profile")" alt="" /> }@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant() ?? "U")</span><div><strong>@User.Identity?.Name</strong><small>@roleName</small></div></a>
                 <span class="workspace-tag"><i aria-hidden="true"></i> @(admin ? "Administration" : User.IsInRole(ApplicationRoles.Supplier) ? "Supplier workspace" : "Employee workspace")</span>
             }
             else
             {
-                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark brand-logo"><img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="52" height="52" /></span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
+                <a class="brand public-brand" asp-controller="Home" asp-action="Index"><span class="brand-mark brand-logo">@if (controller != "Account" || action != "Login") { <img src="~/images/brand/stms-logo.png" asp-append-version="true" alt="" width="52" height="52" /> }</span><span>Sourcing<span class="brand-sub">&amp; Tender</span></span></a>
                 @if (publicWebsite)
                 {
                     <button class="home-menu-toggle" type="button" aria-controls="home-navigation" aria-expanded="false" hidden>Menu <span aria-hidden="true">&#9776;</span></button>
@@ -96,6 +102,7 @@
             {
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
             }
+            @if (TempData["UiFeedback"] is string feedback) { <div class="alert alert-success" role="status">@feedback</div> }
             @RenderBody()
         </main>
         @if (ViewData["PremiumLanding"] is true)
@@ -115,6 +122,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/workspace-refinements.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script> }

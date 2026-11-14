@@ -25,14 +25,14 @@ public sealed class EvaluationsController(IEvaluationManagement evaluations) : C
     [HttpPost, Authorize(Roles = ApplicationRoles.SourcingOfficer)]
     public async Task<IActionResult> Start(Guid id, string version, CancellationToken ct)
     {
-        await evaluations.StartAsync(User, id, version, ct);
+        await evaluations.StartAsync(User, id, version, ct); TempData["UiFeedback"] = "Evaluation started.";
         return RedirectToAction("Index", "ReviewBids", new { tenderId = id });
     }
     [HttpPost, Authorize(Roles = ApplicationRoles.SourcingManager + "," + ApplicationRoles.EvaluationCommittee)]
     public async Task<IActionResult> Save(Guid id, [Bind(Prefix = "Form")] EvaluationForm form, CancellationToken ct)
     {
         if (ModelState.IsValid) {
-            try { await evaluations.SaveAsync(User, id, form, false, ct); return RedirectToAction(nameof(Details), new { id }); }
+            try { await evaluations.SaveAsync(User, id, form, false, ct); TempData["UiFeedback"] = "Evaluation draft saved."; return RedirectToAction(nameof(Details), new { id }); }
             catch (BidException e) when (e.Status == 400) { ModelState.AddModelError(string.Empty, e.Message); }
         }
         Response.StatusCode = 400;
@@ -46,7 +46,7 @@ public sealed class EvaluationsController(IEvaluationManagement evaluations) : C
         BidRules.Require(accept, 400, "Confirm that your scores are final before submitting.");
         var page = await evaluations.PageAsync(User, id, ct);
         page.Form.Version = version;
-        await evaluations.SaveAsync(User, id, page.Form, true, ct);
+        await evaluations.SaveAsync(User, id, page.Form, true, ct); TempData["UiFeedback"] = "Evaluation confirmed.";
         return RedirectToAction(nameof(Details), new { id });
     }
 }

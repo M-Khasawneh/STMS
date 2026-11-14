@@ -29,7 +29,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -44,6 +44,10 @@ public static class BidPhase3Checks
         builder.WebHost.ConfigureKestrel(o => o.Listen(IPAddress.Loopback, 0));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddControllersWithViews();
+        if (notesPreview) {
+            builder.Services.AddControllersWithViews().AddApplicationPart(typeof(NotesPreviewController).Assembly);
+            builder.Services.AddSingleton<IWorkspacePresentation, NotesPresentation>();
+        }
         builder.Services.Configure<MvcOptions>(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         builder.Services.AddAuthentication("BidPhase3Only").AddScheme<AuthenticationSchemeOptions, BidMvcTestAuthentication>("BidPhase3Only", _ => { });
         builder.Services.AddAuthorization(options => {

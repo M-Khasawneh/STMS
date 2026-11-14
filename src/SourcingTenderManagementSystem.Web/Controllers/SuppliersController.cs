@@ -24,7 +24,7 @@ public sealed class SuppliersController(ApplicationDbContext database, SupplierR
         if (ModelState.IsValid)
         {
             var result = await registration.RegisterAsync(model, cancellationToken);
-            if (result.Succeeded) { TempData["SupplierRegistered"] = true; return RedirectToAction(nameof(Confirmation)); }
+            if (result.Succeeded) { TempData["SupplierRegistered"] = true; TempData["UiFeedback"] = "Supplier registration received. Your account is pending approval."; return RedirectToAction(nameof(Confirmation)); }
             foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
         }
         model.Password = model.ConfirmPassword = "";

@@ -1,0 +1,58 @@
+/* Shared form and record presentation, retaining the established ivory/navy/gold tokens. */
+.workspace .form-panel, .workspace .requisition-detail-panel, .workspace .supplier-detail-panel, .workspace .bid-panel {
+    border: 1px solid var(--brand-border); border-radius: 20px; padding: clamp(20px, 3vw, 36px); background: #fffefa; box-shadow: 0 8px 28px #152b4005;
+}
+.workspace .form-panel { width: 100%; max-width: 1000px; margin-inline: auto; }
+.workspace .form-panel h1 { font-size: clamp(1.6rem, 3vw, 2.15rem); letter-spacing: -.04em; }
+.workspace form .form-control, .workspace form .form-select { border: 1px solid #d8d0c2; background: #fff; border-radius: 11px; padding: 12px 14px; min-height: 46px; color: var(--brand-ink); }
+.workspace form textarea.form-control { min-height: 100px; resize: vertical; }
+.workspace form label { font-weight: 600; font-size: .85rem; margin-bottom: 8px; }
+.workspace form .form-control:focus, .workspace form .form-select:focus { border-color: var(--brand-gold); box-shadow: 0 0 0 4px #a4792b15; }
+.workspace form .input-validation-error { border-color: #b53b3b; }
+.workspace form .field-validation-error { display: block; margin-top: 6px; }
+.workspace .form-actions { border-top: 1px solid var(--brand-border); margin-top: 28px; padding-top: 22px; }
+.workspace .supplier-facts, .workspace .bid-facts { gap: 24px; }
+.workspace .supplier-facts dt, .workspace .bid-facts dt { font-size: .76rem; color: #657382; margin-bottom: 7px; }
+.workspace .supplier-facts dd, .workspace .bid-facts dd { line-height: 1.65; overflow-wrap: anywhere; }
+.workspace .table-responsive { border-radius: 14px; border: 1px solid var(--brand-border); background: #fff; }
+.workspace .table { margin-bottom: 0; }
+.workspace .table:has(thead th:nth-child(4)) { min-width: 680px; }
+.workspace .table td, .workspace .table th { overflow-wrap: break-word; word-break: normal; }
+.workspace .table thead th { padding: 15px 18px; background: #faf8f3; font-size: .72rem; letter-spacing: .025em; color: #657382; }
+.workspace .table tbody td, .workspace .table tbody th { padding: 18px; vertical-align: top; line-height: 1.6; }
+.workspace .table tbody tr:hover { background: #fcfaf5; }
+.workspace .requisition-item { border: 1px solid #ddd4c4; border-radius: 15px; background: #faf8f3; padding: 22px; margin: 24px 0; display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 12px 22px; }
+.workspace .requisition-item legend { grid-column: 1 / -1; font-size: .95rem; font-weight: 700; float: none; padding-bottom: 12px; border-bottom: 1px solid #e3dcce; }
+.workspace .requisition-item > .mb-3:nth-of-type(3) { grid-column: 1 / -1; }
+.workspace .requisition-item > button { justify-self: start; grid-column: 1 / -1; }
+.workspace [data-requisition-form] .field-validation-valid { display: none; }
+.workspace .requisition-item > .mb-3 { margin-bottom: 0 !important; }
+.workspace .request-form-section { border-bottom: 1px solid var(--brand-border); margin-bottom: 28px; padding-bottom: 18px; }
+.workspace .request-form-section h2 { font-size: 1.1rem; margin: 24px 0; }
+/* Actual review and change records follow one continuous horizontal line. */
+.workspace[data-workspace-controller="Requisitions"] .requisition-history { display: flex; gap: 0; overflow-x: auto; padding: 12px 0 24px; list-style: none; scroll-snap-type: x proximity; }
+.workspace[data-workspace-controller="Requisitions"] .requisition-history > li { flex: 1 0 240px; max-width: 360px; position: relative; padding: 30px 22px 18px 0; border: 0; border-top: 2px solid #d7c9ae; border-radius: 0; background: transparent; margin: 12px 0 0; scroll-snap-align: start; box-shadow: none; }
+.workspace[data-workspace-controller="Requisitions"] .requisition-history > li::before { content: ''; position: absolute; width: 13px; height: 13px; border: 3px solid var(--brand-gold); background: #fffefa; border-radius: 50%; top: -8px; left: 0; }
+.workspace[data-workspace-controller="Requisitions"] .requisition-history small { display: block; margin: 8px 0; color: #657382; }
+.workspace .workspace-notification-bell { position: relative; overflow: visible; }
+.notification-count { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 20px; background: var(--brand-gold); color: #fff; border: 2px solid #fffefa; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+.avatar, .admin-header-identity > span { position: relative; overflow: hidden; }
+.profile-picture { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; border-radius: inherit; background: #fff; }
+.profile-settings-photo { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 18px; border: 1px solid var(--brand-border); margin-bottom: 20px; }
+.feedback-toast { position: fixed; right: 24px; bottom: 24px; z-index: 4000; max-width: min(420px, calc(100vw - 32px)); padding: 16px 22px; border: 1px solid #d5c6a8; border-left: 4px solid var(--brand-gold); border-radius: 14px; color: var(--brand-ink); background: #fffefa; box-shadow: 0 12px 44px #152b4020; animation: feedback-in .25s ease-out; pointer-events: none; }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.account-login-page .public-brand .brand-logo { display: none; }
+.account-login-page .login-composition { max-width: 1040px; margin: 32px auto; border: 1px solid var(--brand-border); border-radius: 26px; overflow: hidden; background: #fffefa; box-shadow: 0 20px 70px #152b4009; }
+.account-login-page .login-story { background: var(--brand-ink); color: #fffefa; padding: clamp(28px, 5vw, 60px); }
+.account-login-page .login-story h2 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; }
+.login-process-art { display: grid; gap: 0; margin-top: 45px; }
+.login-process-art span { padding: 16px 0 16px 24px; border-left: 1px solid #bfa36b70; position: relative; font-size: .95rem; }
+.login-process-art span::before { content: ''; position: absolute; left: -4px; top: 22px; height: 7px; width: 7px; border-radius: 50%; background: var(--brand-gold-light); }
+.account-login-page .login-form-wrap { padding: clamp(24px, 4vw, 48px); }
+.account-login-page .login-panel { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.account-login-page .login-registration-button { background: var(--brand-ink); color: #fffefa; border-radius: 11px; }
+@media (max-width: 700px) { .workspace .requisition-item { grid-template-columns: minmax(0, 1fr); } .workspace .requisition-item > * { grid-column: 1 !important; } .account-login-page .login-composition { grid-template-columns: 1fr; margin: 16px 0; } .account-login-page .login-story { display: none; } }
+@media (prefers-reduced-motion: reduce) { .feedback-toast { animation: none; } .workspace form .form-control, .workspace form .form-select { transition: none; } }
+
+.public-shell .supplier-registration-panel { border-radius: 22px; background: #fffefa; border: 1px solid var(--brand-border); padding: clamp(22px, 4vw, 42px); box-shadow: 0 12px 45px #152b4007; }
+.public-shell .supplier-registration-panel .form-control, .public-shell .supplier-registration-panel .form-select, .account-login-page .login-panel .form-control { border-radius: 11px; border-color: #d8d0c2; background: #fff; min-height: 46px; }

@@ -25,6 +25,8 @@ builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
 builder.Services.AddScoped<IRoleDashboard, RoleDashboard>();
 builder.Services.AddScoped<IProfileTransactions, ProfileTransactions>();
 builder.Services.AddScoped<ProfileManagement>();
+builder.Services.AddScoped<ProfilePictures>();
+builder.Services.AddScoped<IWorkspacePresentation, WorkspacePresentation>();
 builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
 builder.Services.AddScoped<SupplierRegistration>();
 builder.Services.AddScoped<SupplierReview>();
