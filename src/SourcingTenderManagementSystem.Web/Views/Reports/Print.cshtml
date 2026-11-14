@@ -1,0 +1,8 @@
+@model SourcingTenderManagementSystem.Web.Models.Reports.ReportDocument
+@{Layout=null;}
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>@Model.Title — STMS</title><link rel="stylesheet" href="~/css/report-print.css" asp-append-version="true"/></head><body>
+<div class="print-toolbar"><button type="button" data-print-report>Print / Save as PDF</button><p>Choose <strong>Save as PDF</strong> in the print dialog to download this complete report. Arabic text uses your browser's native text layout.</p></div>
+<main><header><span>STMS / AUTHORIZED REPORT</span><h1 dir="auto">@Model.Title</h1><p>Generated @TimeZoneInfo.ConvertTimeBySystemTimeZoneId(Model.GeneratedAt,"Asia/Amman").ToString("yyyy-MM-dd HH:mm") Amman</p></header>
+@if(Model.Metrics.Count>0){<dl>@foreach(var metric in Model.Metrics){<div><dt>@metric.Label</dt><dd>@metric.Value</dd></div>}</dl>}
+@foreach(var table in Model.Tables){<section><h2>@table.Title</h2><table><caption>@table.Rows.Count matching records</caption><thead><tr>@foreach(var column in table.Columns){<th scope="col">@column</th>}</tr></thead><tbody>@if(table.Rows.Count==0){<tr><td colspan="@table.Columns.Length">No matching records.</td></tr>}@foreach(var row in table.Rows){<tr>@foreach(var cell in row){<td dir="auto">@cell.Text</td>}</tr>}</tbody></table></section>}
+<aside><h2>Definitions &amp; filters</h2><ul>@foreach(var note in Model.Notes){<li dir="auto">@note</li>}</ul></aside></main><script src="~/js/report-print.js" asp-append-version="true"></script></body></html>

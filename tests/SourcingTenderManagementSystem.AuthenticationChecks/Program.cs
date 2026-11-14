@@ -21,6 +21,9 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--reporting-read-only-checks", StringComparer.Ordinal)) { await ReportingReadOnlyChecks.RunAsync(); return; }
+if (args.Contains("--reporting-checks-only", StringComparer.Ordinal)) { ReportingChecks.Rules(args.SkipWhile(a=>a!="--reporting-output").Skip(1).FirstOrDefault()); await BidPhase3Checks.RunAsync(reportingChecks: true); return; }
+if (args.Contains("--reporting-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, reportingChecks: true); return; }
 if (args.Contains("--internal-clarification-checks-only", StringComparer.Ordinal)) { InternalClarificationChecks.Rules(); await BidPhase3Checks.RunAsync(clarificationChecks: true); return; }
 if (args.Contains("--internal-clarification-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, clarificationChecks: true); return; }
 if (args.Contains("--inbox-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(inboxChecks: true); return; }

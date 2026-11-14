@@ -24,6 +24,8 @@ public static class WorkspaceUiChecks
             Check(html.Contains("workspace-ui.js") && html.Contains("workspace-ui.css") && html.Contains("Dashboard</a>"), actor + " has shared dialogs and Dashboard navigation");
             Check(html.Contains("href=\"/Departments\"") == (actor == "admin"), "department links match role " + actor);
             Check(html.Contains("href=\"/Bids\"") == (actor == "supplier"), "My Offers links match role " + actor);
+            Check(html.Contains("href=\"/Clarifications\"") == (actor is not ("admin" or "supplier")), "clarification sidebar matches existing role " + actor);
+            Check(html.Contains("href=\"/Reports\""), "reports navigation exists for " + actor);
             var login = await client.GetAsync("/Account/Login");
             Check(login.StatusCode == HttpStatusCode.Redirect && login.Headers.Location?.OriginalString == "/Workspace", "signed-in Login route returns " + actor + " to dashboard");
         }

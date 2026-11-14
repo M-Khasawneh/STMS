@@ -65,9 +65,10 @@
                 @if (!admin && !User.IsInRole(ApplicationRoles.Supplier) && (User.IsInRole(ApplicationRoles.SourcingOfficer) || User.IsInRole(ApplicationRoles.SourcingManager) || User.IsInRole(ApplicationRoles.EvaluationCommittee) || User.IsInRole(ApplicationRoles.TopCommittee))) {
                     <a class="side-link @((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations" || controller == "UnifiedReports") ? "active" : "")" aria-current="@((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations" || controller == "UnifiedReports") ? "page" : null)" asp-controller="ReviewBids" asp-action="Index">Submitted offers</a>
                 }
-                @if (!admin && !User.IsInRole("Supplier") && (User.IsInRole("RequestingDepartment") || User.IsInRole("SourcingOfficer") || User.IsInRole("SourcingManager") || User.IsInRole("EvaluationCommittee") || User.IsInRole("TopCommittee"))) {
+                @if (!admin && !User.IsInRole("Supplier") && (User.IsInRole("RequestingDepartment") || User.IsInRole("SourcingOfficer") || User.IsInRole("SourcingManager") || User.IsInRole(ApplicationRoles.EvaluationCommittee) || User.IsInRole("TopCommittee"))) {
                     <a class="side-link @(controller == "Clarifications" ? "active" : "")" aria-current="@(controller == "Clarifications" ? "page" : null)" asp-controller="Clarifications" asp-action="Index"><span class="nav-icon" aria-hidden="true">&#8644;</span>Clarifications</a>
                 }
+                <a class="side-link @(controller == "Reports" ? "active" : "")" aria-current="@(controller == "Reports" ? "page" : null)" asp-controller="Reports" asp-action="Index"><span class="nav-icon" aria-hidden="true">&#9637;</span>Reports &amp; insights</a>
             </nav>
             <div class="sidebar-bottom">
                 <a class="side-link @(controller == "Profile" ? "active" : "")" aria-current="@(controller == "Profile" ? "page" : null)" asp-controller="Profile" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>Profile settings</a>
@@ -96,7 +97,7 @@
             }
         </header>
         <main id="main-content" class="content-area" tabindex="-1">
-            @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders" or "Messages" or "Clarifications")
+            @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders" or "Messages" or "Clarifications" or "Reports")
             {
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
             }
