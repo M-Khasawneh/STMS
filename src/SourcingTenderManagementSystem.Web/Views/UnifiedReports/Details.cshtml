@@ -1,3 +1,4 @@
+@inject SourcingTenderManagementSystem.Web.Data.IInternalClarifications Clarifications
 @model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Tenders
@@ -12,6 +13,10 @@
         <div><span class="eyebrow">COMMITTEE REPORT</span><h1>Unified evaluation report</h1><p>@Model.Tender.Title</p></div>
         <span class="bid-status">@(submitted ? "Submitted" : Model.Report is null ? "Not prepared" : "Draft")</span>
     </header>
+    @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,Model.Tender.Id,Context.RequestAborted)) {
+        <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary">Transaction clarifications</a>
+    }
+
     <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@Model.Tender.Id">← Submitted offers</a>
     @if (Model.Archived) { <div class="alert alert-info" role="status">You are viewing a preserved previous report version. <a asp-action="Details" asp-route-id="@Model.Tender.Id">View current report</a></div> }
     @if (Model.CanReview) { <a asp-action="Review" asp-route-id="@Model.Tender.Id" class="btn btn-primary">Review &amp; decide recommendation</a> }

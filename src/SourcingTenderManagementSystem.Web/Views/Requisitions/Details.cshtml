@@ -1,3 +1,4 @@
+@inject SourcingTenderManagementSystem.Web.Data.IInternalClarifications Clarifications
 @model SourcingTenderManagementSystem.Web.Models.Requisitions.RequisitionDetails
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Requisitions
@@ -11,6 +12,8 @@
 <div class="page-heading"><div><div class="eyebrow">PURCHASE REQUISITIONS</div><h1>@request.Title</h1><p>@Model.DepartmentName &middot; Created by @Model.CreatorName</p></div><span class="status-pill">@RequisitionDisplay.Status(request.Status)</span></div>
 @if (TempData["RequisitionStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
 <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+@if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,true,request.Id,Context.RequestAborted)) { <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@request.Id" asp-route-requisition="true" class="btn btn-outline-secondary mb-3">Transaction clarifications</a> }
+
 <section class="requisition-detail-panel" aria-label="Requisition information"><dl class="supplier-facts"><div><dt>Priority</dt><dd>@request.Priority</dd></div><div><dt>Target date</dt><dd>@request.TargetDate.ToString("yyyy-MM-dd")</dd></div><div><dt>Created (UTC)</dt><dd>@request.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</dd></div><div><dt>Last submitted (UTC)</dt><dd>@(request.SubmittedAt?.UtcDateTime.ToString("yyyy-MM-dd HH:mm") ?? "Not submitted")</dd></div></dl><h2>Reason</h2><p class="requisition-text">@request.Reason</p>
 @if (Model.Actor.CanEdit(request)) {
 <div class="d-flex flex-wrap gap-2"><a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-outline-secondary">Edit requisition</a><form asp-action="Submit" asp-route-id="@request.Id" method="post"><input type="hidden" name="Version" value="@Model.Version" /><button type="submit" class="btn btn-primary">@(request.Status == PurchaseRequestStatus.Returned ? "Resubmit for review" : "Submit for review")</button></form></div>

@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--internal-clarification-checks-only", StringComparer.Ordinal)) { InternalClarificationChecks.Rules(); await BidPhase3Checks.RunAsync(clarificationChecks: true); return; }
+if (args.Contains("--internal-clarification-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, clarificationChecks: true); return; }
 if (args.Contains("--inbox-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(inboxChecks: true); return; }
 if (args.Contains("--inbox-checks-only", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(inboxChecks: true); return; }
 if (args.Contains("--contact-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(); return; }
@@ -170,6 +172,7 @@ builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 builder.Services.AddControllersWithViews().AddApplicationPart(typeof(ProtectionController).Assembly);
 builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
+builder.Services.AddSingleton<IInternalClarifications, InternalClarificationFixture>();
 builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
 builder.Services.AddScoped<NotificationInbox>();
 builder.Services.AddPublicContact();

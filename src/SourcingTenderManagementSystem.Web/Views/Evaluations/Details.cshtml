@@ -1,9 +1,14 @@
+@inject SourcingTenderManagementSystem.Web.Data.IInternalClarifications Clarifications
 @model SourcingTenderManagementSystem.Web.Models.Bids.EvaluationPage
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @{ ViewData["Title"] = "Technical & financial evaluation"; }
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" /> }
 <div class="bid-workspace compliance-workspace">
     <header class="page-heading"><div><span class="eyebrow">COMMITTEE EVALUATION</span><h1>Technical &amp; financial evaluation</h1><p>@Model.Tender.Title · @Model.SupplierName</p></div></header>
+    @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,Model.Tender.Id,Context.RequestAborted)) {
+        <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary">Transaction clarifications</a>
+    }
+
     <a asp-controller="ReviewBids" asp-action="Details" asp-route-id="@Model.Bid.Id">← Offer and private documents</a>
     <a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@Model.Tender.Id">Unified committee report</a>
     <section class="bid-panel"><h2>Confirmed evaluations · @Model.ConfirmedMembers / 4</h2>

@@ -1,6 +1,8 @@
 @model SourcingTenderManagementSystem.Web.Models.Entities.Notification
 @if (User.IsInRole("Admin") && Model.Subject.StartsWith("Website message: ") && Model.BidId is null && Model.TenderId is null && Model.PurchaseRequisitionId is null) {
     <form asp-controller="Messages" asp-action="Open" asp-route-id="@Model.Id" method="post"><button type="submit" class="notification-open">Read message <span aria-hidden="true">↗</span></button></form>
+} else if (Model.BidId is null && Model.Subject is "Internal clarification requested" or "Internal clarification answered" or "Internal clarification resolved") {
+    <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@(Model.PurchaseRequisitionId??Model.TenderId)" asp-route-requisition="@Model.PurchaseRequisitionId.HasValue" class="notification-open">View clarification ↗</a>
 } else if (Model.BidId.HasValue) {
     var destination = User.IsInRole("Supplier") ? "Bids" : Model.Subject is "Clarification requested" or "Clarification answered" ? "Compliance" : "ReviewBids";
     <a asp-controller="@destination" asp-action="Details" asp-route-id="@Model.BidId" class="notification-open">View offer ↗</a>

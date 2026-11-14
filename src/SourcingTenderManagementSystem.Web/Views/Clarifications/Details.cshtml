@@ -1,0 +1,26 @@
+@model SourcingTenderManagementSystem.Web.Models.Clarifications.InternalClarificationPage
+@{ ViewData["Title"]="Transaction clarifications"; }
+@section Styles { <link rel="stylesheet" href="~/css/clarifications.css" asp-append-version="true" /> }
+<div class="page-heading"><div><div class="eyebrow">@(Model.Context.Requisition?"REQUISITION":"TENDER") / CLARIFICATIONS</div><h1>@Model.Context.Title</h1><p>Direct questions. Recorded responses. Clear responsibilities.</p></div><a asp-action="Index" class="btn btn-outline-secondary">All clarifications</a></div>
+@if(TempData["ClarificationMessage"] is string message){<div class="alert alert-success" role="status">@message</div>}
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<div class="clarification-layout">
+<section class="requisition-detail-panel clarification-compose" aria-labelledby="question-heading"><div class="eyebrow">NEW QUESTION</div><h2 id="question-heading">Ask the right person</h2><p class="form-text">Recipients are determined by the current stage, role and transaction involvement. Conversations are visible only to their eligible sender and recipient.</p>
+@if(Model.Recipients.Count>0){
+<form asp-action="Ask" asp-route-id="@Model.Context.Id" asp-route-requisition="@Model.Context.Requisition" method="post">
+<input type="hidden" name="Version" value="@Model.Version" />
+<div class="mb-3"><label for="RecipientId" class="form-label">Recipient</label><select id="RecipientId" name="RecipientId" class="form-select" required><option value="">Select an eligible participant</option>@foreach(var p in Model.Recipients){<option value="@p.Id">@p.Name</option>}</select></div>
+<div class="mb-3"><label for="Subject" class="form-label">Subject</label><input id="Subject" name="Subject" class="form-control" required maxlength="256" value="@ViewData.ModelState["Subject"]?.AttemptedValue" /></div>
+<div class="mb-3"><label for="Description" class="form-label">Question</label><textarea id="Description" name="Description" class="form-control" required maxlength="8000" rows="5">@ViewData.ModelState["Description"]?.AttemptedValue</textarea></div>
+<button type="submit" class="btn btn-primary">Send clarification</button></form>
+}else{<p>No new questions are available at the current stage. Eligible participants may still answer or resolve an existing conversation.</p>}
+</section>
+<section aria-labelledby="history-heading"><h2 id="history-heading">Conversation history</h2>
+@if(Model.Threads.Count==0){<div class="requisition-detail-panel"><p>No questions yet for this transaction.</p></div>}
+@foreach(var thread in Model.Threads){<article class="requisition-detail-panel clarification-thread"><div class="clarification-thread-heading"><h3>@thread.Request.Subject</h3><span class="status-pill">@thread.Request.Status</span></div><p class="form-text">@thread.Sender → @thread.Recipient · @Amman(thread.Request.CreatedAt) Amman</p><p class="clarification-copy">@thread.Request.Description</p>
+@if(thread.Response is not null){<div class="clarification-answer"><h4>Recorded response</h4><p class="form-text">@thread.Recipient · @Amman(thread.Response.RespondedAt) Amman</p><p class="clarification-copy">@thread.Response.Response</p></div>}
+@if(thread.CanReply){<form asp-action="Reply" asp-route-id="@Model.Context.Id" asp-route-requisition="@Model.Context.Requisition" method="post"><input type="hidden" name="requestId" value="@thread.Request.Id" /><input type="hidden" name="Version" value="@thread.Version" /><label for="response-@thread.Request.Id" class="form-label">Your response</label><textarea id="response-@thread.Request.Id" name="Response" class="form-control" required maxlength="8000" rows="4">@ViewData.ModelState["Response"]?.AttemptedValue</textarea><p class="form-text">One response only. Sent responses cannot be edited.</p><button type="submit" class="btn btn-primary">Send final response</button></form>}
+@if(thread.CanResolve){<form asp-action="Resolve" asp-route-id="@Model.Context.Id" asp-route-requisition="@Model.Context.Requisition" method="post"><input type="hidden" name="requestId" value="@thread.Request.Id" /><input type="hidden" name="version" value="@thread.Version" /><button type="submit" class="btn btn-outline-secondary">Mark resolved</button></form>}
+</article>}
+</section></div>
+@functions {string Amman(DateTimeOffset date)=>TimeZoneInfo.ConvertTimeBySystemTimeZoneId(date,"Asia/Amman").ToString("yyyy-MM-dd HH:mm");}

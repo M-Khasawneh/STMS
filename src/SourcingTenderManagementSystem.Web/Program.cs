@@ -41,6 +41,7 @@ builder.Services.AddScoped<IBidDocumentData>(services => services.GetRequiredSer
 builder.Services.AddScoped<BidManagement>();
 builder.Services.AddScoped<BidReviewPages>();
 builder.Services.AddScoped<IComplianceManagement, ComplianceManagement>();
+builder.Services.AddScoped<IInternalClarifications, InternalClarificationManagement>();
 builder.Services.AddScoped<CommitteeManagement>();
 builder.Services.AddScoped<EvaluationManagement>();
 builder.Services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>());

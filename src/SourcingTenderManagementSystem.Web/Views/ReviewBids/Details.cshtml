@@ -1,3 +1,4 @@
+@inject SourcingTenderManagementSystem.Web.Data.IInternalClarifications Clarifications
 @model SupplierBidDetails
 @{ ViewData["Title"] = "Submitted offer"; }
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
@@ -6,5 +7,9 @@
     <div class="bid-toolbar"><a asp-action="Index">← Submitted offers</a><div class="bid-actions"><a asp-action="Compare" asp-route-tenderId="@Model.Tender.Id">Compare offers</a><a asp-action="History" asp-route-id="@Model.Details.Snapshot.Bid.Id">Activity history</a></div></div>
     <a class="btn btn-outline-primary" asp-controller="Compliance" asp-action="Details" asp-route-id="@Model.Details.Snapshot.Bid.Id">Compliance &amp; clarifications</a>
     <a class="btn btn-outline-primary" asp-controller="Evaluations" asp-action="Details" asp-route-id="@Model.Details.Snapshot.Bid.Id">Technical &amp; financial evaluation</a>
+    @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,Model.Tender.Id,Context.RequestAborted)) {
+        <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary">Transaction clarifications</a>
+    }
+
     <partial name="~/Views/Bids/_OfferContent.cshtml" model="Model" />
 </div>
