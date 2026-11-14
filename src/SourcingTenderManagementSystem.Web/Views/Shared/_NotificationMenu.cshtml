@@ -1,0 +1,20 @@
+@model SourcingTenderManagementSystem.Web.Models.NotificationMenu
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+<div class="notification-menu-content" data-unread="@Model.Unread">
+    <div class="notification-menu-heading"><h2 id="notification-menu-title">Notifications</h2><span>@(Model.Available ? $"{Model.Unread} unread" : "Unavailable")</span></div>
+    @if (!Model.Available) { <p class="notification-empty">Notifications could not be loaded. Please try again later.</p> }
+    else if (Model.Items.Count == 0) { <p class="notification-empty">You’re all caught up. No notifications yet.</p> }
+    <ol class="notification-menu-list">
+    @foreach (var item in Model.Items) {
+        <li class="notification-card @(item.ReadAt is null ? "is-unread" : "is-read")">
+            <div class="notification-card-heading"><strong>@item.Subject</strong><span class="notification-read-state">@(item.ReadAt is null ? "Unread" : "Read")</span></div>
+            <small>@TenderTime.Display(item.CreatedAt)</small><p>@(item.Message.Length > 180 ? item.Message[..180] + "…" : item.Message)</p>
+            <div class="notification-card-actions"><partial name="_NotificationDestination" model="item" />
+            @if (item.ReadAt is null) { <form asp-controller="Notifications" asp-action="Read" asp-route-id="@item.Id" method="post" data-notification-read><input type="hidden" name="returnUrl" value="@Model.ReturnUrl" /><button type="submit">Mark as read</button></form> }
+            </div>
+        </li>
+    }
+    </ol>
+    <p class="notification-menu-error" role="alert" hidden></p>
+    <a class="notification-view-all" asp-controller="Notifications" asp-action="Index">View all notifications <span aria-hidden="true">↗</span></a>
+</div>

@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -53,6 +53,8 @@ public static class BidPhase3Checks
             builder.Services.AddScoped<SupplierReview>();
             builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
         }
+        builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
+        builder.Services.AddScoped<NotificationInbox>();
         builder.Services.AddPublicContact();
         builder.Services.RemoveAll<IContactMessageStore>();
         builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();
@@ -114,6 +116,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (inboxChecks) { await NotificationChecks.RunAsync(client, app.Services); return; }
             if (contactChecks) { await PublicContactChecks.RunAsync(client, app.Services); return; }
             if (complianceChecks) { await ComplianceChecks.HttpAsync(client); return; }
             if (evaluationChecks) { await EvaluationPresentationChecks.RunAsync(client); return; }

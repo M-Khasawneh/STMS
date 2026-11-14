@@ -11,7 +11,9 @@
     var adminDashboard = admin && ViewData["AdminDashboard"] is true;
     var adminWorkspace = authenticated && admin && !publicWebsite;
     var presentation = Services.GetService<IWorkspacePresentation>();
-    var unread = authenticated && presentation is not null ? await presentation.UnreadAsync(User) : null;
+    var inbox = authenticated ? Services.GetService<NotificationInbox>() : null;
+    var notificationMenu = inbox is not null ? (await inbox.MenuAsync(User)) with { ReturnUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString } : null;
+    long? unread = notificationMenu?.Unread ?? (authenticated && inbox is null && presentation is not null ? await presentation.UnreadAsync(User) : null);
     var hasPicture = authenticated && presentation?.HasAvatar(User) == true;
     var roleName = admin ? "Administrator" : string.Join(" · ", new[] {
         (ApplicationRoles.Supplier, "Supplier"), (ApplicationRoles.RequestingDepartment, "Requesting department"),
@@ -48,6 +50,7 @@
                 @if (admin)
                 {
                     <div class="nav-label">ADMINISTRATION</div>
+                    <a class="side-link @(controller == "Messages" ? "active" : "")" aria-current="@(controller == "Messages" ? "page" : null)" asp-controller="Messages" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Messages</a>
                     <a class="side-link @(controller == "Departments" ? "active" : "")" aria-current="@(controller == "Departments" ? "page" : null)" asp-controller="Departments" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1m4 0h1M9 11h1m4 0h1M10 21v-6h4v6"/></svg>Departments</a>
                     <a class="side-link @(controller == "Employees" ? "active" : "")" aria-current="@(controller == "Employees" ? "page" : null)" asp-controller="Employees" asp-action="Index"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></svg>Employees</a>
                 }
@@ -77,7 +80,10 @@
             {
                 <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
                 <div class="topbar-context">Workspace <span aria-hidden="true">/</span> <strong>@(adminDashboard ? "Administration" : controller == "Home" ? ViewData["Title"] : controller)</strong></div>
-                <a class="workspace-notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>@if (unread > 0) { <span class="notification-count">@(unread > 99 ? "99+" : unread.ToString())</span> }</a>
+                <details class="notification-dropdown">
+                    <summary class="workspace-notification-bell" aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notification-count" hidden="@(!(unread > 0))">@(unread > 99 ? "99+" : unread.ToString())</span></summary>
+                    <div class="notification-popover" role="region" aria-labelledby="notification-menu-title"><partial name="_NotificationMenu" model="@(notificationMenu ?? new SourcingTenderManagementSystem.Web.Models.NotificationMenu([], unread, false))" /></div>
+                </details>
                 <a class="admin-header-identity workspace-profile-link" asp-controller="Profile" asp-action="Index" aria-label="Profile settings"><span aria-hidden="true">@if (hasPicture) { <img class="profile-picture" src="@Url.Action("Avatar", "Profile")" alt="" /> }@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant() ?? "U")</span><div><strong>@User.Identity?.Name</strong><small>@roleName</small></div></a>
                 <span class="workspace-tag"><i aria-hidden="true"></i> @(admin ? "Administration" : User.IsInRole(ApplicationRoles.Supplier) ? "Supplier workspace" : "Employee workspace")</span>
             }
@@ -87,7 +93,7 @@
             }
         </header>
         <main id="main-content" class="content-area" tabindex="-1">
-            @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders")
+            @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders" or "Messages")
             {
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
             }
@@ -106,6 +112,6 @@
     @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
-    @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script> }
+    @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script><script src="~/js/notification-inbox.js" asp-append-version="true"></script> }
 </body>
 </html>

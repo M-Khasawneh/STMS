@@ -13,7 +13,7 @@ const fs=require('fs'), path=require('path');
     if(response.headers()['x-stms-bid-fixture']!=='memory-only')throw Error('Not an isolated test fixture');
     ok(response.status()===200,'Admin route renders');
     ok(await page.locator('[data-admin-overview]').count()===1&&await page.locator('.workspace-welcome').count()===0,'new overview replaces oversized welcome');
-    ok(await page.locator('[data-metric-value]').count()===5,'five entity KPI cards');
+    ok(await page.locator('[data-metric-value]').count()===6,'six entity/message KPI cards');
     ok((await page.locator('[data-metric=people] [data-metric-value]').textContent()).trim()==='42','KPI reflects the test service result');
     ok(await page.locator('.admin-queue-row').count()===4,'pending operations retain read-only oversight');
     ok(await page.locator('.admin-distribution').count()===3,'three existing workflow distributions');

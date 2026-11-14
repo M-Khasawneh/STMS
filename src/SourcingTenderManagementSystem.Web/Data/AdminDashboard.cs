@@ -41,6 +41,7 @@ public sealed class AdminDashboard(ApplicationDbContext db, UserManager<Identity
             var userCount = await db.Users.LongCountAsync(ct);
             var employeeCount = await EmployeeQuery().LongCountAsync(ct);
             var departmentCount = await db.Departments.LongCountAsync(ct);
+            var messageCount = await new NotificationStore(db).Own(id!, true).LongCountAsync(ct);
             var suppliers = await db.SupplierProfiles.AsNoTracking().GroupBy(x => x.Status).Select(g => new { Status = g.Key, Count = g.LongCount() }).ToDictionaryAsync(x => x.Status, x => x.Count, ct);
             var requests = await db.PurchaseRequisitions.AsNoTracking().GroupBy(x => x.Status).Select(g => new { Status = g.Key, Count = g.LongCount() }).ToDictionaryAsync(x => x.Status, x => x.Count, ct);
             var tenders = await db.Tenders.AsNoTracking().GroupBy(x => x.Status).Select(g => new { Status = g.Key, Count = g.LongCount() }).ToDictionaryAsync(x => x.Status, x => x.Count, ct);
@@ -49,7 +50,7 @@ public sealed class AdminDashboard(ApplicationDbContext db, UserManager<Identity
             var deadlines = await db.Tenders.AsNoTracking().Where(t => t.Status == TenderStatus.Open && t.SubmissionDeadline > now)
                 .OrderBy(t => t.SubmissionDeadline).ThenBy(t => t.Id).Select(t => new DashboardDeadline(t.Id, t.Title, t.SubmissionDeadline)).Take(4).ToListAsync(ct);
             var activity = await ActivityQuery().ToListAsync(ct);
-            return new() { Available = true, ReadAt = clock.GetUtcNow(), Users = userCount, Employees = employeeCount, Departments = departmentCount,
+            return new() { Available = true, ReadAt = clock.GetUtcNow(), Users = userCount, Employees = employeeCount, Departments = departmentCount, Messages = messageCount,
                 Suppliers = AdminDashboardModel.Distribution(suppliers), Requisitions = AdminDashboardModel.Distribution(requests), Tenders = AdminDashboardModel.Distribution(tenders),
                 PendingSuppliers = suppliers.GetValueOrDefault(SupplierStatus.Pending), RequestsInReview = requests.GetValueOrDefault(PurchaseRequestStatus.Submitted) + requests.GetValueOrDefault(PurchaseRequestStatus.UnderReview),
                 ApprovedRequests = requests.GetValueOrDefault(PurchaseRequestStatus.Approved), PastDeadlineOpenTenders = overdue, Deadlines = deadlines, Activity = activity };

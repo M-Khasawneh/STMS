@@ -21,6 +21,8 @@ if (provisionFirstAdmin)
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddPublicContact();
+builder.Services.AddScoped<INotificationStore, NotificationStore>();
+builder.Services.AddScoped<NotificationInbox>();
 builder.Services.AddScoped<IPublicStatistics, PublicStatistics>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
 builder.Services.AddScoped<IRoleDashboard, RoleDashboard>();

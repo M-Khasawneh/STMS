@@ -17,7 +17,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 // Separate opt-in command. The entire test rolls back; no enquiry reaches a live administrator.
 internal static class PublicContactSqlChecks
 {
-    public static async Task RunAsync()
+    public static async Task RunAsync(bool inboxChecks = false)
     {
         using var settings = JsonDocument.Parse(await File.ReadAllTextAsync("src/SourcingTenderManagementSystem.Web/appsettings.json"));
         var connection = settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
@@ -61,10 +61,29 @@ internal static class PublicContactSqlChecks
             var own = rows.Single(x => x.RecipientUserId == admin.Id);
             Check(own.Message.Contains("Fixture visitor") && own.Message.Contains("visitor@example.test") && own.Message.Contains(form.Message), "Sender details and complete message persist as plain text");
             async Task<IReadOnlyList<Notification>> Inbox(string id) {
-                var controller = new NotificationsController(db) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id)], "SqlTest")) } } };
-                return (IReadOnlyList<Notification>)((ViewResult)await controller.Index()).Model!;
+                var controller = new NotificationsController(new NotificationInbox(new NotificationStore(db), TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<NotificationInbox>.Instance)) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id)], "SqlTest")) } } };
+                return ((NotificationPage)((ViewResult)await controller.Index()).Model!).Items;
             }
             Check((await Inbox(admin.Id)).Any(x => x.Id == own.Id) && (await Inbox(mixed.Id)).All(x => x.Subject != own.Subject), "Existing notification inbox query isolates the administrator's message from supplier account");
+            if (inboxChecks) {
+                var inbox = new NotificationInbox(store: new NotificationStore(db), TimeProvider.System, Microsoft.Extensions.Logging.Abstractions.NullLogger<NotificationInbox>.Instance);
+                ClaimsPrincipal Principal(string id, string role) => new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "SqlTest"));
+                var adminPrincipal = Principal(admin.Id, "Admin"); var supplierPrincipal = Principal(mixed.Id, "Supplier");
+                var beforeMenu = await inbox.MenuAsync(adminPrincipal);
+                Check(beforeMenu.Unread == 1 && beforeMenu.Items.Single().Id == own.Id, "SQL bell menu contains only the administrator's own unread message");
+                var page = await inbox.PageAsync(adminPrincipal, 1, true, default);
+                Check(page.Total == 1 && page.Unread == 1 && page.Items.Single().Id == own.Id, "SQL Admin message list and count match Contact records");
+                Check(await new NotificationStore(db).Own(admin.Id, true).LongCountAsync() == page.Total, "Dashboard message aggregate uses the same recipient-scoped SQL data");
+                Check(!await inbox.MarkReadAsync(supplierPrincipal, own.Id, default), "Supplier cannot change administrator read state in SQL");
+                Check(await inbox.MessageAsync(adminPrincipal, own.Id, default) is { ReadAt: null }, "Reading message details does not modify SQL on GET");
+                Check(await inbox.MarkReadAsync(adminPrincipal, own.Id, default), "Mark as read persists through actual SQL update");
+                var readAt = (await inbox.MessageAsync(adminPrincipal, own.Id, default))!.ReadAt;
+                Check(readAt.HasValue && (await inbox.MenuAsync(adminPrincipal)).Unread == 0, "SQL read timestamp updates the real unread count");
+                await inbox.MarkReadAsync(adminPrincipal, own.Id, default);
+                Check((await inbox.MessageAsync(adminPrincipal, own.Id, default))!.ReadAt == readAt, "Repeated SQL read preserves the original timestamp");
+                try { await inbox.PageAsync(Principal(mixed.Id, "Admin"), 1, true, default); throw new Exception("Mixed-role Admin accepted"); }
+                catch (UnauthorizedAccessException) { Check(true, "Actual SQL roles exclude a stale or mixed Supplier/Admin from message management"); }
+            }
             failure.Enabled = true;
             try { await service.SendAsync(form); throw new Exception("Expected injected save failure"); }
             catch (DbUpdateException) { Check(true, "Persistence failure propagates rather than claiming delivery"); }

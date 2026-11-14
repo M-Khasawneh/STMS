@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--inbox-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(inboxChecks: true); return; }
+if (args.Contains("--inbox-checks-only", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(inboxChecks: true); return; }
 if (args.Contains("--contact-sql-checks-only", StringComparer.Ordinal)) { await PublicContactSqlChecks.RunAsync(); return; }
 if (args.Contains("--contact-checks-only", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(contactChecks: true); return; }
 if (args.Contains("--profile-picture-checks-only", StringComparer.Ordinal)) { await ProfilePictureChecks.RunAsync(); return; }
@@ -168,6 +170,8 @@ builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 builder.Services.AddControllersWithViews().AddApplicationPart(typeof(ProtectionController).Assembly);
 builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
+builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
+builder.Services.AddScoped<NotificationInbox>();
 builder.Services.AddPublicContact();
 builder.Services.RemoveAll<IContactMessageStore>();
 builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();

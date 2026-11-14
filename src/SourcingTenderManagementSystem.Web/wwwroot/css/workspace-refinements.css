@@ -39,6 +39,43 @@
 .workspace .workspace-notification-bell { position: relative; overflow: visible; }
 .notification-count { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 20px; background: var(--brand-gold); color: #fff; border: 2px solid #fffefa; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
 .notification-message { white-space: pre-line; overflow-wrap: anywhere; }
+.notification-count[hidden] { display: none; }
+.notification-dropdown { position: relative; margin-left: auto; flex: 0 0 auto; }
+.notification-dropdown > summary { list-style: none; cursor: pointer; }
+.workspace .notification-dropdown > summary.workspace-notification-bell { width: 40px; height: 40px; margin-left: 0; }
+.notification-dropdown > summary::-webkit-details-marker { display: none; }
+.notification-dropdown[open] > summary { background: #eee4cf; border-color: #b99a5a; }
+.notification-popover { position: absolute; right: 0; top: calc(100% + 14px); width: 390px; max-width: calc(100vw - 32px); border: 1px solid #d9cfbc; border-radius: 18px; background: #fffefa; box-shadow: 0 20px 70px #152b4028; z-index: 1100; overflow: hidden; }
+.notification-menu-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px; border-bottom: 1px solid var(--brand-border); }
+.notification-menu-heading h2 { font-size: 1rem; margin: 0; }
+.notification-menu-heading > span { font-size: .72rem; color: #79561c; }
+.notification-menu-list { list-style: none; margin: 0; padding: 10px; max-height: min(55dvh, 480px); overflow-y: auto; overscroll-behavior: contain; }
+.notification-card { padding: 17px; border: 1px solid #e4ded2; border-radius: 12px; background: #fff; margin-bottom: 9px; overflow-wrap: anywhere; }
+.notification-card.is-unread { border-left: 3px solid var(--brand-gold); background: #fbf7ed; }
+.notification-card-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.notification-card-heading > strong { font-size: .82rem; line-height: 1.6; }
+.notification-read-state { flex: 0 0 auto; font-size: .63rem; color: #79561c; background: #eee4ce; border-radius: 20px; padding: 3px 8px; }
+.notification-card.is-read .notification-read-state { background: #edf0ef; color: #626e77; }
+.notification-card > small { display: block; color: #626e77; margin: 7px 0 10px; font-size: .66rem; }
+.notification-card > p { color: #626e77; line-height: 1.7; font-size: .78rem; margin: 0 0 12px; }
+.notification-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.notification-card-actions > form { margin: 0; }
+.notification-card-actions :is(button, a) { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 7px 0; border: 0; background: transparent; color: var(--brand-ink); font-size: .7rem; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.notification-card-actions button:disabled { opacity: .55; cursor: wait; }
+.notification-view-all { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 15px 20px; border-top: 1px solid var(--brand-border); color: var(--brand-ink); text-decoration: none; font-size: .78rem; font-weight: 600; }
+.notification-empty, .notification-menu-error { padding: 14px 20px; font-size: .78rem; line-height: 1.7; color: #626e77; }
+.notification-menu-error[role="alert"] { color: #a03434; }
+.notification-page-list { list-style: none; padding: 0; max-width: 960px; }
+.notification-page-list .notification-card { padding: 24px; margin-block: 16px; }
+.notification-page-list .notification-card-heading > strong { font-size: 1rem; }
+.inbox-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 22px 0; font-size: .8rem; }
+.inbox-pagination a { min-height: 40px; display: inline-flex; align-items: center; }
+.contact-message-body { line-height: 1.9; margin: 24px 0; font-size: .95rem; }
+@media (max-width: 600px) {
+    .notification-popover { position: fixed; top: 78px; left: 12px; right: 12px; width: auto; max-width: none; }
+    .notification-menu-list { max-height: calc(100dvh - 240px); }
+    .workspace-theme .notification-dropdown .workspace-notification-bell { margin-left: 0; }
+}
 .avatar, .admin-header-identity > span { position: relative; overflow: hidden; }
 .profile-picture { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; border-radius: inherit; background: #fff; }
 .profile-settings-photo { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 18px; border: 1px solid var(--brand-border); margin-bottom: 20px; }

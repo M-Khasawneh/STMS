@@ -1,0 +1,8 @@
+@model SourcingTenderManagementSystem.Web.Models.Entities.Notification
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ ViewData["Title"] = "Contact message"; }
+<header class="page-heading"><div><div class="eyebrow">ADMINISTRATION / CONTACT MESSAGE</div><h1>@Model.Subject["Website message: ".Length..]</h1><p>@TenderTime.Display(Model.CreatedAt)</p></div><span class="status-pill">@(Model.ReadAt is null ? "Unread" : "Read")</span></header>
+<section class="form-panel"><h2>Message</h2><p class="notification-message contact-message-body">@Model.Message</p>
+@if (Model.ReadAt is null) { <form asp-controller="Notifications" asp-action="Read" asp-route-id="@Model.Id" method="post"><input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.Id })" /><button class="btn btn-primary" type="submit">Mark as read</button></form> }
+@if (Model.ReadAt.HasValue) { <p class="form-text">Read @TenderTime.Display(Model.ReadAt.Value)</p> }
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">← Back to messages</a></section>

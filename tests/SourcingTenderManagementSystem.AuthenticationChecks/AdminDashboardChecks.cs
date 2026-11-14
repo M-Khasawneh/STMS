@@ -116,7 +116,7 @@ public sealed class TestAdminDashboard(IHttpContextAccessor accessor, TimeProvid
         var state = accessor.HttpContext?.Request.Headers["X-Admin-Test-State"].FirstOrDefault() ?? (populated ? "populated" : "unavailable");
         var empty = state == "empty"; var now = clock.GetUtcNow();
         var result = state == "unavailable" ? AdminDashboardModel.Unavailable : new AdminDashboardModel {
-            Available = true, ReadAt = now, Users = empty ? 0 : 69, Employees = empty ? 0 : 42, Departments = empty ? 0 : 8,
+            Available = true, ReadAt = now, Users = empty ? 0 : 69, Employees = empty ? 0 : 42, Departments = empty ? 0 : 8, Messages = empty ? 0 : 2,
             Suppliers = AdminDashboardModel.Distribution(empty ? new Dictionary<SupplierStatus, long>() : new() { [SupplierStatus.Pending] = 6, [SupplierStatus.Approved] = 17, [SupplierStatus.Rejected] = 3, [SupplierStatus.Suspended] = 1 }),
             Requisitions = AdminDashboardModel.Distribution(empty ? new Dictionary<PurchaseRequestStatus, long>() : new() { [PurchaseRequestStatus.Draft] = 8, [PurchaseRequestStatus.Submitted] = 7, [PurchaseRequestStatus.UnderReview] = 5, [PurchaseRequestStatus.Approved] = 4, [PurchaseRequestStatus.Rejected] = 2, [PurchaseRequestStatus.Returned] = 3, [PurchaseRequestStatus.ConvertedToTender] = 14 }),
             Tenders = AdminDashboardModel.Distribution(empty ? new Dictionary<TenderStatus, long>() : new() { [TenderStatus.Draft] = 3, [TenderStatus.Published] = 2, [TenderStatus.Open] = 5, [TenderStatus.Closed] = 4 }),

@@ -53,7 +53,7 @@ const fs=require('fs'),path=require('path');
         await rp.setViewportSize({width,height:1000});await rp.goto(roleBase+'/Workspace');await rp.waitForTimeout(850);
         ok(await rp.locator('body.workspace-theme').count()===1&&await rp.locator('.stms-landing').count()===0,'shared workspace identity '+actor+' '+width);
         ok((await rp.locator('main').innerText()).includes(title),'role-specific dashboard '+actor);
-        ok(await rp.locator('a.workspace-notification-bell').getAttribute('href')==='/Notifications'&&await rp.locator('.sidebar a[href="/Notifications"]').count()===0,'notifications in header icon '+actor);
+        ok(await rp.locator('.notification-dropdown > summary.workspace-notification-bell').count()===1&&await rp.locator('.sidebar a[href="/Notifications"]').count()===0,'notifications in header icon '+actor);
         ok(await rp.locator('a[href="/Home/Privacy"]').count()===0,'no workspace Privacy link '+actor);
         ok(await rp.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'role dashboard fits '+actor+' '+width);
         if(width===390){await rp.locator('.menu-toggle').click();await rp.keyboard.press('Escape');ok(await rp.locator('.menu-toggle').getAttribute('aria-expanded')==='false','keyboard mobile navigation '+actor);}

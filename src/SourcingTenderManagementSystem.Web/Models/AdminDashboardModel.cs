@@ -21,6 +21,7 @@ public sealed record AdminDashboardModel
     public long Users { get; init; }
     public long Employees { get; init; }
     public long Departments { get; init; }
+    public long Messages { get; init; }
     public IReadOnlyList<DashboardStatus> Suppliers { get; init; } = [];
     public IReadOnlyList<DashboardStatus> Requisitions { get; init; } = [];
     public IReadOnlyList<DashboardStatus> Tenders { get; init; } = [];

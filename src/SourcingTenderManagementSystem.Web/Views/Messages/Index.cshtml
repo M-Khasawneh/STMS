@@ -1,0 +1,11 @@
+@model SourcingTenderManagementSystem.Web.Models.NotificationPage
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ ViewData["Title"] = "Messages"; }
+<header class="page-heading"><div><div class="eyebrow">ADMINISTRATION / CONTACT INBOX</div><h1>Messages</h1><p>Messages sent through the public Contact page to your administrator inbox.</p></div><span class="status-pill">@Model.Unread unread · @Model.Total total</span></header>
+@if (Model.Items.Count == 0) { <section class="form-panel"><h2>No messages on this page</h2><p>Contact enquiries addressed to your account will appear here.</p></section> }
+else {
+    <div class="table-responsive" role="region" aria-label="Administrator messages" tabindex="0"><table class="table"><thead><tr><th scope="col">Subject</th><th scope="col">Received · Asia/Amman</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead><tbody>
+    @foreach (var item in Model.Items) { <tr><th scope="row">@item.Subject["Website message: ".Length..]</th><td>@TenderTime.Display(item.CreatedAt)</td><td><span class="status-pill">@(item.ReadAt is null ? "Unread" : "Read")</span></td><td><form asp-action="Open" asp-route-id="@item.Id" method="post"><button type="submit" class="btn btn-outline-secondary">Read message ↗</button></form></td></tr> }
+    </tbody></table></div>
+}
+<nav class="inbox-pagination" aria-label="Message pages">@if (Model.Page > 1) { <a asp-action="Index" asp-route-page="@(Model.Page - 1)">← Previous</a> }<span>Page @Model.Page</span>@if (Model.HasNext) { <a asp-action="Index" asp-route-page="@(Model.Page + 1)">Next →</a> }</nav>
