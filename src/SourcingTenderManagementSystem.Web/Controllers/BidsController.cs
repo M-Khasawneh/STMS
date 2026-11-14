@@ -100,6 +100,8 @@ public sealed class BidsController(SupplierBidPages pages, BidManagement bids, B
         }
         catch { await download.DisposeAsync(); throw; }
     }
+    [HttpGet] public async Task<IActionResult> History(Guid id, CancellationToken ct) =>
+        View(await bids.HistoryAsync(User, id, ct));
     [HttpGet] public async Task<IActionResult> Summary([FromRoute] Guid id, CancellationToken ct)
     {
         var bytes = await pages.SummaryAsync(User, id, ct);

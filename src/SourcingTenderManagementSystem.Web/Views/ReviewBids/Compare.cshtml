@@ -1,0 +1,26 @@
+@model BidReviewComparison
+@{ ViewData["Title"] = "Compare offers"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace">
+    <header class="page-heading"><div><span class="eyebrow">SUBMITTED OFFERS / COMPARISON</span><h1>@Model.Tender.Title</h1><p>Saved offer values in JOD. This comparison does not assign scores or rankings.</p></div><a asp-action="Index" asp-route-tenderId="@Model.Tender.Id">Back to offers</a></header>
+    <div class="table-responsive bid-panel" tabindex="0" role="region" aria-label="Offer comparison"><table class="table bid-comparison">
+        <caption>Commercial terms and authoritative quantities for offers available to your account.</caption>
+        <thead><tr><th scope="col">Term / requested item</th>@foreach (var offer in Model.Offers) { <th scope="col"><a asp-action="Details" asp-route-id="@offer.Details.Snapshot.Bid.Id">@offer.SupplierName<br /><small>@offer.Details.Snapshot.Bid.Id</small></a></th> }</tr></thead>
+        <tbody>
+        @foreach (var item in Model.RequestedItems) {
+            <tr><th scope="row">@item.Description<br /><small>@item.Specifications<br />Quantity @item.Quantity.ToString("0.######")</small></th>
+            @foreach (var offer in Model.Offers) {
+                var matches = offer.Details.Snapshot.Items.Where(x => x.PurchaseRequisitionItemId == item.Id).Take(2).ToArray();
+                var line = matches.Length == 1 ? matches[0] : null;
+                <td>@if (line is null) { <span>Item unavailable</span> } else { <span>Unit @line.UnitPrice.ToString("0.######")</span><br /><strong>@((line.UnitPrice * line.OfferedQuantity).ToString("0.############")) JOD</strong> }</td>
+            }</tr>
+        }
+        <tr><th scope="row">Additional costs</th>@foreach (var offer in Model.Offers) { <td>@foreach (var cost in offer.Details.Snapshot.Charges) { <div>@cost.CostType · @cost.Amount.ToString("0.######") JOD</div> }</td> }</tr>
+        <tr><th scope="row">Overall total · JOD</th>@foreach (var offer in Model.Offers) { <td><strong>@offer.Details.Total.ToString("0.############")</strong></td> }</tr>
+        <tr><th scope="row">Payment terms</th>@foreach (var offer in Model.Offers) { <td>@offer.Details.Snapshot.Bid.PaymentTerms</td> }</tr>
+        <tr><th scope="row">Delivery timeframe</th>@foreach (var offer in Model.Offers) { <td>@offer.Details.Snapshot.Bid.DeliveryTimeframe</td> }</tr>
+        <tr><th scope="row">Offer validity</th>@foreach (var offer in Model.Offers) { <td>@offer.Details.Snapshot.Bid.OfferValidUntil?.ToString("yyyy-MM-dd")</td> }</tr>
+        <tr><th scope="row">Technical details</th>@foreach (var offer in Model.Offers) { <td>@offer.Details.Snapshot.Bid.TechnicalDetails</td> }</tr>
+        </tbody>
+    </table></div>
+</div>

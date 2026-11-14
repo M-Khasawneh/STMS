@@ -5,7 +5,7 @@ using SourcingTenderManagementSystem.Web.Models.Entities;
 namespace SourcingTenderManagementSystem.Web.Models.Bids;
 
 public sealed record SupplierOfferRow(Bid Bid, Tender Tender, bool CanEdit);
-public sealed record SupplierBidDetails(BidDetails Details, Tender Tender, bool CanEdit, string? ReadOnlyReason);
+public sealed record SupplierBidDetails(BidDetails Details, Tender Tender, bool CanEdit, string? ReadOnlyReason, string? SupplierName = null);
 public sealed record SupplierBidConfirmation(SupplierBidDetails Offer, string? Error);
 public sealed class SupplierBidEditor
 {

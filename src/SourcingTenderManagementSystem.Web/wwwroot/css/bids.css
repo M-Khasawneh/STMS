@@ -1,4 +1,5 @@
 /* Supplier bids: isolated Navy / Blue / Cyan components; no global shell changes. */
+.bid-workspace .bid-comparison thead th { text-transform: none; letter-spacing: normal; }
 /* Keep validation focus/long-form navigation immediate; the public site's smooth scrolling can move controls mid-click. */
 html:has(.bid-workspace){scroll-behavior:auto}
 .bid-workspace [data-valmsg-for]{display:block;min-height:1.2rem;font-size:.74rem;margin-top:8px}

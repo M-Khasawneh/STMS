@@ -21,6 +21,16 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--bid-phase4-browser-fixture", StringComparer.Ordinal)) {
+    await BidPhase3Checks.RunAsync(browserFixture: true, phase4Checks: true);
+    return;
+}
+
+if (args.Contains("--bid-phase4-checks-only", StringComparer.Ordinal)) {
+    await BidPhase3Checks.RunAsync(phase4Checks: true);
+    return;
+}
+
 if (args.Contains("--admin-dashboard-readonly-checks", StringComparer.Ordinal)) { await AdminDashboardChecks.SqlReadOnlyAsync(); return; }
 if (args.Contains("--admin-dashboard-checks-only", StringComparer.Ordinal) || args.Contains("--admin-dashboard-browser-fixture", StringComparer.Ordinal)) {
     await BidPhase3Checks.RunAsync(args.Contains("--admin-dashboard-browser-fixture", StringComparer.Ordinal), adminChecks: true); return;

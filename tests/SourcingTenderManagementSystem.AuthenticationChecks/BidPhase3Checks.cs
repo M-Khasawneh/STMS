@@ -29,7 +29,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -72,6 +72,7 @@ public static class BidPhase3Checks
         builder.Services.AddSingleton<IPrivateBidFiles>(new PrivateBidFiles(new FilesEnvironment(root)));
         builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
         builder.Services.AddScoped<BidManagement>();
+        builder.Services.AddScoped<BidReviewPages>();
         builder.Services.AddScoped<BidDocumentManagement>();
         builder.Services.AddScoped<SupplierBidPages>();
         await using var app = builder.Build();
@@ -87,12 +88,14 @@ public static class BidPhase3Checks
             var url = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             if (browserFixture)
             {
+                if (phase4Checks) await BidPhase4Checks.PrepareBrowserAsync(app.Services, f);
                 Console.WriteLine($"BID_BROWSER_FIXTURE {url} tender={f.Context.Tender.Id:D} temporary-storage={root}");
                 await app.WaitForShutdownAsync(); return;
             }
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (phase4Checks) { await BidPhase4Checks.RunAsync(client, app.Services, f); return; }
             if (adminChecks) { await AdminDashboardChecks.HttpAsync(client, (TestAdminDashboard)app.Services.GetRequiredService<IAdminDashboard>()); return; }
             if (workspaceChecks) { await WorkspaceUiChecks.RunAsync(client); return; }
             client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", "supplier");

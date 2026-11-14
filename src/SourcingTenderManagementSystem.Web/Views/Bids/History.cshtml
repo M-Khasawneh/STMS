@@ -1,0 +1,7 @@
+@model IReadOnlyList<BidActivity>
+@{ ViewData["Title"] = "Offer activity"; }
+<header class="page-heading"><div><span class="eyebrow">OFFER HISTORY</span><h1>Activity history</h1></div><a asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]">Back to offer</a></header>
+@if (Model.Count == 0) { <p>No recorded activity is available for this offer.</p> }
+<ol class="requisition-history">
+@foreach (var item in Model) { <li><strong>@item.Description</strong><small>@TenderTime.Display(item.At) · Asia/Amman</small></li> }
+</ol>

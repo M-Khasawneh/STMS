@@ -21,6 +21,9 @@ public interface IBidData
     Task<IReadOnlyList<Bid>> ListAsync(BidAccount account, DateTimeOffset now, CancellationToken ct);
     Task<bool> ExistsAsync(Guid participationId, Guid? except, CancellationToken ct);
     Task PersistAsync(BidSnapshot snapshot, bool create, CancellationToken ct);
+    Task RecordActivityAsync(AuditLog activity, Notification? receipt, CancellationToken ct);
+    Task<IReadOnlyList<AuditLog>> HistoryAsync(Guid bidId, CancellationToken ct);
+    Task<string?> SupplierNameAsync(Guid bidId, BidAccount account, DateTimeOffset now, CancellationToken ct);
 }
 public interface IBidDocumentData : IBidData
 {
@@ -117,6 +120,24 @@ public sealed class BidData(ApplicationDbContext db, UserManager<IdentityUser> u
         await db.SaveChangesAsync(ct);
     }
     public Task<bool> ReferenceExistsAsync(string reference, CancellationToken ct) => db.BidDocuments.AsNoTracking().AnyAsync(x => x.StorageReference == reference, ct);
+    public Task<string?> SupplierNameAsync(Guid bidId, BidAccount account, DateTimeOffset now, CancellationToken ct) =>
+        (from bid in VisibleQuery(account, now)
+         join link in db.TenderSuppliers on new { Id = bid.TenderSupplierId, bid.TenderId } equals new { link.Id, link.TenderId }
+         join supplier in db.SupplierProfiles on link.SupplierProfileId equals supplier.Id
+         where bid.Id == bidId
+         select (string?)supplier.CompanyName).SingleOrDefaultAsync(ct);
+
+    public async Task RecordActivityAsync(AuditLog activity, Notification? receipt, CancellationToken ct)
+    {
+        db.AuditLogs.Add(activity);
+        if (receipt is not null) db.Notifications.Add(receipt);
+        await db.SaveChangesAsync(ct);
+    }
+    public async Task<IReadOnlyList<AuditLog>> HistoryAsync(Guid bidId, CancellationToken ct) =>
+        await db.AuditLogs.AsNoTracking()
+            .Where(x => x.RecordType == "Bid" && x.RecordId == bidId.ToString())
+            .OrderByDescending(x => x.OccurredAt).ThenBy(x => x.Id).ToListAsync(ct);
+
     private sealed class Transaction(IDbContextTransaction transaction, ApplicationDbContext context) : IBidTransaction
     {
         public Task CommitAsync(CancellationToken ct) => transaction.CommitAsync(ct);

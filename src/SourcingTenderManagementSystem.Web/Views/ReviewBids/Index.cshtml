@@ -1,0 +1,19 @@
+@model IReadOnlyList<BidReviewRow>
+@{ ViewData["Title"] = "Submitted offers"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace">
+    <header class="page-heading"><div><span class="eyebrow">SOURCING / SUBMITTED OFFERS</span><h1>Submitted offers</h1><p>Offers available at your authorized tender stage and committee assignment.</p></div></header>
+    @if (Model.Count == 0) {
+        <section class="bid-panel"><h2>No offers available</h2><p>Submitted offers appear after tender closure when your account has the required access.</p></section>
+    }
+    @foreach (var group in Model.GroupBy(x => x.Tender.Id)) {
+        <section class="bid-panel">
+            <div class="bid-section-heading"><h2>@group.First().Tender.Title</h2><a asp-action="Compare" asp-route-tenderId="@group.Key">Compare offers →</a></div>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Submitted offers"><table class="table"><thead><tr><th scope="col">Supplier / offer reference</th><th scope="col">Status</th><th scope="col">Submitted · Asia/Amman</th><th scope="col">Actions</th></tr></thead><tbody>
+            @foreach (var row in group) {
+                <tr><th scope="row">@row.SupplierName<br /><small>@row.Bid.Id</small></th><td>@row.Bid.Status</td><td>@TenderTime.Display(row.Bid.SubmittedAt!.Value)</td><td><a asp-action="Details" asp-route-id="@row.Bid.Id">View offer</a></td></tr>
+            }
+            </tbody></table></div>
+        </section>
+    }
+</div>

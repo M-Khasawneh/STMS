@@ -1,0 +1,8 @@
+@model string
+@{ ViewData["Title"] = "Offer unavailable"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
+<div class="bid-workspace"><section class="bid-panel">
+    <span class="eyebrow">SUBMITTED OFFERS</span><h1>Offer unavailable</h1>
+    <p role="alert">@Model</p>
+    <a class="btn btn-primary" asp-action="Index">Back to submitted offers</a>
+</section></div>

@@ -151,6 +151,22 @@ public static class BidPhase1Checks
     internal sealed class MemoryData : IBidDocumentData
     {
         public Dictionary<string,BidAccount> Accounts=[];public Dictionary<Guid,BidSnapshot> Rows=[];public BidContext Context=null!;public BidParticipation Participation=null!;public Action? OnPersist,OnBegin,OnSaveDocuments,OnBeforeCommit,OnAfterCommit,OnReference;private readonly SemaphoreSlim gate=new(1);
+        public Task<string?> SupplierNameAsync(Guid bidId, BidAccount account, DateTimeOffset now, CancellationToken ct) =>
+            Task.FromResult(Rows.TryGetValue(bidId, out var row) && BidRules.CanRead(account, row.Bid, Context.Tender, Participation.Link.SupplierProfileId)
+                ? "Temporary supplier company" : null);
+        public List<AuditLog> Activity = [];
+        public List<Notification> Receipts = [];
+        public Action? OnActivity;
+        public Task RecordActivityAsync(AuditLog activity, Notification? receipt, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            Activity.Add(Copy(activity));
+            if (receipt is not null) Receipts.Add(Copy(receipt));
+            OnActivity?.Invoke();
+            return Task.CompletedTask;
+        }
+        public Task<IReadOnlyList<AuditLog>> HistoryAsync(Guid bidId, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<AuditLog>>(Activity.Where(x => x.RecordType == "Bid" && x.RecordId == bidId.ToString()).ToArray());
         private static T Copy<T>(T x)=>JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(x))!;
         public Task<BidAccount?> AccountAsync(ClaimsPrincipal p,DateTimeOffset now,CancellationToken ct)=>Task.FromResult(Accounts.GetValueOrDefault(p.FindFirstValue(ClaimTypes.NameIdentifier)??""));
         public async Task<IBidTransaction> BeginAsync(Guid id,CancellationToken ct){await gate.WaitAsync(ct);OnBegin?.Invoke();return new Transaction(this,Copy(Rows));}
@@ -162,6 +178,6 @@ public static class BidPhase1Checks
         public async Task PersistAsync(BidSnapshot s,bool create,CancellationToken ct){await Task.Yield();ct.ThrowIfCancellationRequested();Rows[s.Bid.Id]=Copy(s);OnPersist?.Invoke();}
         public Task SaveDocumentsAsync(Guid bidId,IReadOnlyList<BidDocument> documents,CancellationToken ct){ct.ThrowIfCancellationRequested();Rows[bidId]=Rows[bidId] with{Documents=Copy(documents.ToArray())};OnSaveDocuments?.Invoke();return Task.CompletedTask;}
         public Task<bool> ReferenceExistsAsync(string reference,CancellationToken ct){ct.ThrowIfCancellationRequested();OnReference?.Invoke();return Task.FromResult(Rows.Values.Any(x=>x.Documents.Any(d=>d.StorageReference==reference)));}
-        private sealed class Transaction(MemoryData store,Dictionary<Guid,BidSnapshot> backup):IBidTransaction{private bool committed;public Task CommitAsync(CancellationToken ct){ct.ThrowIfCancellationRequested();store.OnBeforeCommit?.Invoke();committed=true;store.OnAfterCommit?.Invoke();return Task.CompletedTask;}public ValueTask DisposeAsync(){if(!committed)store.Rows=backup;store.gate.Release();return ValueTask.CompletedTask;}}
+        private sealed class Transaction(MemoryData store,Dictionary<Guid,BidSnapshot> backup):IBidTransaction{private readonly List<AuditLog> auditBackup=Copy(store.Activity);private readonly List<Notification> receiptBackup=Copy(store.Receipts);private bool committed;public Task CommitAsync(CancellationToken ct){ct.ThrowIfCancellationRequested();store.OnBeforeCommit?.Invoke();committed=true;store.OnAfterCommit?.Invoke();return Task.CompletedTask;}public ValueTask DisposeAsync(){if(!committed){store.Rows=backup;store.Activity=auditBackup;store.Receipts=receiptBackup;}store.gate.Release();return ValueTask.CompletedTask;}}
     }
 }

@@ -19,6 +19,7 @@ From the repository root:
 
 ```text
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --experience-checks-only
+dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --bid-phase4-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --admin-dashboard-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --workspace-ui-checks-only
 dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --bid-phase3-checks-only

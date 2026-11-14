@@ -23,6 +23,7 @@ public sealed class BidManagement(IBidData data, TimeProvider clock, IBidSubmiss
             BidRules.Require(!await data.ExistsAsync(participation.Link.Id, null, ct), 409, "A bid already exists for this supplier and tender.");
             var snapshot = Apply(new(new Bid { Id = Guid.NewGuid(), TenderId = tenderId, TenderSupplierId = participation.Link.Id, Status = BidStatus.Draft }, [], [], []), form, context);
             await data.PersistAsync(snapshot, true, ct);
+            await RecordActivity(user, snapshot.Bid, "DraftCreated", null, false, ct);
             await Participate(await Account(user, ct), context, ct); // Includes final deadline/account recheck.
             await tx.CommitAsync(ct); return snapshot.Bid.Id;
         });
@@ -33,6 +34,7 @@ public sealed class BidManagement(IBidData data, TimeProvider clock, IBidSubmiss
             var snapshot = await Read(user, id, ct); var context = await Context(snapshot.Bid.TenderId, ct);
             await OwnDraft(user, snapshot, context, ct); Version(snapshot, form.Version);
             await data.PersistAsync(Apply(snapshot, form, context), false, ct);
+            await RecordActivity(user, snapshot.Bid, "DraftUpdated", BidStatus.Draft, false, ct);
             await Participate(await Account(user, ct), context, ct);
             await tx.CommitAsync(ct); return true;
         });
@@ -44,6 +46,7 @@ public sealed class BidManagement(IBidData data, TimeProvider clock, IBidSubmiss
             await CheckSubmission(user, snapshot, context, version, ct);
             snapshot.Bid.Status = BidStatus.Submitted; snapshot.Bid.SubmittedAt = clock.GetUtcNow().ToUniversalTime();
             await data.PersistAsync(snapshot, false, ct);
+            await RecordActivity(user, snapshot.Bid, "BidSubmitted", BidStatus.Draft, true, ct);
             await Participate(await Account(user, ct), context, ct);
             await tx.CommitAsync(ct); return true;
         });
@@ -58,6 +61,32 @@ public sealed class BidManagement(IBidData data, TimeProvider clock, IBidSubmiss
             await Participate(await Account(user, ct), context, ct);
             await tx.CommitAsync(ct); return true;
         });
+    public async Task<IReadOnlyList<BidActivity>> HistoryAsync(ClaimsPrincipal user, Guid id, CancellationToken ct = default)
+    {
+        await Read(user, id, ct);
+        var rows = await data.HistoryAsync(id, ct);
+        // Recheck stage/account authorization before returning the protected result.
+        await Read(user, id, ct);
+        return rows.Where(x => BidActivity.Labels.ContainsKey(x.Action))
+            .Select(x => new BidActivity(BidActivity.Labels[x.Action], x.OccurredAt)).ToArray();
+    }
+    internal async Task RecordActivity(ClaimsPrincipal principal, Bid bid, string action,
+        BidStatus? previousStatus, bool receipt, CancellationToken ct, Guid? documentId = null)
+    {
+        var actor = await Account(principal, ct);
+        var now = clock.GetUtcNow();
+        var log = new AuditLog {
+            Id = Guid.NewGuid(), ActorUserId = actor.UserId, RecordType = "Bid", RecordId = bid.Id.ToString(),
+            Action = action, PreviousStatus = previousStatus?.ToString(), NewStatus = bid.Status.ToString(), OccurredAt = now,
+            Reason = documentId.HasValue ? $"Document {documentId.Value:D}" : null
+        };
+        Notification? notification = receipt ? new Notification {
+            Id = Guid.NewGuid(), RecipientUserId = actor.UserId, BidId = bid.Id, TenderId = bid.TenderId,
+            Subject = "Offer submitted", Message = "Your offer was submitted successfully. Its contents and documents are now read-only.", CreatedAt = now
+        } : null;
+        await data.RecordActivityAsync(log, notification, ct);
+    }
+
     private async Task CheckSubmission(ClaimsPrincipal user, BidSnapshot snapshot, BidContext context, string version, CancellationToken ct)
     {
         await OwnDraft(user, snapshot, context, ct); Version(snapshot, version);

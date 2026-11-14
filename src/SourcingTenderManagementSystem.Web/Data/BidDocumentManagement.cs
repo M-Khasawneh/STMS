@@ -77,10 +77,13 @@ public sealed class BidDocumentManagement(IBidDocumentData data, BidManagement b
                         StorageReference = reference!, UploadedAt = clock.GetUtcNow().ToUniversalTime() });
                 }
                 await data.SaveDocumentsAsync(bidId, documents, ct);
+                var action = delete ? "DocumentRemoved" : documentId.HasValue ? "DocumentReplaced" : "DocumentUploaded";
+                var changedDocumentId = delete ? documentId!.Value : documents.Single(x => x.StorageReference == reference).Id;
+                await bids.RecordActivity(user, snapshot.Bid, action, snapshot.Bid.Status, false, ct, changedDocumentId);
                 // Tender lock is retained across file IO and persistence. Recheck account and time at commit.
                 await bids.OwnDraft(user, snapshot, context, ct);
                 await tx.CommitAsync(ct);
-                return delete ? documentId!.Value : documents.Single(x => x.StorageReference == reference).Id;
+                return changedDocumentId;
             });
         }
         catch (InvalidDataException) { throw new BidException(400, "Invalid bid file. Use a matching PDF, JPG or PNG file up to 5 MB."); }
