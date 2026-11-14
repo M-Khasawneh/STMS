@@ -294,6 +294,13 @@ internal static class ProcurementModelConfiguration
             entity.Property(x => x.Sha256).HasMaxLength(64);
         });
         ConfigureStorage(modelBuilder);
+        foreach (var type in new[] { typeof(TechnicalEvaluation), typeof(FinancialEvaluation) })
+        {
+            var entity = modelBuilder.Entity(type);
+            entity.HasOne(typeof(CommitteeMember)).WithMany().HasForeignKey("CommitteeMemberId", "TenderId")
+                .HasPrincipalKey("Id", "TenderId").OnDelete(DeleteBehavior.NoAction);
+            entity.HasIndex("BidId", "EvaluationCriterionId", "CommitteeMemberId").IsUnique().HasFilter("[CommitteeMemberId] IS NOT NULL");
+        }
     }
 
     private static void ConfigureStorage(ModelBuilder modelBuilder)

@@ -1,0 +1,37 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.EvaluationPage
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@{ ViewData["Title"] = "Technical & financial evaluation"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" /> }
+<div class="bid-workspace compliance-workspace">
+    <header class="page-heading"><div><span class="eyebrow">COMMITTEE EVALUATION</span><h1>Technical &amp; financial evaluation</h1><p>@Model.Tender.Title · @Model.SupplierName</p></div></header>
+    <a asp-controller="ReviewBids" asp-action="Details" asp-route-id="@Model.Bid.Id">← Offer and private documents</a>
+    <section class="bid-panel"><h2>Confirmed evaluations · @Model.ConfirmedMembers / 4</h2>
+        @if (Model.Results.Count > 0) {
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Weighted evaluation results"><table class="table"><thead><tr><th scope="col">Criterion</th><th scope="col">Type</th><th scope="col">Weight</th><th scope="col">Average / 100</th><th scope="col">Weighted points</th></tr></thead><tbody>
+            @foreach (var result in Model.Results) { <tr><th scope="row">@result.Criterion.Name</th><td>@result.Criterion.Kind</td><td>@result.Criterion.Weight.ToString("0.######")%</td><td>@result.Average.ToString("0.######")</td><td>@result.WeightedPoints.ToString("0.######")</td></tr> }
+            </tbody><tfoot><tr><th scope="row" colspan="4">Total / 100</th><td>@Model.Results.Sum(x => x.WeightedPoints).ToString("0.######")</td></tr></tfoot></table></div>
+            <p>Technical contribution @Model.Results.Where(x => x.Criterion.Kind == EvaluationKind.Technical).Sum(x => x.WeightedPoints).ToString("0.######") · Financial contribution @Model.Results.Where(x => x.Criterion.Kind == EvaluationKind.Financial).Sum(x => x.WeightedPoints).ToString("0.######")</p>
+        } else { <p>The combined result becomes available when all four currently appointed members confirm every criterion.</p> }
+    </section>
+    @if (Model.CanEdit) {
+        <section class="bid-panel"><h2>Your evaluation draft</h2><p>Score each criterion from 0 to 100. You can save a partial draft. Enter a score before saving notes for that criterion.</p>
+        <form asp-action="Save" asp-route-id="@Model.Bid.Id" method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div><input asp-for="Form.Version" type="hidden" />
+            @for (var i = 0; i < Model.Form.Items.Count; i++) {
+                var criterion = Model.Criteria.Single(x => x.Id == Model.Form.Items[i].CriterionId);
+                <fieldset class="mb-4"><legend>@criterion.Name · @criterion.Kind · @criterion.Weight.ToString("0.######")%</legend><p>@criterion.Description</p>
+                    <input asp-for="Form.Items[i].CriterionId" type="hidden" />
+                    <label asp-for="Form.Items[i].Score">Score / 100</label><input asp-for="Form.Items[i].Score" type="number" min="0" max="100" step="0.000001" class="form-control" /><span asp-validation-for="Form.Items[i].Score" class="text-danger"></span>
+                    <label asp-for="Form.Items[i].Notes">Observations</label><textarea asp-for="Form.Items[i].Notes" class="form-control" rows="3" maxlength="8000"></textarea>
+                    @if (criterion.Kind == EvaluationKind.Technical) { <label asp-for="Form.Items[i].NonCompliance">Non-compliance observations</label><textarea asp-for="Form.Items[i].NonCompliance" class="form-control" rows="2" maxlength="8000"></textarea> }
+                </fieldset>
+            }
+            <button class="btn btn-primary" type="submit">Save draft</button>
+        </form>
+        <a class="btn btn-outline-primary mt-3" asp-action="Confirm" asp-route-id="@Model.Bid.Id">Review saved scores &amp; confirm</a></section>
+    } else { <section class="bid-panel"><h2>@(Model.Confirmed ? "Your evaluation is confirmed" : "Read-only evaluation")</h2><p>@(Model.Confirmed ? "Your confirmed scores are recorded below." : "Editing requires an effective committee appointment, a compliant offer and the Under Evaluation tender stage.")</p></section> }
+    @if (Model.MyHistory.Count > 0) {
+        <section class="bid-panel"><h2>Your recorded scores</h2><ul>@foreach (var row in Model.MyHistory) { <li><strong>@Model.Criteria.FirstOrDefault(x => x.Id == row.CriterionId)?.Name · @row.Score.ToString("0.######") / 100</strong><p>@row.Notes</p><p>@row.NonCompliance</p><small>@(row.SubmittedAt.HasValue ? "Confirmed" : "Draft") · @SourcingTenderManagementSystem.Web.Models.Tenders.TenderTime.Display(row.At)</small></li> }</ul></section>
+    }
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

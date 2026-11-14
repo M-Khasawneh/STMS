@@ -53,7 +53,7 @@
                 @if(User.IsInRole(ApplicationRoles.Supplier)){<a class="side-link" asp-controller="Tenders" asp-action="Inbox">My invitations</a>}
                 @if(User.IsInRole(ApplicationRoles.Supplier)){<a class="side-link @((controller == "Bids" || controller == "Compliance")?"active":"")" aria-current="@((controller == "Bids" || controller == "Compliance")?"page":null)" asp-controller="Bids" asp-action="Index">My Offers</a>}
                 @if (!admin && !User.IsInRole(ApplicationRoles.Supplier) && (User.IsInRole(ApplicationRoles.SourcingOfficer) || User.IsInRole(ApplicationRoles.SourcingManager) || User.IsInRole(ApplicationRoles.EvaluationCommittee) || User.IsInRole(ApplicationRoles.TopCommittee))) {
-                    <a class="side-link @((controller == "ReviewBids" || controller == "Compliance") ? "active" : "")" aria-current="@((controller == "ReviewBids" || controller == "Compliance") ? "page" : null)" asp-controller="ReviewBids" asp-action="Index">Submitted offers</a>
+                    <a class="side-link @((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations") ? "active" : "")" aria-current="@((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations") ? "page" : null)" asp-controller="ReviewBids" asp-action="Index">Submitted offers</a>
                 }
             </nav>
             <div class="sidebar-bottom">

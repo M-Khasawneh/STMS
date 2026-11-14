@@ -3,6 +3,8 @@ namespace SourcingTenderManagementSystem.Web.Models.Entities;
 public class TechnicalEvaluation
 {
     public Guid Id { get; set; }
+    public Guid? CommitteeMemberId { get; set; }
+    public DateTimeOffset? SubmittedAt { get; set; }
     public Guid TenderId { get; set; }
     public Guid BidId { get; set; }
     public Guid EvaluationCriterionId { get; set; }

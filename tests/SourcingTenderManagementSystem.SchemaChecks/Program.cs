@@ -15,6 +15,7 @@ if (args.Contains("--managed-networking"))
     AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
 
 var failures = new List<string>();
+if (args.Contains("--apply-evaluation-migration")) return await EvaluationSchemaChecks.ApplyAsync();
 if (args.Contains("--populate-demo-data")) return await DemoPopulation.RunAsync();
 if (args.Contains("--inspect-clarification-database") || args.Contains("--apply-clarification-migration"))
     return await ClarificationSchemaChecks.RunAsync(args.Contains("--apply-clarification-migration"));
@@ -50,6 +51,8 @@ foreach (var entity in model.GetEntityTypes()
 foreach (var type in new[] { typeof(TechnicalEvaluation), typeof(FinancialEvaluation) })
 {
     var entity = model.FindEntityType(type)!;
+    Check(entity.FindProperty("CommitteeMemberId")!.IsNullable && entity.FindProperty("SubmittedAt")!.IsNullable, "Evaluation migration must preserve legacy rows");
+    Check(entity.GetIndexes().Any(x => x.IsUnique && x.Properties.Select(p => p.Name).SequenceEqual(new[] { "BidId", "EvaluationCriterionId", "CommitteeMemberId" })), "Evaluation membership/criterion uniqueness missing");
     Check(entity.GetForeignKeys().Any(x => x.PrincipalEntityType.ClrType == typeof(EvaluationCriterion)
         && x.Properties.Any(p => p.Name == "TenderId")), $"Unscoped criterion: {type.Name}");
 }

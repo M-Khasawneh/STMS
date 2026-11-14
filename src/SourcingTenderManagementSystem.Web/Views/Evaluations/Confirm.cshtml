@@ -1,0 +1,10 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.EvaluationPage
+@{ ViewData["Title"] = "Confirm evaluation"; }
+<section class="requisition-detail-panel"><h1>Confirm your evaluation</h1><p>@Model.Tender.Title · @Model.SupplierName</p>
+<p>Review your saved scores. Confirming makes this evaluation read-only.</p>
+<ul>@foreach (var criterion in Model.Criteria) { var line = Model.Form.Items.Single(x => x.CriterionId == criterion.Id); <li>@criterion.Name · @(line.Score?.ToString("0.######") ?? "Score missing") / 100<p>@line.Notes</p><p>@line.NonCompliance</p></li> }</ul>
+@if (Model.CanEdit && Model.Form.Items.All(x => x.Score.HasValue)) {
+    <form asp-action="Confirm" asp-route-id="@Model.Bid.Id" method="post"><input type="hidden" name="version" value="@Model.Form.Version" />
+        <label><input type="checkbox" name="accept" value="true" required /> I confirm that these scores are final.</label><button class="btn btn-primary" type="submit">Confirm evaluation</button></form>
+} else { <p role="status">All criteria must have saved scores, and your evaluation must still be editable.</p> }
+<a asp-action="Details" asp-route-id="@Model.Bid.Id">Back to evaluation</a></section>

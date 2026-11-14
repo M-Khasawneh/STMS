@@ -18,7 +18,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 
 public static class ComplianceSqlChecks
 {
-    public static async Task RunAsync(bool committeeChecks = false)
+    public static async Task RunAsync(bool committeeChecks = false, bool evaluationChecks = false, bool cleanupOnly = false)
     {
         using var settings = JsonDocument.Parse(await File.ReadAllTextAsync("src/SourcingTenderManagementSystem.Web/appsettings.json"));
         var connection = settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
@@ -37,15 +37,31 @@ public static class ComplianceSqlChecks
         services.AddScoped<IBidData, BidData>();
         services.AddScoped<IComplianceManagement, ComplianceManagement>();
         services.AddScoped<CommitteeManagement>();
+        services.AddScoped<TenderManagement>();
+        services.AddScoped<EvaluationManagement>();
         await using var provider = services.BuildServiceProvider();
-        var userIds = Enumerable.Range(0, committeeChecks ? 7 : 3).Select(i => marker + "-" + i).ToArray();
+        var userIds = Enumerable.Range(0, evaluationChecks ? 8 : committeeChecks ? 7 : 3).Select(i => marker + "-" + i).ToArray();
         var tenderId = Guid.NewGuid(); var bidId = Guid.NewGuid(); var requestId = Guid.NewGuid();
         var profileId = Guid.NewGuid(); var linkId = Guid.NewGuid();
         string baselineUsers, baselineRoles;
         using (var scope = provider.CreateScope()) {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             if ((await db.Database.GetPendingMigrationsAsync()).Any()) throw new Exception("Apply approved migrations before tests.");
-            if (committeeChecks) {
+            if (cleanupOnly) {
+                var rows = await db.Users.AsNoTracking().Where(x => x.UserName!.StartsWith("compliance-check-")).ToListAsync();
+                var pattern = new System.Text.RegularExpressions.Regex("^(compliance-check-[a-f0-9]{32})-[0-7]$");
+                if (rows.Count != 8 || rows.Any(x => !pattern.IsMatch(x.UserName!)) || rows.Select(x => pattern.Match(x.UserName!).Groups[1].Value).Distinct().Count() != 1)
+                    throw new Exception("Recovery requires exactly one identifiable eight-user evaluation fixture.");
+                marker = pattern.Match(rows[0].UserName!).Groups[1].Value;
+                root = Path.Combine(Path.GetTempPath(), marker);
+                userIds = Enumerable.Range(0, 8).Select(i => marker + "-" + i).ToArray();
+                tenderId = await db.Tenders.Where(x => x.Title == marker && x.CreatedByUserId == userIds[0]).Select(x => x.Id).SingleAsync();
+                requestId = await db.TenderPurchaseRequisitions.Where(x => x.TenderId == tenderId).Select(x => x.PurchaseRequisitionId).SingleAsync();
+                linkId = await db.TenderSuppliers.Where(x => x.TenderId == tenderId).Select(x => x.Id).SingleAsync();
+                bidId = await db.Bids.Where(x => x.TenderId == tenderId && x.TenderSupplierId == linkId).Select(x => x.Id).SingleAsync();
+                Console.WriteLine("Recovery identified one owned evaluation test fixture. Existing non-fixture rows will be compared after cleanup.");
+            }
+            if (committeeChecks || evaluationChecks) {
                 var assignments = await db.CommitteeAssignments.AsNoTracking().Where(x => x.Kind == CommitteeKind.Evaluation).ToListAsync();
                 var members = await db.CommitteeMembers.AsNoTracking().Where(x => assignments.Select(a => a.Id).Contains(x.CommitteeAssignmentId)).ToListAsync();
                 var active = members.Where(x => CommitteeRules.Effective(x, DateTimeOffset.UtcNow)).ToArray();
@@ -54,8 +70,8 @@ public static class ComplianceSqlChecks
                     throw new Exception("Existing committee data conflict detected. No test writes performed.");
                 Console.WriteLine($"Read-only committee preflight: {assignments.Count} assignments, {members.Count} membership records; no conflicts.");
             }
-            baselineUsers = JsonSerializer.Serialize(await db.Users.AsNoTracking().OrderBy(x => x.Id).ToListAsync());
-            baselineRoles = JsonSerializer.Serialize(await db.UserRoles.AsNoTracking().OrderBy(x => x.UserId).ThenBy(x => x.RoleId).ToListAsync());
+            baselineUsers = JsonSerializer.Serialize(await db.Users.AsNoTracking().Where(x => !userIds.Contains(x.Id)).OrderBy(x => x.Id).ToListAsync());
+            baselineRoles = JsonSerializer.Serialize(await db.UserRoles.AsNoTracking().Where(x => !userIds.Contains(x.UserId)).OrderBy(x => x.UserId).ThenBy(x => x.RoleId).ToListAsync());
         }
         var count = 0;
         void Check(bool valid, string message) {
@@ -75,6 +91,7 @@ public static class ComplianceSqlChecks
         }
         try
         {
+            if (cleanupOnly) return;
             using (var scope = provider.CreateScope()) {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var users = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
@@ -83,8 +100,8 @@ public static class ComplianceSqlChecks
                     var user = new IdentityUser { Id = userIds[i], UserName = userIds[i] };
                     var created = await users.CreateAsync(user);
                     if (!created.Succeeded) throw new Exception("Temporary Identity user creation failed.");
-                    var role = i == 0 ? (committeeChecks ? ApplicationRoles.SourcingManager : ApplicationRoles.SourcingOfficer)
-                        : i >= 3 ? ApplicationRoles.EvaluationCommittee : ApplicationRoles.Supplier;
+                    var role = i == 0 ? (committeeChecks || evaluationChecks ? ApplicationRoles.SourcingManager : ApplicationRoles.SourcingOfficer)
+                        : i == 7 ? ApplicationRoles.SourcingOfficer : i >= 3 ? ApplicationRoles.EvaluationCommittee : ApplicationRoles.Supplier;
                     var assigned = await users.AddToRoleAsync(user, role);
                     if (!assigned.Succeeded) throw new Exception("Temporary role assignment failed.");
                     if (i >= 3) db.EmployeeDepartments.Add(new EmployeeDepartment { UserId = user.Id, DepartmentId = department });
@@ -99,6 +116,10 @@ public static class ComplianceSqlChecks
                 db.Invitations.Add(new Invitation { Id = Guid.NewGuid(), TenderSupplierId = linkId, SentByUserId = userIds[0], SentAt = DateTimeOffset.UtcNow.AddDays(-2), Status = InvitationStatus.Accepted });
                 db.Bids.Add(new Bid { Id = bidId, TenderId = tenderId, TenderSupplierId = linkId, Status = BidStatus.Submitted, SubmittedAt = DateTimeOffset.UtcNow.AddDays(-1), Currency = "JOD", PaymentTerms = "Original terms", TechnicalDetails = "Original technical contents" });
                 await db.SaveChangesAsync();
+            }
+            if (evaluationChecks) {
+                await EvaluationSqlChecks.VerifyAsync(provider, userIds, tenderId, bidId, value => failure.Enabled = value);
+                return;
             }
             if (committeeChecks) {
                 await CommitteeSqlChecks.VerifyAsync(provider, userIds, tenderId, bidId, value => failure.Enabled = value);
@@ -161,7 +182,7 @@ public static class ComplianceSqlChecks
             await db.ClarificationResponses.Where(x => questions.Contains(x.ClarificationRequestId)).ExecuteDeleteAsync();
             await db.ClarificationRequests.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
             await db.ComplianceReviews.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
-            await db.Notifications.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
+            await db.Notifications.Where(x => x.BidId == bidId || x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.AuditLogs.Where(x => userIds.Contains(x.ActorUserId!)).ExecuteDeleteAsync();
             await db.TechnicalEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.FinancialEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
@@ -194,7 +215,7 @@ public static class ComplianceSqlChecks
         public bool Enabled;
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
         {
-            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced")) throw new InjectedAuditFailure();
+            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced" or "EvaluationConfirmed")) throw new InjectedAuditFailure();
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
     }

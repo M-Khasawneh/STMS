@@ -5,5 +5,6 @@
     <header class="page-heading"><div><span class="eyebrow">READ-ONLY OFFER</span><h1>@Model.Tender.Title</h1><p>@Model.SupplierName · Offer @Model.Details.Snapshot.Bid.Id</p></div><span class="bid-status">@Model.Details.Snapshot.Bid.Status</span></header>
     <div class="bid-toolbar"><a asp-action="Index">← Submitted offers</a><div class="bid-actions"><a asp-action="Compare" asp-route-tenderId="@Model.Tender.Id">Compare offers</a><a asp-action="History" asp-route-id="@Model.Details.Snapshot.Bid.Id">Activity history</a></div></div>
     <a class="btn btn-outline-primary" asp-controller="Compliance" asp-action="Details" asp-route-id="@Model.Details.Snapshot.Bid.Id">Compliance &amp; clarifications</a>
+    <a class="btn btn-outline-primary" asp-controller="Evaluations" asp-action="Details" asp-route-id="@Model.Details.Snapshot.Bid.Id">Technical &amp; financial evaluation</a>
     <partial name="~/Views/Bids/_OfferContent.cshtml" model="Model" />
 </div>

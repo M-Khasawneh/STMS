@@ -858,6 +858,9 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.FinancialEvaluation", b =>
                 {
+                    b.Property<Guid?>("CommitteeMemberId").HasColumnType("uniqueidentifier");
+                    b.Property<DateTimeOffset?>("SubmittedAt").HasColumnType("datetimeoffset");
+
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -904,6 +907,9 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                     b.HasIndex("EvaluationCriterionId", "TenderId");
 
                     b.ToTable("FinancialEvaluations", (string)null);
+                    b.HasIndex("CommitteeMemberId", "TenderId");
+                    b.HasIndex("BidId", "EvaluationCriterionId", "CommitteeMemberId").IsUnique().HasFilter("[CommitteeMemberId] IS NOT NULL");
+
                 });
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.Invitation", b =>
@@ -1232,6 +1238,9 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.TechnicalEvaluation", b =>
                 {
+                    b.Property<Guid?>("CommitteeMemberId").HasColumnType("uniqueidentifier");
+                    b.Property<DateTimeOffset?>("SubmittedAt").HasColumnType("datetimeoffset");
+
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
@@ -1281,6 +1290,9 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                     b.HasIndex("EvaluationCriterionId", "TenderId");
 
                     b.ToTable("TechnicalEvaluations", (string)null);
+                    b.HasIndex("CommitteeMemberId", "TenderId");
+                    b.HasIndex("BidId", "EvaluationCriterionId", "CommitteeMemberId").IsUnique().HasFilter("[CommitteeMemberId] IS NOT NULL");
+
                 });
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.Tender", b =>
@@ -1792,6 +1804,10 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         .HasPrincipalKey("Id", "TenderId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                    b.HasOne("SourcingTenderManagementSystem.Web.Models.Entities.CommitteeMember", null)
+                        .WithMany().HasForeignKey("CommitteeMemberId", "TenderId")
+                        .HasPrincipalKey("Id", "TenderId").OnDelete(DeleteBehavior.NoAction);
+
                 });
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.Invitation", b =>
@@ -1927,6 +1943,10 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         .HasPrincipalKey("Id", "TenderId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                    b.HasOne("SourcingTenderManagementSystem.Web.Models.Entities.CommitteeMember", null)
+                        .WithMany().HasForeignKey("CommitteeMemberId", "TenderId")
+                        .HasPrincipalKey("Id", "TenderId").OnDelete(DeleteBehavior.NoAction);
+
                 });
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.Tender", b =>
