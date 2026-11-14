@@ -17,7 +17,7 @@ internal sealed class UnifiedReportPresentationFixture : IUnifiedReportManagemen
     public bool LastSubmitted { get; private set; }
     internal const string TenderId = "8bff4fe2-e45e-455d-a8ca-8f283c07f2bc";
     internal const string SubmittedId = "92dcc730-ebdd-48db-a5cc-5e1c9ee191ac";
-    public Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default)
+    public Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default, Guid? reportId = null)
     {
         var submitted = tenderId == Guid.Parse(SubmittedId);
         var members = CommitteeRules.Positions.Select((p, i) => new ReportMember(Guid.Parse($"00000000-0000-0000-0000-{(i + 1).ToString("D12")}"), "fixture-" + i, "Fixture member " + i, p)).ToArray();
@@ -37,7 +37,16 @@ internal sealed class UnifiedReportPresentationFixture : IUnifiedReportManagemen
             SubmittedAt = submitted ? DateTimeOffset.UtcNow : null, Comparison = JsonSerializer.Serialize(snapshot) };
         var form = new UnifiedReportForm { Version = "presentation-version", RecommendedBidId = bidId, Observations = report.Observations, FinalResult = report.FinalResult, Recommendation = report.Recommendation };
         return Task.FromResult(new UnifiedReportPage(new Tender { Id = tenderId, Title = snapshot.TenderTitle, Status = submitted ? TenderStatus.AwaitingManagerReview : TenderStatus.UnderEvaluation },
-            report, snapshot, form, !submitted && user.IsInRole(ApplicationRoles.EvaluationCommittee), true, []));
+            report, snapshot, form, !submitted && user.IsInRole(ApplicationRoles.EvaluationCommittee), true, []) {
+                CanReview = submitted && user.IsInRole(ApplicationRoles.SourcingManager), DecisionForm = new() { Version = "review-version" }
+            });
+    }
+    public ReportDecisionForm? LastDecision { get; private set; }
+    public Task DecideAsync(ClaimsPrincipal user, Guid tenderId, ReportDecisionForm form, CancellationToken ct = default)
+    {
+        LastDecision = form;
+        ReportReviewRules.Validate(new Tender { Id = tenderId, Status = TenderStatus.AwaitingManagerReview }, new EvaluationReport { TenderId = tenderId, SubmittedAt = DateTimeOffset.UtcNow }, form);
+        return Task.CompletedTask;
     }
     public Task SaveAsync(ClaimsPrincipal user, Guid tenderId, UnifiedReportForm form, bool submit, CancellationToken ct = default)
     {
@@ -88,6 +97,30 @@ internal static class UnifiedReportPresentationChecks
         client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor"); client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", "manager");
         var submitted = await client.GetStringAsync("/UnifiedReports/Details/" + UnifiedReportPresentationFixture.SubmittedId);
         if (submitted.Contains("name=\"Form.Recommendation\"")) throw new Exception("Submitted report shows editable controls");
+        checks++;
+        foreach (var actor in new[] { "officer", "evaluator", "admin", "supplier", "requester", "anonymous" }) {
+            client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor"); client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", actor);
+            if ((await client.GetAsync("/UnifiedReports/Review/" + UnifiedReportPresentationFixture.SubmittedId)).StatusCode is not (HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)) throw new Exception("Manager action role guard " + actor);
+            checks++;
+        }
+        client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor"); client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", "manager");
+        if ((await client.GetAsync("/UnifiedReports/Review/" + UnifiedReportPresentationFixture.TenderId)).StatusCode != HttpStatusCode.Forbidden) throw new Exception("Draft cannot be reviewed");
+        checks++;
+        var reviewHtml = await client.GetStringAsync("/UnifiedReports/Review/" + UnifiedReportPresentationFixture.SubmittedId);
+        if (!reviewHtml.Contains("name=\"DecisionForm.Version\"") || !reviewHtml.Contains("DecisionForm.Accept") || !reviewHtml.Contains("does not award")) throw new Exception("Manager confirmation view wiring");
+        checks++;
+        var reviewUrl = "/UnifiedReports/Review/" + UnifiedReportPresentationFixture.SubmittedId;
+        if ((await client.PostAsync(reviewUrl, new FormUrlEncodedContent([]))).StatusCode != HttpStatusCode.BadRequest) throw new Exception("Manager action CSRF guard");
+        checks++;
+        var decisionToken = WebUtility.HtmlDecode(Regex.Match(reviewHtml, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
+        var decisionFields = new Dictionary<string, string> { ["__RequestVerificationToken"] = decisionToken, ["DecisionForm.Version"] = "review-version", ["DecisionForm.Decision"] = "ManagerRejected", ["DecisionForm.Accept"] = "true", ["DecisionForm.Comments"] = " " };
+        var invalidDecision = await client.PostAsync(reviewUrl, new FormUrlEncodedContent(decisionFields));
+        if (invalidDecision.StatusCode != HttpStatusCode.BadRequest || !(await invalidDecision.Content.ReadAsStringAsync()).Contains("Rejection and return require")) throw new Exception("Manager required reason feedback");
+        checks++;
+        decisionFields["DecisionForm.Comments"] = "Bound manager reason";
+        var decisionResponse = await client.PostAsync(reviewUrl, new FormUrlEncodedContent(decisionFields));
+        var reviewFixture = (UnifiedReportPresentationFixture)services.GetRequiredService<IUnifiedReportManagement>();
+        if (decisionResponse.StatusCode != HttpStatusCode.Redirect || reviewFixture.LastDecision?.Comments != "Bound manager reason" || reviewFixture.LastDecision.Decision != DecisionStatus.ManagerRejected) throw new Exception("Manager decision prefixed binding");
         checks++;
         Console.WriteLine($"PASS: {checks} database-free report MVC rendering/role/CSRF checks.");
     }

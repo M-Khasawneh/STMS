@@ -13,6 +13,14 @@
         <span class="bid-status">@(submitted ? "Submitted" : Model.Report is null ? "Not prepared" : "Draft")</span>
     </header>
     <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@Model.Tender.Id">← Submitted offers</a>
+    @if (Model.Archived) { <div class="alert alert-info" role="status">You are viewing a preserved previous report version. <a asp-action="Details" asp-route-id="@Model.Tender.Id">View current report</a></div> }
+    @if (Model.CanReview) { <a asp-action="Review" asp-route-id="@Model.Tender.Id" class="btn btn-primary">Review &amp; decide recommendation</a> }
+    @if (Model.Decisions.Count > 0) {
+        <section class="bid-panel"><h2>Manager decisions</h2><ol class="requisition-history">
+        @foreach (var decision in Model.Decisions) { <li><strong>@decision.Decision</strong><small>@TenderTime.Display(decision.DecidedAt)</small><p class="compliance-text">@decision.Comments</p><a asp-action="Details" asp-route-id="@Model.Tender.Id" asp-route-reportId="@decision.EvaluationReportId">View the decided report version</a></li> }
+        </ol></section>
+    }
+    @if (Model.Versions.Count > 1) { <nav aria-label="Submitted report versions"><h2>Submitted versions</h2><ul>@foreach (var version in Model.Versions) { <li><a asp-action="Details" asp-route-id="@Model.Tender.Id" asp-route-reportId="@version.Id">Report submitted @TenderTime.Display(version.SubmittedAt!.Value)</a></li> }</ul></nav> }
     @if (submitted) { <p role="status">Submitted @TenderTime.Display(Model.Report!.SubmittedAt!.Value). The report below preserves the information captured at submission.</p> }
     @if (!submitted && !Model.Ready) { <div class="alert alert-info" role="status">Every compliant offer requires confirmed evaluations from all four current members before report preparation.</div> }
     @if (Model.Snapshot is { } snapshot) {
@@ -86,6 +94,6 @@
             @if (report.RecommendedBidId.HasValue) { <p>Recommended supplier · @(Model.Snapshot?.Offers.FirstOrDefault(x => x.BidId == report.RecommendedBidId)?.Supplier ?? report.RecommendedBidId.ToString())</p> }
         </section>
     }
-    <section class="bid-panel"><h2>Report activity</h2><ol class="requisition-history">@foreach (var entry in Model.History) { <li><strong>@(entry.Action == "ReportSubmitted" ? "Report submitted" : "Report draft saved")</strong><small>@TenderTime.Display(entry.OccurredAt)</small></li> }</ol></section>
+    <section class="bid-panel"><h2>Report activity</h2><ol class="requisition-history">@foreach (var entry in Model.History) { <li><strong>@(entry.Action switch { "ReportSubmitted" => "Report submitted", "ReportDraftSaved" => "Report draft saved", "ManagerApproved" => "Manager approved", "ManagerRejected" => "Manager rejected", "ReturnedForReview" => "Returned for review", _ => entry.Action })</strong><small>@TenderTime.Display(entry.OccurredAt)</small></li> }</ol></section>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

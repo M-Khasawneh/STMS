@@ -45,14 +45,15 @@ public static class ComplianceSqlChecks
         var userIds = Enumerable.Range(0, evaluationChecks ? 8 : committeeChecks ? 7 : 3).Select(i => marker + "-" + i).ToArray();
         var tenderId = Guid.NewGuid(); var bidId = Guid.NewGuid(); var requestId = Guid.NewGuid();
         var profileId = Guid.NewGuid(); var linkId = Guid.NewGuid();
-        string baselineUsers, baselineRoles;
+        string baselineUsers, baselineRoles, baselineReports, baselineApprovals;
         using (var scope = provider.CreateScope()) {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             if ((await db.Database.GetPendingMigrationsAsync()).Any()) throw new Exception("Apply approved migrations before tests.");
             if (reportChecks) {
                 var reports = await db.EvaluationReports.AsNoTracking().ToListAsync();
-                if (reports.GroupBy(x => x.TenderId).Any(x => x.Count() > 1)) throw new Exception("Existing duplicate report records. Stopped before test writes.");
-                Console.WriteLine($"Read-only report preflight: {reports.Count} existing reports; no duplicate tender reports.");
+                var approvals = await db.TenderApprovals.AsNoTracking().Where(x => x.Stage == ApprovalStage.Manager).ToListAsync();
+                foreach (var group in reports.GroupBy(x => x.TenderId)) _ = ReportReviewRules.Current(group.ToArray(), approvals.Where(x => x.TenderId == group.Key).ToArray());
+                Console.WriteLine($"Read-only report preflight: {reports.Count} existing reports; revision/decision records consistent.");
             }
             if (cleanupOnly) {
                 var rows = await db.Users.AsNoTracking().Where(x => x.UserName!.StartsWith("compliance-check-")).ToListAsync();
@@ -77,6 +78,8 @@ public static class ComplianceSqlChecks
                     throw new Exception("Existing committee data conflict detected. No test writes performed.");
                 Console.WriteLine($"Read-only committee preflight: {assignments.Count} assignments, {members.Count} membership records; no conflicts.");
             }
+            baselineReports = JsonSerializer.Serialize(await db.EvaluationReports.AsNoTracking().Where(x => x.TenderId != tenderId).OrderBy(x => x.Id).ToListAsync());
+            baselineApprovals = JsonSerializer.Serialize(await db.TenderApprovals.AsNoTracking().Where(x => x.TenderId != tenderId).OrderBy(x => x.Id).ToListAsync());
             baselineUsers = JsonSerializer.Serialize(await db.Users.AsNoTracking().Where(x => !userIds.Contains(x.Id)).OrderBy(x => x.Id).ToListAsync());
             baselineRoles = JsonSerializer.Serialize(await db.UserRoles.AsNoTracking().Where(x => !userIds.Contains(x.UserId)).OrderBy(x => x.UserId).ThenBy(x => x.RoleId).ToListAsync());
         }
@@ -191,6 +194,7 @@ public static class ComplianceSqlChecks
             await db.ComplianceReviews.Where(x => x.BidId == bidId).ExecuteDeleteAsync();
             await db.Notifications.Where(x => x.BidId == bidId || x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.AuditLogs.Where(x => userIds.Contains(x.ActorUserId!)).ExecuteDeleteAsync();
+            await db.TenderApprovals.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.EvaluationReports.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.TechnicalEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
             await db.FinancialEvaluations.Where(x => x.TenderId == tenderId).ExecuteDeleteAsync();
@@ -213,6 +217,8 @@ public static class ComplianceSqlChecks
             await tx.CommitAsync();
             Check(baselineUsers == JsonSerializer.Serialize(await db.Users.AsNoTracking().OrderBy(x => x.Id).ToListAsync()), "Existing Identity records preserved and temporary users removed");
             Check(baselineRoles == JsonSerializer.Serialize(await db.UserRoles.AsNoTracking().OrderBy(x => x.UserId).ThenBy(x => x.RoleId).ToListAsync()), "Existing role assignments preserved");
+            Check(baselineReports == JsonSerializer.Serialize(await db.EvaluationReports.AsNoTracking().OrderBy(x => x.Id).ToListAsync()), "Existing report rows preserved and temporary versions removed");
+            Check(baselineApprovals == JsonSerializer.Serialize(await db.TenderApprovals.AsNoTracking().OrderBy(x => x.Id).ToListAsync()), "Existing approval rows preserved and temporary decisions removed");
             var resolved = Path.GetFullPath(root);
             var temp = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Path.GetTempPath())) + Path.DirectorySeparatorChar;
             if (!resolved.StartsWith(temp, StringComparison.OrdinalIgnoreCase) || Path.GetFileName(resolved) != marker) throw new Exception("Unsafe private fixture cleanup path");
@@ -226,7 +232,7 @@ public static class ComplianceSqlChecks
         public bool Enabled;
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
         {
-            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced" or "EvaluationConfirmed" or "ReportSubmitted")) throw new InjectedAuditFailure();
+            if (Enabled && eventData.Context!.ChangeTracker.Entries<AuditLog>().Any(x => x.State == EntityState.Added && x.Entity.Action is "ClarificationAnswered" or "MemberReplaced" or "EvaluationConfirmed" or "ReportSubmitted" or "Tender.ManagerDecision")) throw new InjectedAuditFailure();
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
     }

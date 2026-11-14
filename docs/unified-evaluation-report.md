@@ -38,4 +38,4 @@ Reader authorization reuses current Identity accounts and submitted-bid role/ten
 - Existing bid Phase 4, compliance and schema regressions passed. The model remains at 37 tables and six migrations.
 - Temporary SQL records, memberships, scores, reports, notifications and files were cleaned. Existing Identity accounts and role assignments were compared against their baseline.
 
-Manager decision actions and later report revision/return policies belong to the following module. This increment provides the submitted report and manager handoff.
+This increment originally provided the submitted report and manager handoff. The subsequent manager decisions and preserved revision workflow are documented in [manager-report-review.md](manager-report-review.md).

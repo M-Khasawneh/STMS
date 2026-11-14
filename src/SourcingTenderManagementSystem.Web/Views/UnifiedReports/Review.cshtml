@@ -1,0 +1,31 @@
+@model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@{ ViewData["Title"] = "Manager report review"; }
+@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/unified-reports.css" asp-append-version="true" /> }
+<div class="bid-workspace unified-report-workspace">
+    <header class="page-heading"><div><span class="eyebrow">SOURCING MANAGER</span><h1>Review committee recommendation</h1><p>@Model.Tender.Title</p></div></header>
+    <a asp-action="Details" asp-route-id="@Model.Tender.Id">← Read the complete submitted report</a>
+    <section class="bid-panel"><h2>Submitted recommendation</h2><p class="compliance-text">@Model.Report?.Recommendation</p><h3>Final result</h3><p class="compliance-text">@Model.Report?.FinalResult</p>
+        <p>Recommended supplier: @(Model.Snapshot?.Offers.FirstOrDefault(x => x.BidId == Model.Report?.RecommendedBidId)?.Supplier ?? "See submitted report")</p>
+    </section>
+    <section class="bid-panel"><h2>Your decision</h2>
+        <p>Approval forwards the recommendation to the Top Committee. It does not award the tender. Rejection or return preserves this report and opens a revised draft for the Technical Representative. Confirmed evaluation scores remain unchanged.</p>
+        <form asp-action="Review" asp-route-id="@Model.Tender.Id" method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <input asp-for="DecisionForm.Version" type="hidden" />
+            <label asp-for="DecisionForm.Decision">Decision</label>
+            <select asp-for="DecisionForm.Decision" class="form-select" required>
+                <option value="">Choose a decision</option>
+                <option value="@DecisionStatus.ManagerApproved">Approve and forward to Top Committee</option>
+                <option value="@DecisionStatus.ManagerRejected">Reject this recommendation and request an alternative</option>
+                <option value="@DecisionStatus.ReturnedForReview">Return for corrections</option>
+            </select><span asp-validation-for="DecisionForm.Decision" class="text-danger"></span>
+            <label asp-for="DecisionForm.Comments">Comments / reason</label>
+            <textarea asp-for="DecisionForm.Comments" class="form-control" maxlength="8000" rows="5" aria-describedby="decision-reason-help"></textarea>
+            <small id="decision-reason-help">A reason is mandatory when rejecting or returning the recommendation.</small><span asp-validation-for="DecisionForm.Comments" class="text-danger"></span>
+            <div class="form-check my-3"><input asp-for="DecisionForm.Accept" class="form-check-input" required /><label asp-for="DecisionForm.Accept" class="form-check-label">I have reviewed the report and confirm this decision is final for this version.</label></div>
+            <button type="submit" class="btn btn-primary">Confirm manager decision</button>
+        </form>
+    </section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/report-review.js" asp-append-version="true"></script> }

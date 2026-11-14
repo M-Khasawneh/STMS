@@ -113,6 +113,76 @@ internal static class UnifiedReportSqlChecks
             "New member reads the original submitted result without recalculating it");
         await Reject(() => Save(5, frozen.Form), 409);
         await Reject(() => Page(6), 404);
+        async Task Decide(int actor, ReportDecisionForm decision) =>
+            _ = await With<IUnifiedReportManagement, bool>(async service => { await service.DecideAsync(Actor(actor), tenderId, decision); return true; });
+        Check(frozen.CanReview && !(await Page(7)).CanReview, "Only the appointed manager sees decision controls");
+        await With<Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser>, bool>(async usersService => {
+            var unassigned = await usersService.FindByIdAsync(users[7]);
+            var result = await usersService.AddToRoleAsync(unassigned!, "SourcingManager");
+            Check(result.Succeeded, "Fixture creates an unassigned manager role for server-side authorization testing"); return true;
+        });
+        Check(!(await Page(7)).CanReview, "Unassigned Sourcing Manager remains read-only");
+        var decisionForm = frozen.DecisionForm;
+        decisionForm.Accept = true; decisionForm.Decision = DecisionStatus.ReturnedForReview;
+        await Reject(() => Decide(0, decisionForm), 400);
+        decisionForm.Comments = "Fixture correction requested";
+        await Reject(() => Decide(7, decisionForm), 403);
+        await Reject(() => Decide(1, decisionForm), 403);
+        var stale = new ReportDecisionForm { Version = "stale", Decision = DecisionStatus.ManagerApproved, Accept = true };
+        await Reject(() => Decide(0, stale), 409);
+        failAudit(true);
+        try { await Decide(0, decisionForm); throw new Exception("Expected injected manager audit failure"); }
+        catch (Exception e) when (e.GetType().Name == "InjectedAuditFailure") { Check(true, "Manager decision audit failure aborts transaction"); }
+        finally { failAudit(false); }
+        Check((await Page(0)).CanReview, "Failed decision leaves the submitted report awaiting review");
+        await With<ApplicationDbContext, bool>(async db => {
+            Check(!await db.TenderApprovals.AnyAsync(x => x.TenderId == tenderId) && await db.EvaluationReports.CountAsync(x => x.TenderId == tenderId) == 1,
+                "Failure rolls back decision, revision and status writes"); return true;
+        });
+        await Decide(0, decisionForm);
+        await Reject(() => Decide(0, decisionForm), 409);
+        var returned = await Page(5);
+        Check(returned.CanEdit && returned.Report!.Id != frozen.Report.Id && returned.Report.SubmittedAt is null && returned.Tender.Status == TenderStatus.UnderEvaluation,
+            "Return creates a separate editable draft for the currently appointed technical representative");
+        Check(returned.Report!.Comparison == snapshotText && returned.Snapshot!.Offers.Single().Results.Sum(x => x.WeightedPoints) == 80.5m,
+            "Revised draft preserves original evaluation results after membership changes");
+        var archived = await With<IUnifiedReportManagement, UnifiedReportPage>(s => s.PageAsync(Actor(0), tenderId, reportId: frozen.Report.Id));
+        Check(archived.Archived && !archived.CanEdit && !archived.CanReview && archived.Report!.Comparison == snapshotText,
+            "Previous submitted version remains readable and immutable");
+        returned.Form.Recommendation = "Fixture corrected recommendation";
+        await Save(5, returned.Form);
+        await Save(5, (await Page(5)).Form, true);
+        var corrected = await Page(0);
+        var rejectForm = corrected.DecisionForm;
+        rejectForm.Accept = true; rejectForm.Decision = DecisionStatus.ManagerRejected; rejectForm.Comments = "Fixture alternative recommendation required";
+        await Decide(0, rejectForm);
+        var alternative = await Page(5);
+        Check(alternative.CanEdit && alternative.Decisions.Count == 2 && alternative.Versions.Count == 2,
+            "Rejection preserves the rejected version and opens an alternative recommendation without cancelling the tender");
+        await Save(5, alternative.Form);
+        await Save(5, (await Page(5)).Form, true);
+        var finalReview = await Page(0);
+        var approval = finalReview.DecisionForm;
+        approval.Accept = true; approval.Decision = DecisionStatus.ManagerApproved;
+        var decisions = await Task.WhenAll(Enumerable.Range(0, 2).Select(async _ => {
+            try { await Decide(0, approval); return 200; } catch (BidException e) { return e.Status; }
+        }));
+        Check(decisions.Count(x => x == 200) == 1 && decisions.Count(x => x == 409) == 1, "Concurrent manager approvals commit exactly once");
+        var approved = await Page(0);
+        Check(approved.Tender.Status == TenderStatus.AwaitingCommitteeDecision && !approved.CanReview && !approved.CanEdit,
+            "Approval forwards to Top Committee without awarding or allowing further manager decisions");
+        await With<ApplicationDbContext, bool>(async db => {
+            Check(await db.TenderApprovals.CountAsync(x => x.TenderId == tenderId) == 3 && await db.EvaluationReports.CountAsync(x => x.TenderId == tenderId) == 3,
+                "All three report versions and distinct decisions persist");
+            Check(await db.TechnicalEvaluations.Where(x => x.TenderId == tenderId && x.SubmittedAt != null).CountAsync() == 5,
+                "Manager actions preserve confirmed technical assessments");
+            Check(await db.Notifications.AnyAsync(x => x.TenderId == tenderId && x.RecipientUserId == users[5] && x.Subject == "Manager report decision"),
+                "Technical representative receives the real decision notification");
+            Check(await db.AuditLogs.CountAsync(x => x.RecordType == "Tender" && x.RecordId == tenderId.ToString() && x.Action == "Tender.ManagerDecision") == 3,
+                "Each committed manager decision has a tender audit record");
+            Check(!await db.TenderAwards.AnyAsync(x => x.TenderId == tenderId), "Manager approval never creates an award");
+            return true;
+        });
         Console.WriteLine($"PASS: {count} SQL unified-report checks. Shared fixture cleanup follows.");
     }
 }

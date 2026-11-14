@@ -21,7 +21,30 @@ public sealed class UnifiedReportsController(IUnifiedReportManagement reports) :
         else if (error.Status == 404) executed.Result = NotFound();
         else { Response.StatusCode = error.Status; executed.Result = View("Problem", error.Message); }
     }
-    [HttpGet] public async Task<IActionResult> Details(Guid id, CancellationToken ct) => View(await reports.PageAsync(User, id, ct));
+    [HttpGet] public async Task<IActionResult> Details(Guid id, Guid? reportId, CancellationToken ct) => View(await reports.PageAsync(User, id, ct, reportId));
+    [HttpGet, Authorize(Roles = ApplicationRoles.SourcingManager)]
+    public async Task<IActionResult> Review(Guid id, CancellationToken ct)
+    {
+        var page = await reports.PageAsync(User, id, ct);
+        BidRules.Require(page.CanReview, 403, "Only the appointed manager may review a current submitted report awaiting decision.");
+        return View(page);
+    }
+    [HttpPost, Authorize(Roles = ApplicationRoles.SourcingManager)]
+    public async Task<IActionResult> Review(Guid id, [Bind(Prefix = "DecisionForm")] ReportDecisionForm form, CancellationToken ct)
+    {
+        if (ModelState.IsValid) {
+            try {
+                await reports.DecideAsync(User, id, form, ct);
+                TempData["UiFeedback"] = "Manager decision recorded.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (BidException error) when (error.Status == 400) { ModelState.AddModelError(string.Empty, error.Message); }
+        }
+        var page = await reports.PageAsync(User, id, ct);
+        BidRules.Require(page.CanReview, 403, "This report is not available for your decision.");
+        Response.StatusCode = 400;
+        return View(page with { DecisionForm = form });
+    }
     [HttpPost, Authorize(Roles = ApplicationRoles.EvaluationCommittee)]
     public async Task<IActionResult> Save(Guid id, [Bind(Prefix = "Form")] UnifiedReportForm form, CancellationToken ct)
     {

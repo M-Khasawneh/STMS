@@ -24,6 +24,7 @@ using SourcingTenderManagementSystem.Web.Data;
 if (args.Contains("--profile-picture-checks-only", StringComparer.Ordinal)) { await ProfilePictureChecks.RunAsync(); return; }
 if (args.Contains("--notes-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, notesPreview: true); return; }
 if (args.Contains("--report-checks-only", StringComparer.Ordinal) || args.Contains("--report-browser-fixture", StringComparer.Ordinal)) {
+    if (args.Contains("--report-checks-only", StringComparer.Ordinal)) ReportReviewChecks.Run();
     await BidPhase3Checks.RunAsync(browserFixture: args.Contains("--report-browser-fixture", StringComparer.Ordinal), reportChecks: true);
     return;
 }

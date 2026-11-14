@@ -45,6 +45,18 @@ const path = require('path');
         await context.setExtraHTTPHeaders({ 'X-Bid-Test-Actor': 'manager' });
         await page.goto(base + routes.draft);
         check(await page.locator('main textarea').count() === 0, 'Manager cannot edit report');
+        for (const width of [1440, 768, 390, 320]) {
+            await page.setViewportSize({ width, height: 1000 });
+            const response = await page.goto(base + '/UnifiedReports/Review/92dcc730-ebdd-48db-a5cc-5e1c9ee191ac');
+            check(response.status() === 200, 'Manager review renders');
+            check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Review fits at ' + width);
+            check(await page.locator('#DecisionForm_Accept').evaluate(input => input.required), 'Manager explicitly confirms decision');
+            await page.getByLabel('Decision', { exact: true }).selectOption('ManagerRejected');
+            check(await page.getByLabel('Comments / reason', { exact: true }).evaluate(input => input.required), 'Client requires rejection reason');
+            await page.getByLabel('Decision', { exact: true }).selectOption('ManagerApproved');
+            check(await page.getByLabel('Comments / reason', { exact: true }).evaluate(input => !input.required), 'Approval comments remain optional');
+            if (width === 1440 || width === 390) await page.screenshot({ path: path.join(output, 'manager-review-' + width + '.png'), fullPage: true });
+        }
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.reload();
         check(await page.evaluate(() => !document.getAnimations().some(animation => animation.playState === 'running')), 'Reduced motion');

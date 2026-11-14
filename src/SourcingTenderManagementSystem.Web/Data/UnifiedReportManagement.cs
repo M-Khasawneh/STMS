@@ -11,7 +11,8 @@ namespace SourcingTenderManagementSystem.Web.Data;
 
 public interface IUnifiedReportManagement
 {
-    Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default);
+    Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default, Guid? reportId = null);
+    Task DecideAsync(ClaimsPrincipal user, Guid tenderId, ReportDecisionForm form, CancellationToken ct = default);
     Task SaveAsync(ClaimsPrincipal user, Guid tenderId, UnifiedReportForm form, bool submit, CancellationToken ct = default);
 }
 public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bids, EvaluationManagement evaluations, TimeProvider clock) : IUnifiedReportManagement
@@ -38,8 +39,8 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
     private async Task<EvaluationReport?> Report(Guid id, CancellationToken ct)
     {
         var reports = await db.EvaluationReports.AsNoTracking().Where(x => x.TenderId == id).ToListAsync(ct);
-        BidRules.Require(reports.Count <= 1, 409, "Multiple report records already exist. Review the data conflict before continuing.");
-        return reports.SingleOrDefault();
+        var decisions = await db.TenderApprovals.AsNoTracking().Where(x => x.TenderId == id && x.Stage == ApprovalStage.Manager).ToListAsync(ct);
+        return ReportReviewRules.Current(reports, decisions);
     }
     private static bool Ready(ReportSnapshot snapshot) => snapshot.Members.Count == 4 && snapshot.Criteria.Count > 0 &&
         snapshot.Offers.Any(x => x.Status == BidStatus.Compliant) && snapshot.Offers.All(x => x.Status == BidStatus.NonCompliant ||
@@ -47,12 +48,16 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
     private static string Version(Tender tender, EvaluationReport? report, ReportSnapshot? snapshot) =>
         Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { tender.Status, report, snapshot })));
 
-    public async Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default)
+    public async Task<UnifiedReportPage> PageAsync(ClaimsPrincipal user, Guid tenderId, CancellationToken ct = default, Guid? reportId = null)
     {
         var access = await Access(user, tenderId, ct);
-        var report = await Report(tenderId, ct);
+        var current = await Report(tenderId, ct);
+        var report = reportId.HasValue ? await db.EvaluationReports.AsNoTracking().SingleOrDefaultAsync(x => x.TenderId == tenderId && x.Id == reportId, ct) : current;
+        BidRules.Require(!reportId.HasValue || report is not null, 404, "Report version not found.");
+        var archived = report?.Id != current?.Id;
+        var revision = await IsRevision(tenderId, ct);
         ReportSnapshot? snapshot;
-        if (report?.SubmittedAt.HasValue == true) {
+        if (report?.SubmittedAt.HasValue == true || revision && report is not null) {
             try {
                 var stored = JsonSerializer.Deserialize<ReportSnapshot>(report.Comparison);
                 snapshot = stored is { FormatVersion: 1, Members: not null, Criteria: not null, Offers: not null } && stored.TenderId == tenderId ? stored : null;
@@ -63,9 +68,17 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
             Observations = report?.Observations ?? "", NonCompliance = report?.NonCompliance ?? "", FinalResult = report?.FinalResult ?? "", Recommendation = report?.Recommendation ?? "" };
         var history = await db.AuditLogs.AsNoTracking().Where(x => x.RecordType == "EvaluationReport" && x.RecordId == tenderId.ToString())
             .OrderByDescending(x => x.OccurredAt).ThenBy(x => x.Id).ToListAsync(ct);
-        var canEdit = access.Tender.Status == TenderStatus.UnderEvaluation && report?.SubmittedAt is null && await Author(access.Actor, tenderId, ct);
+        var canEdit = !archived && access.Tender.Status == TenderStatus.UnderEvaluation && report?.SubmittedAt is null && await Author(access.Actor, tenderId, ct);
         await Access(user, tenderId, ct);
-        return new(access.Tender, report, snapshot, form, canEdit, snapshot is not null && Ready(snapshot), history);
+        var manager = await Manager(tenderId, ct);
+        var canReview = !archived && report?.SubmittedAt.HasValue == true && snapshot is not null &&
+            access.Tender.Status == TenderStatus.AwaitingManagerReview && manager is not null && ReportReviewRules.Manager(access.Actor, manager, tenderId, clock.GetUtcNow());
+        return new(access.Tender, report, snapshot, form, canEdit, snapshot is not null && Ready(snapshot), history) {
+            CanReview = canReview, Archived = archived,
+            DecisionForm = new() { Version = canReview ? ReportReviewRules.Version(access.Tender, report!, manager!) : "" },
+            Versions = await db.EvaluationReports.AsNoTracking().Where(x => x.TenderId == tenderId && x.SubmittedAt != null).OrderBy(x => x.SubmittedAt).ThenBy(x => x.Id).ToListAsync(ct),
+            Decisions = await db.TenderApprovals.AsNoTracking().Where(x => x.TenderId == tenderId && x.Stage == ApprovalStage.Manager).OrderBy(x => x.DecidedAt).ThenBy(x => x.Id).ToListAsync(ct)
+        };
     }
     private async Task<ReportSnapshot> Capture(ClaimsPrincipal user, BidAccount actor, Tender tender, CancellationToken ct)
     {
@@ -109,7 +122,7 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
             BidRules.Require(await Author(access.Actor, tenderId, ct), 403, "Only the currently appointed Technical Representative may prepare and submit this report.");
             var report = await Report(tenderId, ct);
             BidRules.Require(access.Tender.Status == TenderStatus.UnderEvaluation && report?.SubmittedAt is null, 409, "Submitted reports are immutable. Preparation requires an Under Evaluation tender.");
-            var snapshot = await Capture(user, access.Actor, access.Tender, ct);
+            var snapshot = await IsRevision(tenderId, ct) && report is not null ? StoredSnapshot(report) : await Capture(user, access.Actor, access.Tender, ct);
             ComplianceRules.Version(form.Version, Version(access.Tender, report, snapshot));
             BidRules.Require(Ready(snapshot), 409, "All four current members must confirm every compliant offer before preparing the report.");
             foreach (var text in new[] { form.Observations, form.NonCompliance, form.FinalResult, form.Recommendation })
@@ -140,7 +153,10 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
                 report.SubmittedAt = now;
                 var tender = await db.Tenders.SingleAsync(x => x.Id == tenderId, ct);
                 tender.Status = TenderStatus.AwaitingManagerReview;
-                var manager = snapshot.Members.Single(x => x.Position == CommitteeRules.Positions[0]);
+                var manager = await Manager(tenderId, ct);
+                BidRules.Require(manager is not null, 409, "A currently appointed Sourcing Manager is required.");
+                var recipient = await bids.AccountAsync(Principal(manager.UserId), now, ct);
+                BidRules.Require(recipient is not null && ReportReviewRules.Manager(recipient, manager, tenderId, now), 409, "The appointed manager is no longer eligible.");
                 db.Notifications.Add(new Notification { Id = Guid.NewGuid(), RecipientUserId = manager.UserId, TenderId = tenderId,
                     Subject = "Unified report submitted", Message = "The committee report for " + tender.Title + " is ready for your review.", CreatedAt = now });
                 db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), ActorUserId = access.Actor.UserId, RecordType = "Tender", RecordId = tenderId.ToString(),
@@ -151,6 +167,74 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
             await db.SaveChangesAsync(ct);
             var final = await Access(user, tenderId, ct);
             BidRules.Require(await Author(final.Actor, tenderId, ct), 403, "Technical representative eligibility changed.");
+            await tx.CommitAsync(ct);
+            return true;
+        });
+    }
+    private Task<bool> IsRevision(Guid id, CancellationToken ct) => db.TenderApprovals.AnyAsync(x => x.TenderId == id && x.Stage == ApprovalStage.Manager &&
+        (x.Decision == DecisionStatus.ManagerRejected || x.Decision == DecisionStatus.ReturnedForReview), ct);
+    private static ClaimsPrincipal Principal(string id) => new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id)], "ReportEligibility"));
+    private static ReportSnapshot StoredSnapshot(EvaluationReport report)
+    {
+        try {
+            var snapshot = JsonSerializer.Deserialize<ReportSnapshot>(report.Comparison);
+            BidRules.Require(snapshot is { FormatVersion: 1, Members: not null, Criteria: not null, Offers: not null } && snapshot.TenderId == report.TenderId,
+                409, "A valid preserved report snapshot is required.");
+            return snapshot;
+        } catch (JsonException) { throw new BidException(409, "The preserved report snapshot is invalid."); }
+    }
+    private async Task<CommitteeMember?> Manager(Guid id, CancellationToken ct)
+    {
+        BidRules.Require(await db.CommitteeAssignments.CountAsync(x => x.TenderId == id && x.Kind == CommitteeKind.Evaluation, ct) <= 1,
+            409, "Multiple evaluation committees exist. Resolve the data conflict first.");
+        var now = clock.GetUtcNow();
+        var managers = await (from m in db.CommitteeMembers.AsNoTracking() join a in db.CommitteeAssignments on new { m.CommitteeAssignmentId, m.TenderId }
+            equals new { CommitteeAssignmentId = a.Id, a.TenderId }
+            where m.TenderId == id && a.Kind == CommitteeKind.Evaluation && m.Position == CommitteeRules.Positions[0] &&
+                (m.EffectiveFrom == null || m.EffectiveFrom <= now) && (m.EffectiveTo == null || now < m.EffectiveTo) select m).ToListAsync(ct);
+        BidRules.Require(managers.Count <= 1, 409, "Multiple appointed managers exist. Resolve the data conflict first.");
+        return managers.SingleOrDefault();
+    }
+    public async Task DecideAsync(ClaimsPrincipal user, Guid tenderId, ReportDecisionForm form, CancellationToken ct = default)
+    {
+        await Access(user, tenderId, ct);
+        await BidManagement.Mutate(async () => {
+            await using var tx = await bids.BeginAsync(tenderId, ct);
+            var access = await Access(user, tenderId, ct);
+            var manager = await Manager(tenderId, ct);
+            var now = clock.GetUtcNow();
+            BidRules.Require(manager is not null && ReportReviewRules.Manager(access.Actor, manager, tenderId, now), 403, "Only this tender's currently appointed Sourcing Manager may decide the report.");
+            var report = await Report(tenderId, ct) ?? throw new BidException(409, "A submitted report is required.");
+            ReportReviewRules.Validate(access.Tender, report, form);
+            ComplianceRules.Version(form.Version, ReportReviewRules.Version(access.Tender, report, manager));
+            _ = StoredSnapshot(report);
+            BidRules.Require(!await db.TenderApprovals.AnyAsync(x => x.EvaluationReportId == report.Id && x.Stage == ApprovalStage.Manager, ct), 409, "This report already has a manager decision.");
+            var decision = new TenderApproval { Id = Guid.NewGuid(), TenderId = tenderId, EvaluationReportId = report.Id, Stage = ApprovalStage.Manager,
+                Decision = form.Decision, ActorUserId = access.Actor.UserId, CommitteeAssignmentId = manager.CommitteeAssignmentId,
+                Comments = form.Comments?.Trim() ?? "", Justification = form.Comments?.Trim() ?? "", DecidedAt = now };
+            db.TenderApprovals.Add(decision);
+            var tender = await db.Tenders.SingleAsync(x => x.Id == tenderId, ct);
+            var approved = form.Decision == DecisionStatus.ManagerApproved;
+            tender.Status = approved ? TenderStatus.AwaitingCommitteeDecision : TenderStatus.UnderEvaluation;
+            if (!approved) db.EvaluationReports.Add(ReportReviewRules.Revision(report));
+            var members = await (from m in db.CommitteeMembers.AsNoTracking() join a in db.CommitteeAssignments on new { m.CommitteeAssignmentId, m.TenderId }
+                equals new { CommitteeAssignmentId = a.Id, a.TenderId }
+                where m.TenderId == tenderId && (approved ? a.Kind == CommitteeKind.TopCommittee : a.Kind == CommitteeKind.Evaluation) &&
+                    (m.EffectiveFrom == null || m.EffectiveFrom <= now) && (m.EffectiveTo == null || now < m.EffectiveTo) select m.UserId).Distinct().ToListAsync(ct);
+            foreach (var recipientId in members.Where(x => x != access.Actor.UserId)) {
+                var recipient = await bids.AccountAsync(Principal(recipientId), now, ct);
+                if (recipient is null || !recipient.Internal || (approved ? !recipient.Roles.Contains(ApplicationRoles.TopCommittee) : !recipient.Roles.Contains(ApplicationRoles.EvaluationCommittee))) continue;
+                db.Notifications.Add(new Notification { Id = Guid.NewGuid(), RecipientUserId = recipientId, TenderId = tenderId, CreatedAt = now,
+                    Subject = "Manager report decision", Message = "The manager recorded " + form.Decision + " for " + tender.Title + ". Review the report and documented comments." });
+            }
+            db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), ActorUserId = access.Actor.UserId, RecordType = "EvaluationReport", RecordId = tenderId.ToString(),
+                Action = form.Decision.ToString(), PreviousStatus = "AwaitingManagerReview", NewStatus = tender.Status.ToString(), Reason = "Report " + report.Id + ": " + decision.Comments, OccurredAt = now });
+            db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), ActorUserId = access.Actor.UserId, RecordType = "Tender", RecordId = tenderId.ToString(),
+                Action = "Tender.ManagerDecision", PreviousStatus = "AwaitingManagerReview", NewStatus = tender.Status.ToString(), Reason = "Decision " + decision.Id, OccurredAt = now });
+            await db.SaveChangesAsync(ct);
+            var final = await Access(user, tenderId, ct);
+            var currentManager = await Manager(tenderId, ct);
+            BidRules.Require(currentManager is not null && currentManager.Id == manager.Id && ReportReviewRules.Manager(final.Actor, currentManager, tenderId, clock.GetUtcNow()), 403, "Manager eligibility changed.");
             await tx.CommitAsync(ct);
             return true;
         });

@@ -24,4 +24,18 @@ public sealed record ReportOffer(Guid BidId, string Supplier, BidStatus Status, 
 public sealed record ReportSnapshot(int FormatVersion, Guid TenderId, string TenderTitle, IReadOnlyList<ReportMember> Members,
     IReadOnlyList<ReportCriterion> Criteria, IReadOnlyList<ReportOffer> Offers);
 public sealed record UnifiedReportPage(Tender Tender, EvaluationReport? Report, ReportSnapshot? Snapshot, UnifiedReportForm Form,
-    bool CanEdit, bool Ready, IReadOnlyList<AuditLog> History);
+    bool CanEdit, bool Ready, IReadOnlyList<AuditLog> History)
+{
+    public bool CanReview { get; init; }
+    public bool Archived { get; init; }
+    public ReportDecisionForm DecisionForm { get; init; } = new();
+    public IReadOnlyList<EvaluationReport> Versions { get; init; } = [];
+    public IReadOnlyList<TenderApproval> Decisions { get; init; } = [];
+}
+public sealed class ReportDecisionForm
+{
+    [Required] public string Version { get; set; } = "";
+    public DecisionStatus Decision { get; set; } = DecisionStatus.RecommendationPending;
+    [StringLength(8000)] public string? Comments { get; set; }
+    public bool Accept { get; set; }
+}
