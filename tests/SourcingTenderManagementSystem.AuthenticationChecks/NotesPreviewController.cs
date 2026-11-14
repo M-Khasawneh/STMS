@@ -26,7 +26,7 @@ public sealed class NotesPreviewController : Controller
         var request = new PurchaseRequisition { Id = id, Title = "Fixture network renewal", DepartmentId = department, CreatedByUserId = "requester", Status = status,
             Priority = "High", TargetDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)), CreatedAt = now.AddDays(-3), SubmittedAt = now.AddDays(-2), Reason = "Replace end-of-life network equipment." };
         var reviews = new[] { new PurchaseRequisitionReview { Outcome = PurchaseRequestStatus.UnderReview, ReviewedAt = now.AddDays(-1), Comments = "Fixture review started" }, new PurchaseRequisitionReview { Outcome = PurchaseRequestStatus.Approved, ReviewedAt = now, Comments = "Fixture approved" } };
-        var history = new[] { "Created", "Submitted", "Reviewed", "Approved" }.Select((action, i) => new AuditLog { Action = action, OccurredAt = now.AddDays(i - 3) }).ToArray();
+        var history = new[] { "Created", "Submitted", "Reviewed", "Approved" }.Select((action, i) => new AuditLog { Id = Guid.NewGuid(), Action = action, PreviousStatus = new[] { "Draft", "Draft", "Submitted", "UnderReview" }[i], NewStatus = new[] { "Draft", "Submitted", "UnderReview", "Approved" }[i], OccurredAt = now.AddDays(i - 3) }).ToArray();
         return View("~/Views/Requisitions/Details.cshtml", new RequisitionDetails(request, [new PurchaseRequisitionItem { Description = "Managed network switch", Specifications = "24 ports, warranty included", Quantity = 12m }], reviews, history, "Fixture IT department", "Fixture requester", "fixture-version", new RequisitionActor("requester", department, true, false, false, false)));
     }
     [HttpGet] public IActionResult Success()

@@ -1,7 +1,13 @@
 @model SourcingTenderManagementSystem.Web.Models.Requisitions.RequisitionDetails
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Requisitions
-@{ ViewData["Title"] = "Requisition details"; var request = Model.Request; }
+@{
+    ViewData["Title"] = "Requisition details";
+    var request = Model.Request;
+    var history = Model.History.OrderBy(x => x.OccurredAt).ThenBy(x => x.Id).ToArray();
+    var currentChange = history.Where(x => x.NewStatus == request.Status.ToString())
+        .OrderByDescending(x => x.PreviousStatus != x.NewStatus).ThenByDescending(x => x.OccurredAt).ThenByDescending(x => x.Id).FirstOrDefault();
+}
 <div class="page-heading"><div><div class="eyebrow">PURCHASE REQUISITIONS</div><h1>@request.Title</h1><p>@Model.DepartmentName &middot; Created by @Model.CreatorName</p></div><span class="status-pill">@RequisitionDisplay.Status(request.Status)</span></div>
 @if (TempData["RequisitionStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
 <div asp-validation-summary="All" class="text-danger" role="alert"></div>
@@ -27,6 +33,6 @@ else { <div class="mb-3"><label for="Decision" class="form-label">Decision</labe
 <h2 class="requisition-section-title">Review decisions</h2>
 @if (Model.Reviews.Count == 0) { <p>No review decisions yet.</p> }
 <ol class="review-decision-records">@foreach (var review in Model.Reviews.OrderBy(x => x.ReviewedAt)) { <li><strong>@RequisitionDisplay.Status(review.Outcome)</strong><small>@review.ReviewedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC</small><p class="requisition-text">@review.Comments</p></li> }</ol>
-<h2 class="requisition-section-title">Change history</h2><ol class="requisition-history">@foreach (var entry in Model.History.OrderBy(x => x.OccurredAt)) { <li><strong>@RequisitionDisplay.Action(entry.Action)</strong><small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @entry.PreviousStatus &#8594; @entry.NewStatus</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
+<h2 class="requisition-section-title">Change history</h2><ol class="requisition-history" aria-label="Change history">@foreach (var entry in history) { var current = ReferenceEquals(entry, currentChange); <li class="@(current ? "is-current-change" : null)" aria-current="@(current ? "step" : null)"><strong>@RequisitionDisplay.Action(entry.Action)</strong>@if (current) { <span class="history-current-label">Current status</span> }<small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @entry.PreviousStatus &#8594; @entry.NewStatus</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
 <a asp-action="Index" class="btn btn-outline-secondary">Back to requisitions</a>
 @section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/requisitions.js" asp-append-version="true"></script> }

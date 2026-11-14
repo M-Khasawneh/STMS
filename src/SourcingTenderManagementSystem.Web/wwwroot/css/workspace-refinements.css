@@ -34,6 +34,8 @@
 .workspace[data-workspace-controller="Requisitions"] .requisition-history > li { flex: 1 0 240px; max-width: 360px; position: relative; padding: 30px 22px 18px 0; border: 0; border-top: 2px solid #d7c9ae; border-radius: 0; background: transparent; margin: 12px 0 0; scroll-snap-align: start; box-shadow: none; }
 .workspace[data-workspace-controller="Requisitions"] .requisition-history > li::before { content: ''; position: absolute; width: 13px; height: 13px; border: 3px solid var(--brand-gold); background: #fffefa; border-radius: 50%; top: -8px; left: 0; }
 .workspace[data-workspace-controller="Requisitions"] .requisition-history small { display: block; margin: 8px 0; color: #657382; }
+.workspace[data-workspace-controller="Requisitions"] .requisition-history > .is-current-change::before { width: 17px; height: 17px; top: -10px; border: 3px solid #fffefa; background: var(--brand-gold); box-shadow: 0 0 0 3px var(--brand-gold), 0 0 0 8px #a4792b1a, 0 0 22px #a4792b80; }
+.history-current-label { display: inline-block; margin: 8px 0 0; padding: 3px 9px; border-radius: 20px; background: #f2e7cf; color: #79561c; font-size: .68rem; font-weight: 650; }
 .workspace .workspace-notification-bell { position: relative; overflow: visible; }
 .notification-count { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 20px; background: var(--brand-gold); color: #fff; border: 2px solid #fffefa; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
 .avatar, .admin-header-identity > span { position: relative; overflow: hidden; }

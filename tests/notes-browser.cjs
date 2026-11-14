@@ -28,6 +28,9 @@ const path = require('path');
                     if (width <= 390) check(await page.locator('[data-requisition-item] input:not([type=hidden])').first().evaluate(input => input.getBoundingClientRect().width >= 140), 'Mobile item descriptions remain usable');
                 } else {
                     check(await page.locator('.requisition-history').first().evaluate(element => getComputedStyle(element).display === 'flex'), 'Straight horizontal history');
+                    check(await page.locator('.requisition-history > [aria-current=step]').count() === 1, 'Change history marks one actual current transition');
+                    check((await page.locator('.requisition-history > [aria-current=step]').innerText()).includes('UnderReview → Approved'), 'Highlighted change matches persisted current state');
+                    check(await page.locator('.requisition-history > [aria-current=step]').evaluate(item => getComputedStyle(item, '::before').boxShadow !== 'none'), 'History circle is illuminated');
                     check(await page.locator('[data-request-state]').count() === 7, 'Every documented request state is visible');
                     check(await page.locator('[data-request-state][aria-current=step]').count() === 1, 'One actual current state');
                     check(await page.locator('[data-request-state=Approved]').getAttribute('aria-current') === 'step', 'Approved state matches fixture data');
