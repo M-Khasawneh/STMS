@@ -18,12 +18,12 @@ public sealed class NotesPreviewController : Controller
         return View("~/Views/Requisitions/Create.cshtml", new RequisitionForm { DepartmentName = "Fixture IT department", Today = DateOnly.FromDateTime(DateTime.Today),
             Items = [new RequisitionItemForm { Quantity = 1m }] });
     }
-    [HttpGet] public IActionResult Record()
+    [HttpGet] public IActionResult Record(PurchaseRequestStatus status = PurchaseRequestStatus.Approved)
     {
         RouteData.Values["controller"] = "Requisitions"; RouteData.Values["action"] = "Details";
         var now = DateTimeOffset.UtcNow;
         var department = Guid.NewGuid(); var id = Guid.NewGuid();
-        var request = new PurchaseRequisition { Id = id, Title = "Fixture network renewal", DepartmentId = department, CreatedByUserId = "requester", Status = PurchaseRequestStatus.Approved,
+        var request = new PurchaseRequisition { Id = id, Title = "Fixture network renewal", DepartmentId = department, CreatedByUserId = "requester", Status = status,
             Priority = "High", TargetDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)), CreatedAt = now.AddDays(-3), SubmittedAt = now.AddDays(-2), Reason = "Replace end-of-life network equipment." };
         var reviews = new[] { new PurchaseRequisitionReview { Outcome = PurchaseRequestStatus.UnderReview, ReviewedAt = now.AddDays(-1), Comments = "Fixture review started" }, new PurchaseRequisitionReview { Outcome = PurchaseRequestStatus.Approved, ReviewedAt = now, Comments = "Fixture approved" } };
         var history = new[] { "Created", "Submitted", "Reviewed", "Approved" }.Select((action, i) => new AuditLog { Action = action, OccurredAt = now.AddDays(i - 3) }).ToArray();

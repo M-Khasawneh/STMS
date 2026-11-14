@@ -21,3 +21,15 @@ Source: the user's `New Microsoft Word Document (2).docx` notes and embedded scr
 - Schema metadata checks passed: 37 required tables, existing six migrations. No migrations applied, SQL writes performed, or persistent test accounts created.
 
 Browser screenshots and build artifacts are kept outside the repository. Test picture files use disposable OS temporary storage. Production SQL persistence of these UI changes was not write-tested.
+
+## Follow-up notes: login, complete progress, all forms and tables
+
+The updated Word file replaces the earlier screenshots with a request to remove the login side panel, show all requisition states and illuminate the current one, and make a stronger site-wide improvement to forms/tables.
+
+- Removed the entire login story panel from Razor markup and centered the existing sign-in form. Supplier registration and authentication bindings remain intact.
+- Added `_StatusProgress.cshtml`: all seven documented requisition statuses, a static illuminated current marker, and recorded/upcoming labels sourced from the actual request, reviews and audit records. Returned and Rejected are displayed as alternative outcomes, not sequential approval steps. Actual decision comments and change records remain available. The main track scrolls within a keyboard-accessible region on narrow screens and initially brings its current step into view without scrolling the page.
+- Shared form styling covers existing workspace inputs, selects, files, validation, fieldsets and action areas. Employee create/edit, department fields, tender fields, supplier registration and requisition sections have explicit structural grouping. Existing role-selection behavior, names, routes, antiforgery and validation are preserved.
+- Shared tables use navy headings, improved contrast and row separation, alternate surfaces, tabular numbers, clear action links and contained responsive overflow. Existing real data and actions are unchanged.
+- Used the free 21st MCP search metadata for Order tracking/Steps as references; independently implemented native Razor/CSS presentation. No paid source retrieval, frontend packages or frameworks. The 21st CLI is unavailable, so its init/review commands were not run.
+
+Follow-up verification: solution build passed with zero warnings/errors. 123 notes browser checks, 67 report browser checks, and 36 bid browser checks passed at desktop/tablet/mobile sizes with no JavaScript errors. Coverage includes all seven current markers, mobile input usability, multi-role synchronization, existing employee popups, real bid field binding/documents, secure download, submission and reduced motion. Existing database-free authentication/employee/department suite, 45 workspace checks, and 40 review-rule plus 29 report MVC checks passed. Browser fixtures and writes were memory-only; no SQL writes, schema changes, migrations or production accounts were used for this follow-up.

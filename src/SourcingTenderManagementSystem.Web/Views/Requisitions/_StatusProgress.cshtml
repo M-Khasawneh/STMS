@@ -1,0 +1,37 @@
+@model SourcingTenderManagementSystem.Web.Models.Requisitions.RequisitionDetails
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Requisitions
+@{
+    var main = new[] { PurchaseRequestStatus.Draft, PurchaseRequestStatus.Submitted, PurchaseRequestStatus.UnderReview, PurchaseRequestStatus.Approved, PurchaseRequestStatus.ConvertedToTender };
+    var alternatives = new[] { PurchaseRequestStatus.Returned, PurchaseRequestStatus.Rejected };
+    var recorded = Model.Reviews.Select(x => x.Outcome).ToHashSet();
+    foreach (var entry in Model.History) {
+        if (Enum.TryParse<PurchaseRequestStatus>(entry.NewStatus, out var value)) { recorded.Add(value); }
+    }
+    recorded.Add(PurchaseRequestStatus.Draft);
+    if (Model.Request.SubmittedAt.HasValue) { recorded.Add(PurchaseRequestStatus.Submitted); }
+}
+<section class="request-progress-panel" aria-labelledby="request-progress-title">
+    <div class="progress-heading"><div><span class="eyebrow">REQUEST LIFECYCLE</span><h2 id="request-progress-title">Request progress</h2></div><span class="status-pill">@RequisitionDisplay.Status(Model.Request.Status)</span></div>
+    <p>All request states are shown below. The illuminated marker identifies the current status.</p>
+    <div class="status-track-viewport" role="region" aria-label="Request workflow stages" tabindex="0">
+        <ol class="status-track" aria-label="Main request workflow">
+        @foreach (var state in main) {
+            var current = Model.Request.Status == state;
+            <li class="@(current ? "is-current" : recorded.Contains(state) ? "is-recorded" : "is-upcoming")" data-request-state="@state" aria-current="@(current ? "step" : null)">
+                <span class="status-track-dot" aria-hidden="true"></span><strong>@RequisitionDisplay.Status(state)</strong><small>@(current ? "Current status" : recorded.Contains(state) ? "Recorded" : "Not reached")</small>
+            </li>
+        }
+        </ol>
+    </div>
+    <div class="status-alternatives"><h3>Alternative review outcomes</h3><p>Returned requests may be corrected and resubmitted. Rejected requests are final.</p>
+        <ul class="status-track status-branches" aria-label="Alternative request outcomes">
+        @foreach (var state in alternatives) {
+            var current = Model.Request.Status == state;
+            <li class="@(current ? "is-current" : recorded.Contains(state) ? "is-recorded" : "is-upcoming")" data-request-state="@state" aria-current="@(current ? "step" : null)">
+                <span class="status-track-dot" aria-hidden="true"></span><strong>@RequisitionDisplay.Status(state)</strong><small>@(current ? "Current status" : recorded.Contains(state) ? "Recorded" : "Not reached")</small>
+            </li>
+        }
+        </ul>
+    </div>
+</section>

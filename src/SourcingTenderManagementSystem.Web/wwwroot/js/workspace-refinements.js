@@ -5,6 +5,13 @@
         if (!region.hasAttribute('role')) region.setAttribute('role', 'region');
         if (!region.hasAttribute('aria-label') && !region.hasAttribute('aria-labelledby')) region.setAttribute('aria-label', 'Scrollable data table');
     });
+    // Keep the real current stage in view without moving the page or changing workflow state.
+    document.querySelectorAll('.status-track-viewport').forEach(viewport => {
+        const current = viewport.querySelector('[aria-current="step"]');
+        if (current && viewport.scrollWidth > viewport.clientWidth) {
+            viewport.scrollLeft += current.getBoundingClientRect().left - viewport.getBoundingClientRect().left - (viewport.clientWidth - current.clientWidth) / 2;
+        }
+    });
     const feedbackKey = 'stms-feedback-once';
     const owner = document.querySelector('.account-name')?.textContent.trim() || '';
     window.workspaceFeedback = {

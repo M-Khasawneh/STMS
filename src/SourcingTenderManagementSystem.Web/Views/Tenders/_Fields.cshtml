@@ -1,9 +1,12 @@
 @model SourcingTenderManagementSystem.Web.Models.Tenders.TenderForm
 <div asp-validation-summary="All" class="text-danger" role="alert"></div><input asp-for="Version" type="hidden" />
+<fieldset class="form-section"><legend><span>01</span> Tender information</legend>
 @if(Model.Id.HasValue){<input asp-for="RequisitionId" type="hidden" />}else{<div class="mb-3"><label asp-for="RequisitionId" class="form-label">Approved requisition</label><select asp-for="RequisitionId" class="form-select"><option value="">Select an approved requisition</option>@foreach(var r in Model.EligibleRequests){<option value="@r.Id">@r.Title</option>}</select><span asp-validation-for="RequisitionId" class="text-danger"></span></div>}
 <div class="mb-3"><label asp-for="Title" class="form-label"></label><input asp-for="Title" class="form-control" /><span asp-validation-for="Title" class="text-danger"></span></div>
 <div class="mb-3"><label asp-for="Description" class="form-label"></label><textarea asp-for="Description" class="form-control" rows="3"></textarea><span asp-validation-for="Description" class="text-danger"></span></div>
 <div class="mb-3"><label asp-for="Terms" class="form-label"></label><textarea asp-for="Terms" class="form-control" rows="3"></textarea><span asp-validation-for="Terms" class="text-danger"></span></div>
+</fieldset><fieldset class="form-section"><legend><span>02</span> Submission period</legend><div class="form-grid">
 <div class="mb-3"><label asp-for="Start" class="form-label"></label><input asp-for="Start" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" /><span asp-validation-for="Start" class="text-danger"></span></div>
 <div class="mb-3"><label asp-for="Deadline" class="form-label"></label><input asp-for="Deadline" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" /><span asp-validation-for="Deadline" class="text-danger"></span></div>
+</div></fieldset>
 <div class="form-actions d-flex gap-2"><button type="submit" class="btn btn-primary">Save Draft</button><a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>

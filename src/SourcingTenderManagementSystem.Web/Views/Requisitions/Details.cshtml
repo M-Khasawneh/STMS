@@ -23,9 +23,10 @@ else { <div class="mb-3"><label for="Decision" class="form-label">Decision</labe
 <div class="mb-3"><label for="Comments" class="form-label">Review comments</label><textarea id="Comments" name="Comments" class="form-control" rows="3" aria-describedby="comments-help">@ViewContext.ViewData.ModelState["Comments"]?.AttemptedValue</textarea><span data-valmsg-for="Comments" data-valmsg-replace="true" class="text-danger"></span><div class="form-text" id="comments-help">A reason is required for rejection or return.</div></div><button type="submit" class="btn btn-primary">Save decision</button> }
 </form></section>
 } else if (Model.Actor.Officer && !Model.Actor.CanReview(request)) { <p class="form-text mt-4">Review is unavailable for your own requisition or a requisition from your department. Admins have read-only access.</p> }
+<partial name="_StatusProgress" model="Model" />
 <h2 class="requisition-section-title">Review decisions</h2>
 @if (Model.Reviews.Count == 0) { <p>No review decisions yet.</p> }
-<ol class="requisition-history">@foreach (var review in Model.Reviews.OrderBy(x => x.ReviewedAt)) { <li><strong>@RequisitionDisplay.Status(review.Outcome)</strong><small>@review.ReviewedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC</small><p class="requisition-text">@review.Comments</p></li> }</ol>
+<ol class="review-decision-records">@foreach (var review in Model.Reviews.OrderBy(x => x.ReviewedAt)) { <li><strong>@RequisitionDisplay.Status(review.Outcome)</strong><small>@review.ReviewedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC</small><p class="requisition-text">@review.Comments</p></li> }</ol>
 <h2 class="requisition-section-title">Change history</h2><ol class="requisition-history">@foreach (var entry in Model.History.OrderBy(x => x.OccurredAt)) { <li><strong>@RequisitionDisplay.Action(entry.Action)</strong><small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @entry.PreviousStatus &#8594; @entry.NewStatus</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
 <a asp-action="Index" class="btn btn-outline-secondary">Back to requisitions</a>
 @section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/requisitions.js" asp-append-version="true"></script> }
