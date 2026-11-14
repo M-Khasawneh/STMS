@@ -1,5 +1,7 @@
 # 21st.dev footer adaptation
 
+Historical implementation: subsequently replaced at the user's request by [the efferd Sticky Footer interaction](footer-sticky-efferd.md). The retained ScrollX notice documents the previous version; the current native footer does not embed that component source.
+
 Source: [Footer with Suite by ScrollX UI](https://21st.dev/@scrollxui/components/footer-with-suite), demo 29773. Actual component/demo source was retrieved through the connected 21st MCP using one free daily retrieval; no paid retrieval or generation was used.
 
 The native Razor/CSS adaptation preserves its split navigation/description composition, oversized centered brand wordmark, bottom rule and link hover behavior. It uses STMS's ivory/navy/gold identity and real existing routes. The reference's demo social links, studio copy, fake email and placeholder destinations were replaced with existing platform/account/contact links. Privacy stays Home-only. No React, Tailwind runtime, dependencies, backend changes or database changes.

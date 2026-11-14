@@ -109,7 +109,7 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/workspace-refinements.js" asp-append-version="true"></script>
-    @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script> }
+    @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script><script src="~/js/sticky-footer.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script><script src="~/js/notification-inbox.js" asp-append-version="true"></script> }

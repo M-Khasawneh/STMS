@@ -19,26 +19,36 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
 .public-shell .public-topbar .home-menu-toggle { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 10px 12px; background: #f7f3ea; color: var(--brand-ink); border: 1px solid var(--brand-border); border-radius: 10px; font-size: .78rem; }
 .public-shell .public-topbar .home-menu-toggle[hidden] { display: none; }
 .public-shell :is(.public-topbar, .public-footer) a:focus-visible, .public-shell .home-menu-toggle:focus-visible, .password-toggle:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; }
-/* ScrollX UI Footer with Suite: split composition, oversized wordmark and bottom rule.
-   Adapted to native Razor/CSS; see docs/third-party/scrollx-ui-license.md. */
-.public-shell .public-footer { margin-top: 70px; padding: 52px max(24px, calc((100% - 1160px) / 2)) 12px; background: #eee9df; color: var(--brand-ink); border-top: 1px solid #d6cebe; overflow: hidden; }
-.footer-suite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; padding-bottom: 28px; }
-.footer-suite-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-.footer-suite nav h2 { margin: 0 0 16px; font-size: .65rem; text-transform: uppercase; letter-spacing: .13em; font-weight: 650; color: #806433; }
-.footer-suite nav > a { display: flex; align-items: center; gap: 9px; width: fit-content; min-height: 42px; color: var(--brand-ink); text-decoration: none; font-size: .74rem; }
-.footer-suite nav > a:hover { color: #8b6829; }
-.footer-suite-description { max-width: 380px; justify-self: end; }
-.footer-suite .footer-suite-purpose { margin: 0 0 18px; font-size: clamp(1.2rem, 2vw, 1.6rem); line-height: 1.4; font-weight: 550; letter-spacing: -.025em; color: var(--brand-ink); }
-.footer-suite-description > p { font-size: .8rem; color: #626e77; line-height: 1.85; }
-.footer-suite .footer-suite-cta { display: inline-flex; align-items: center; justify-content: space-between; gap: 30px; min-height: 44px; margin: 7px 0 15px; padding-bottom: 5px; border-bottom: 1px solid #a38854; color: var(--brand-ink); font-size: .77rem; text-decoration: none; }
-.footer-suite-cta > span { transition: transform .2s ease; }
-.footer-suite-cta:hover > span { transform: translate(3px, -3px); }
-.footer-suite .footer-suite-access { font-size: .7rem; margin: 0; }
-.footer-suite-wordmark { display: block; width: fit-content; max-width: 100%; margin: 8px auto 18px; text-align: center; font-size: clamp(7rem, 29vw, 25rem); line-height: .94; letter-spacing: -.075em; font-weight: 750; color: var(--brand-ink); text-decoration: none; }
-.footer-suite-wordmark:hover { color: var(--brand-ink); }
-.public-footer-bottom { border-top: 1px solid #cfc6b6; padding-top: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; color: #626e77; font-size: .65rem; }
-.public-footer-bottom > div { display: flex; gap: 28px; }
-.public-footer-bottom a { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; color: var(--brand-ink); text-decoration: none; }
+/* Native clipped/fixed reveal matching the efferd Sticky Footer interaction. */
+.public-shell .public-footer { --sticky-footer-height: 520px; position: relative; width: 100%; margin-top: 70px; padding: 0; color: var(--brand-ink); background: #efede6; border: 0; }
+.sticky-footer-surface { position: relative; width: 100%; background: #efede6; border-top: 1px solid #d8d3c8; isolation: isolate; }
+.sticky-footer-body { position: relative; z-index: 1; min-height: 440px; padding: 50px max(24px, calc((100% - 1240px) / 2)); display: flex; flex-direction: column; justify-content: space-between; gap: 52px; }
+.sticky-footer-columns { display: grid; grid-template-columns: 1.55fr 1fr 1fr 1fr; gap: 36px; }
+.sticky-footer-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--brand-ink); font-size: 1.5rem; font-weight: 650; letter-spacing: -.04em; text-decoration: none; }
+.sticky-footer-brand img { width: 44px; height: 44px; border-radius: 12px; }
+.sticky-footer-brand:hover { color: var(--brand-ink); }
+.sticky-public-footer p { font-size: .8rem; color: #626e77; line-height: 1.85; margin: 18px 0; max-width: 36ch; }
+.sticky-public-footer :is(nav, .sticky-footer-connection) h2 { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; margin: 9px 0 22px; }
+.sticky-public-footer nav > a { display: block; width: fit-content; min-height: 42px; padding: 10px 0; color: #626e77; font-size: .8rem; text-decoration: none; transition: color .25s; }
+.sticky-public-footer nav > a:hover { color: var(--brand-ink); }
+.sticky-footer-contact { display: inline-flex; align-items: center; gap: 15px; min-height: 44px; padding: 8px 0; font-size: .76rem; color: var(--brand-ink); text-decoration: none; }
+.sticky-footer-action { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; min-height: 44px; border: 1px solid #ccc5b6; border-radius: 9px; color: var(--brand-ink); background: #ffffff55; text-decoration: none; font-size: .72rem; }
+.sticky-footer-action:hover { border-color: #b59a67; color: var(--brand-ink); background: #fffefa; }
+.sticky-footer-action svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.sticky-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid #d2ccc0; padding-top: 16px; font-size: .7rem; color: #626e77; }
+.sticky-footer-bottom > div { display: flex; align-items: center; gap: 24px; }
+.sticky-footer-bottom a { display: inline-flex; align-items: center; gap: 9px; min-height: 40px; color: #626e77; text-decoration: none; }
+.sticky-public-footer a:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; border-radius: 5px; }
+.sticky-footer-light { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.sticky-footer-light i { position: absolute; display: block; top: -430px; left: -120px; width: 350px; height: 1100px; transform: rotate(-45deg); border-radius: 50%; background: radial-gradient(ellipse, #152b400b, #152b4003 60%, transparent 75%); }
+.sticky-footer-light i:nth-child(2) { left: 80px; width: 160px; background: radial-gradient(ellipse, #a4792b0b, transparent 70%); }
+.sticky-footer-light i:nth-child(3) { left: 310px; width: 200px; }
+@media (min-width: 900px) and (min-height: 650px) and (prefers-reduced-motion: no-preference) {
+    .public-shell .public-footer.footer-sticky-ready { height: var(--sticky-footer-height); clip-path: inset(0); }
+    .footer-sticky-ready .sticky-footer-surface { position: fixed; left: 0; bottom: 0; height: var(--sticky-footer-height); }
+    .footer-sticky-ready .sticky-footer-body { height: 100%; min-height: 0; }
+    .footer-sticky-ready.footer-keyboard-flow .sticky-footer-surface { position: absolute; inset: 0; }
+}
 
 /* Quiet, centered account access. The shared navigation stays identical to Home. */
 .public-shell.account-login-page .content-area { max-width: 1160px; padding: 52px 24px 12px; }
@@ -102,14 +112,14 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
     .public-shell.home-nav-ready.home-nav-open .public-topbar #home-navigation { display: flex; flex-direction: column; align-items: stretch; }
     .public-shell .public-topbar .public-nav > a { justify-content: flex-start; padding: 13px 16px; }
     .contact-page-grid { gap: 36px; }
-    .footer-suite-grid { gap: 30px; }
+    .sticky-footer-columns { gap: 24px; }
 }
 @media (max-width: 760px) {
     .contact-page-grid { grid-template-columns: minmax(0, 1fr); }
     .contact-copy h1 { max-width: 15ch; }
     .contact-help-links { margin-bottom: 16px; }
-    .footer-suite-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-    .footer-suite-description { justify-self: start; max-width: 46ch; }
+    .sticky-footer-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+    .sticky-footer-intro { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) {
     .public-shell.account-login-page .content-area { padding: 30px 16px 0; }
@@ -120,8 +130,10 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
     .contact-form-panel { padding: 24px 18px; border-radius: 18px; }
     .public-form-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 
-    .public-shell .public-footer { padding: 40px 24px 18px; margin-top: 48px; }
+    .public-shell .public-footer { margin-top: 48px; }
+    .sticky-footer-body { padding: 32px 24px 20px; gap: 32px; }
+    .sticky-footer-columns { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .public-shell .topbar.public-topbar, .public-shell .public-topbar .public-nav > a { transition: none; } }
 
-@media (prefers-reduced-motion: reduce) { .footer-suite-cta > span { transition: none; } .footer-suite-cta:hover > span { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sticky-public-footer a { transition: none; } }
