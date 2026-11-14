@@ -1,9 +1,15 @@
+@* Adapted from ScrollX UI Footer with Suite, retrieved through 21st.dev.
+   https://21st.dev/@scrollxui/components/footer-with-suite
+   Copyright (c) 2025 Ahdeetai. License: docs/third-party/scrollx-ui-license.md. *@
 @{ var isHome = ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index"; }
-<footer class="public-footer">
-    <div class="public-footer-main">
-        <div class="public-footer-intro"><a asp-controller="Home" asp-action="Index" class="public-footer-brand">STMS<span>Sourcing &amp; Tender Management</span></a><p>A shared place for purchase requests, supplier offers and informed sourcing decisions.</p><a asp-controller="Home" asp-action="Contact" class="public-footer-contact">Let’s connect <span aria-hidden="true">↗</span></a></div>
-        <nav aria-label="Footer platform navigation"><h2>Explore the platform</h2><a asp-controller="Home" asp-action="Index">Home</a><a asp-controller="Home" asp-action="About">About STMS</a><a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works">How It Works</a><a asp-controller="Home" asp-action="Contact">Contact</a></nav>
-        <nav aria-label="Footer account navigation"><h2>Your next step</h2><a asp-controller="Account" asp-action="Login">Account login <span aria-hidden="true">↗</span></a><a asp-controller="Suppliers" asp-action="Register">Supplier Registration <span aria-hidden="true">↗</span></a><p>Supplier access begins after administrator approval.</p></nav>
+<footer class="public-footer footer-suite" aria-label="STMS footer">
+    <div class="footer-suite-grid">
+        <div class="footer-suite-navigation">
+            <nav aria-label="Footer platform navigation"><h2>Explore</h2><a asp-controller="Home" asp-action="Index">Home</a><a asp-controller="Home" asp-action="About">About STMS</a><a asp-controller="Home" asp-action="Index" asp-fragment="how-it-works">How It Works</a><a asp-controller="Home" asp-action="Contact">Contact</a></nav>
+            <nav aria-label="Footer account navigation"><h2>Your workspace</h2><a asp-controller="Account" asp-action="Login">Account login <span aria-hidden="true">↗</span></a><a asp-controller="Suppliers" asp-action="Register">Supplier Registration <span aria-hidden="true">↗</span></a></nav>
+        </div>
+        <div class="footer-suite-description"><p class="footer-suite-purpose">One connected process.<br />From request to decision.</p><p>A shared place for purchase requests, supplier offers and informed sourcing decisions.</p><a asp-controller="Home" asp-action="Contact" class="footer-suite-cta">Talk to the administrator <span aria-hidden="true">↗</span></a><p class="footer-suite-access">Supplier access begins after administrator approval.</p></div>
     </div>
-    <div class="public-footer-bottom"><span>&copy; @DateTime.UtcNow.Year STMS · Sourcing &amp; Tender</span><div>@if (isHome) { <a asp-controller="Home" asp-action="Privacy">Privacy</a> }<a href="#main-content">Back to top <span aria-hidden="true">↑</span></a></div></div>
+    <a asp-controller="Home" asp-action="Index" class="footer-suite-wordmark" aria-label="STMS home">STMS</a>
+    <div class="public-footer-bottom"><span>&copy; @DateTime.UtcNow.Year STMS · Sourcing &amp; Tender Management</span><div>@if (isHome) { <a asp-controller="Home" asp-action="Privacy">Privacy</a> }<a href="#main-content">Back to top <span aria-hidden="true">↑</span></a></div></div>
 </footer>
