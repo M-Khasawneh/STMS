@@ -2,7 +2,7 @@
    Reference inspected through 21st MCP: https://21st.dev/@efferd/components/sticky-footer.
    No React/Motion source or proprietary assets are embedded. *@
 @{ var isHome = ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index"; }
-<footer class="public-footer sticky-public-footer" aria-label="STMS footer" data-sticky-footer>
+<footer class="public-footer sticky-public-footer" aria-label="STMS footer" data-sticky-footer data-footer-sticky-enabled="@(isHome ? "true" : "false")">
     <div class="sticky-footer-surface">
         <div class="sticky-footer-light" aria-hidden="true"><i></i><i></i><i></i></div>
         <div class="sticky-footer-body">

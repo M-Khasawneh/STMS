@@ -11,7 +11,7 @@
     let frame = 0, keyboard = false;
     function sync() {
         frame = 0;
-        const active = eligible.matches && !reduced.matches && CSS.supports('clip-path', 'inset(0)');
+        const active = footer.dataset.footerStickyEnabled === 'true' && eligible.matches && !reduced.matches && CSS.supports('clip-path', 'inset(0)');
         if (active) {
             const style = getComputedStyle(body);
             const needed = columns.offsetHeight + bottom.offsetHeight + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + parseFloat(style.rowGap);

@@ -20,28 +20,28 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
 .public-shell .public-topbar .home-menu-toggle[hidden] { display: none; }
 .public-shell :is(.public-topbar, .public-footer) a:focus-visible, .public-shell .home-menu-toggle:focus-visible, .password-toggle:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; }
 /* Native clipped/fixed reveal matching the efferd Sticky Footer interaction. */
-.public-shell .public-footer { --sticky-footer-height: 520px; position: relative; width: 100%; margin-top: 70px; padding: 0; color: var(--brand-ink); background: #efede6; border: 0; }
-.sticky-footer-surface { position: relative; width: 100%; background: #efede6; border-top: 1px solid #d8d3c8; isolation: isolate; }
+.public-shell .public-footer { --sticky-footer-height: 520px; position: relative; width: 100%; margin-top: 70px; padding: 0; color: #edf2f6; background: #0b1826; border: 0; }
+.sticky-footer-surface { position: relative; width: 100%; background: #0b1826; border-top: 1px solid #b3935755; isolation: isolate; }
 .sticky-footer-body { position: relative; z-index: 1; min-height: 440px; padding: 50px max(24px, calc((100% - 1240px) / 2)); display: flex; flex-direction: column; justify-content: space-between; gap: 52px; }
 .sticky-footer-columns { display: grid; grid-template-columns: 1.55fr 1fr 1fr 1fr; gap: 36px; }
-.sticky-footer-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--brand-ink); font-size: 1.5rem; font-weight: 650; letter-spacing: -.04em; text-decoration: none; }
+.sticky-footer-brand { display: inline-flex; align-items: center; gap: 12px; color: #edf2f6; font-size: 1.5rem; font-weight: 650; letter-spacing: -.04em; text-decoration: none; }
 .sticky-footer-brand img { width: 44px; height: 44px; border-radius: 12px; }
-.sticky-footer-brand:hover { color: var(--brand-ink); }
-.sticky-public-footer p { font-size: .8rem; color: #626e77; line-height: 1.85; margin: 18px 0; max-width: 36ch; }
-.sticky-public-footer :is(nav, .sticky-footer-connection) h2 { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; margin: 9px 0 22px; }
-.sticky-public-footer nav > a { display: block; width: fit-content; min-height: 42px; padding: 10px 0; color: #626e77; font-size: .8rem; text-decoration: none; transition: color .25s; }
-.sticky-public-footer nav > a:hover { color: var(--brand-ink); }
-.sticky-footer-contact { display: inline-flex; align-items: center; gap: 15px; min-height: 44px; padding: 8px 0; font-size: .76rem; color: var(--brand-ink); text-decoration: none; }
-.sticky-footer-action { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; min-height: 44px; border: 1px solid #ccc5b6; border-radius: 9px; color: var(--brand-ink); background: #ffffff55; text-decoration: none; font-size: .72rem; }
-.sticky-footer-action:hover { border-color: #b59a67; color: var(--brand-ink); background: #fffefa; }
+.sticky-footer-brand:hover { color: #edf2f6; }
+.sticky-public-footer p { font-size: .8rem; color: #b2bdc9; line-height: 1.85; margin: 18px 0; max-width: 36ch; }
+.sticky-public-footer :is(nav, .sticky-footer-connection) h2 { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; color: #e7c57e; margin: 9px 0 22px; }
+.sticky-public-footer nav > a { display: block; width: fit-content; min-height: 42px; padding: 10px 0; color: #b2bdc9; font-size: .8rem; text-decoration: none; transition: color .25s; }
+.sticky-public-footer nav > a:hover { color: #e7c57e; }
+.sticky-footer-contact { display: inline-flex; align-items: center; gap: 15px; min-height: 44px; padding: 8px 0; font-size: .76rem; color: #edf2f6; text-decoration: none; }
+.sticky-footer-action { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; min-height: 44px; border: 1px solid #ffffff30; border-radius: 9px; color: #edf2f6; background: #ffffff08; text-decoration: none; font-size: .72rem; }
+.sticky-footer-action:hover { border-color: #d9b872; color: #fff; background: #ffffff12; }
 .sticky-footer-action svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.sticky-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid #d2ccc0; padding-top: 16px; font-size: .7rem; color: #626e77; }
+.sticky-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid #ffffff24; padding-top: 16px; font-size: .7rem; color: #b2bdc9; }
 .sticky-footer-bottom > div { display: flex; align-items: center; gap: 24px; }
-.sticky-footer-bottom a { display: inline-flex; align-items: center; gap: 9px; min-height: 40px; color: #626e77; text-decoration: none; }
+.sticky-footer-bottom a { display: inline-flex; align-items: center; gap: 9px; min-height: 40px; color: #b2bdc9; text-decoration: none; }
 .sticky-public-footer a:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; border-radius: 5px; }
 .sticky-footer-light { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-.sticky-footer-light i { position: absolute; display: block; top: -430px; left: -120px; width: 350px; height: 1100px; transform: rotate(-45deg); border-radius: 50%; background: radial-gradient(ellipse, #152b400b, #152b4003 60%, transparent 75%); }
-.sticky-footer-light i:nth-child(2) { left: 80px; width: 160px; background: radial-gradient(ellipse, #a4792b0b, transparent 70%); }
+.sticky-footer-light i { position: absolute; display: block; top: -430px; left: -120px; width: 350px; height: 1100px; transform: rotate(-45deg); border-radius: 50%; background: radial-gradient(ellipse, #ffffff09, #ffffff02 60%, transparent 75%); }
+.sticky-footer-light i:nth-child(2) { left: 80px; width: 160px; background: radial-gradient(ellipse, #e7c57e0c, transparent 70%); }
 .sticky-footer-light i:nth-child(3) { left: 310px; width: 200px; }
 @media (min-width: 900px) and (min-height: 650px) and (prefers-reduced-motion: no-preference) {
     .public-shell .public-footer.footer-sticky-ready { height: var(--sticky-footer-height); clip-path: inset(0); }

@@ -2,6 +2,8 @@
 
 User-selected reference: https://21st.dev/@efferd/components/sticky-footer (21st demo 7242). Inspected the actual component/demo through the connected MCP using the remaining free retrieval. The reference uses a clipped outer container, viewport-fixed bottom surface, multi-column links, diagonal lighting and one-time blurred/staggered entrances (800 ms, -8 px, 4 px blur). Its demo adds Lenis, React and Motion.
 
+Latest user adjustment: the sticky reveal is now enabled only on the public Home page. About, Contact, Login and Supplier Registration keep a normal-flow footer. The shared public footer uses a dark navy surface (#0b1826), light text and gold headings, retaining the same destinations and accessibility fallbacks.
+
 STMS implements the same public interaction independently with Razor, native CSS, IntersectionObserver, ResizeObserver and Web Animations. The listing did not provide a component license, so no React/Motion source, demo copy or proprietary assets were embedded. Publicly observable layout/behavior informed the native implementation; no licensing terms are assumed.
 
 - Replaces the previous ScrollX oversized-wordmark footer with branding, real platform/account links and the existing Contact destination. No social placeholders, fintech modules, invented contact details or unfinished destinations. Privacy remains Home-only.
