@@ -2,6 +2,10 @@
 
 This is a code-grounded current delivery checklist, not a replacement for the original Word document or an assertion that all production SQL/browser/device acceptance tests passed. Older planning documents describe their historical phase and should not be read as the current delivered state.
 
+## Latest safe acceptance evidence
+
+See [acceptance review](acceptance-review-2026-11-15.md): 23 default safe suites passed at application baseline f7604d0; Arabic OCR, virtual-authenticator browser security, simulated voice and AI browser flows also passed. Actual local-model comparison initially timed out, then the extracted-PDF probe and isolated comparison retry passed. Stable latency, a connected SQL write journey and physical face/fingerprint/microphone acceptance are not certified. `tests/Run-SafeAcceptance.ps1` reproduces the safe allowlist with external logs; it does not monitor token quotas, schedule work or enable SQL writes.
+
 ## Implemented modules
 
 - Identity credentials, role enforcement, employees/departments, account status and profile settings: Account/Employees/Departments/Profile controllers and their existing services.
