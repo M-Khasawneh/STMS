@@ -29,3 +29,7 @@ Tender options are limited to authorized winning bids with actual award records.
 - Edge verified the compiled award report and print page, correct filter labels, absence of a fabricated status selector, unknown references, reduced-motion presentation, 1440/768/390 layouts and no page overflow/JavaScript errors using a memory fixture. Screenshots are outside the repository.
 
 No database schema, migrations, stored records or private documents were modified. This report is not evidence of contract signing or execution; those data/workflows are not supplied by the current requirements/schema.
+
+## Subsequent positive SQL evidence
+
+The separately approved isolated connected workflow now creates an actual final award through the production voting/award services, verifies supplier-name search, tender and inclusive award-day/department filters, assigned Top Committee access, missing-reference fidelity and real XLSX/PDF export. See [isolated SQL acceptance](isolated-sql-acceptance.md). This supplements the earlier empty production SELECT-only run; no production award or contract reference was fabricated. Positive nonempty-reference search and signed-contract workflows are not claimed by that cycle.

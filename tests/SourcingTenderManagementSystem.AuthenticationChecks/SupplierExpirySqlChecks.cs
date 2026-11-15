@@ -115,7 +115,7 @@ internal static class SupplierExpirySqlChecks
         public Task<SupplierDocument?> DocumentAsync(Guid supplier, Guid document, CancellationToken ct) => inner.DocumentAsync(supplier, document, ct);
         public async Task SaveAsync(SupplierDocument document, AuditLog audit, CancellationToken ct) { await inner.SaveAsync(document, audit, ct); if (faults.Fail) throw new IOException("Synthetic post-save rollback probe"); }
     }
-    private static async Task<Dictionary<string, (long Count, string Hash)>> Snapshot(string connectionString)
+    internal static async Task<Dictionary<string, (long Count, string Hash)>> Snapshot(string connectionString)
     {
         await using var connection = new SqlConnection(connectionString); await connection.OpenAsync(); var tables = new List<(string Name, string Keys)>();
         await using (var command = connection.CreateCommand())

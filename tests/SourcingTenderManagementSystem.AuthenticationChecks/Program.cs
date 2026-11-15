@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Length == 2 && args[0] == "--cleanup-owned-isolated-sql") { await IsolatedSqlAcceptance.CleanupOwned(args[1]); return; }
+if (args.Contains("--approved-isolated-sql-acceptance", StringComparer.Ordinal)) { await IsolatedSqlAcceptance.Run(); return; }
 if (args.Contains("--supplier-expiry-sql-checks-only", StringComparer.Ordinal)) { await SupplierExpirySqlChecks.Run(); return; }
 if (args.Contains("--supplier-expiry-checks-only", StringComparer.Ordinal)) { await SupplierExpiryChecks.Rules(); await BidPhase3Checks.RunAsync(expiryChecks: true); return; }
 if (args.Contains("--supplier-expiry-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, expiryChecks: true); return; }

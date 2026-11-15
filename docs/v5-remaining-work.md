@@ -4,7 +4,7 @@ This is a code-grounded current delivery checklist, not a replacement for the or
 
 ## Latest safe acceptance evidence
 
-See [acceptance review](acceptance-review-2026-11-15.md): 23 default safe suites passed at application baseline f7604d0; Arabic OCR, virtual-authenticator browser security, simulated voice and AI browser flows also passed. Actual local-model comparison initially timed out, then the extracted-PDF probe and isolated comparison retry passed. Stable latency, a connected SQL write journey and physical face/fingerprint/microphone acceptance are not certified. `tests/Run-SafeAcceptance.ps1` reproduces the safe allowlist with external logs; it does not monitor token quotas, schedule work or enable SQL writes.
+See [acceptance review](acceptance-review-2026-11-15.md): 23 default safe suites passed at application baseline f7604d0; Arabic OCR, virtual-authenticator browser security, simulated voice and AI browser flows also passed. Actual local-model comparison initially timed out, then the extracted-PDF probe and isolated comparison retry passed. Stable AI latency and physical face/fingerprint/microphone acceptance are not certified. A subsequent explicitly approved [isolated connected SQL cycle](isolated-sql-acceptance.md) passed, including final voting/award concurrency, transactional rollback, actual reports and exact cleanup; it does not certify every browser/device or SQL branch. `tests/Run-SafeAcceptance.ps1` reproduces the safe allowlist with external logs; it does not monitor token quotas, schedule work or enable SQL writes.
 
 ## Implemented modules
 
@@ -14,7 +14,7 @@ See [acceptance review](acceptance-review-2026-11-15.md): 23 default safe suites
 - Tender conversion, configured/approved criteria, publication, explicit opening/closure, invitations and responses: TendersController/TenderManagement.
 - Supplier drafts, explicit bid submission, private bid documents, own summary and scoped internal viewing: BidsController/ReviewBidsController and bid services.
 - Compliance and supplier clarification, four-person committee assignments, confirmed evaluations, versioned unified reports and manager decisions: Compliance/Committees/Evaluations/UnifiedReports controllers.
-- Top Committee rounds, final decisions, report rework and explicit award: TopCommitteeController/TopCommitteeManagement. Actual SQL write/concurrency tests remain separately pending; memory service/MVC and SELECT-only queries passed.
+- Top Committee rounds, final decisions, report rework and explicit award: TopCommitteeController/TopCommitteeManagement. The isolated connected SQL cycle now verifies real voting/award persistence and duplicate-operation concurrency; exhaustive replacement/rework SQL branches remain separate from the passed memory/service/MVC coverage.
 - Internal role/stage/involvement-scoped inquiries and notifications: ClarificationsController/InternalClarificationManagement and NotificationsController.
 - Public Home/About/Contact, real public aggregates, contact inbox and administrative messages: HomeController, PublicContact, MessagesController.
 - Reports and Excel/PDF export, role-scoped data and Top Committee supplier award frequency: ReportsController/Reporting/ReportExports. See docs/reporting.md for limitations; actual award frequency is not a fulfillment/performance score.
