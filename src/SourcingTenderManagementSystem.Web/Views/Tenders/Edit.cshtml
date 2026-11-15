@@ -1,4 +1,4 @@
 @model SourcingTenderManagementSystem.Web.Models.Tenders.TenderForm
 @{ViewData["Title"]="Edit tender";}
-<div class="row form-layout"><section class="form-panel"><div class="eyebrow">TENDER CONFIGURATION</div><h1>Edit tender</h1><p>Submission times use Asia/Amman. The original requisition remains linked to this tender.</p><form asp-action="Edit" asp-route-id="@Model.Id" method="post"><partial name="_Fields" model="Model" /></form></section></div>
+<div class="row form-layout"><section class="form-panel"><div class="eyebrow">TENDER CONFIGURATION</div><h1>Edit tender</h1><p>The original requisition remains linked to this tender.</p><form asp-action="Edit" asp-route-id="@Model.Id" method="post"><partial name="_Fields" model="Model" /></form></section></div>
 @section Scripts {<partial name="_ValidationScriptsPartial" />}

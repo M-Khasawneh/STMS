@@ -8,8 +8,8 @@ public sealed class TenderForm
     [Required, StringLength(256)] public string Title { get; set; } = "";
     [Required] public string Description { get; set; } = "";
     [Required] public string Terms { get; set; } = "";
-    [Required, Display(Name = "Submission start (Asia/Amman)")] public DateTime? Start { get; set; }
-    [Required, Display(Name = "Submission deadline (Asia/Amman)")] public DateTime? Deadline { get; set; }
+    [Required, Display(Name = "Submission start")] public DateTime? Start { get; set; }
+    [Required, Display(Name = "Submission deadline")] public DateTime? Deadline { get; set; }
     public string? Version { get; set; }
     [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public Guid? Id { get; set; }
     [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public IReadOnlyList<PurchaseRequisition> EligibleRequests { get; set; } = [];

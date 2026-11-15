@@ -61,7 +61,7 @@ public sealed class TenderManagement(ApplicationDbContext db, UserManager<Identi
         Manage(actor); Validate(form);
         DateTimeOffset start, end;
         try { start = TenderTime.Utc(form.Start!.Value); end = TenderTime.Utc(form.Deadline!.Value); }
-        catch(ArgumentException) { throw Error(400,"Select valid, unambiguous Asia/Amman submission times."); }
+        catch(ArgumentException) { throw Error(400,"Select valid, unambiguous submission times."); }
         if (start >= end) throw Error(400, "Submission start must be before the deadline.");
         await RequireMigrationAsync();
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);

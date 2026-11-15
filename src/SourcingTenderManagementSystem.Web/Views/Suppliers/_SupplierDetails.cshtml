@@ -7,7 +7,7 @@
 @if (!string.IsNullOrWhiteSpace(supplier.ReviewReason)) { <div><dt>Review reason</dt><dd class="review-reason">@supplier.ReviewReason</dd></div> }
 </dl>
 <h2 class="supplier-form-heading">Official documents</h2><p class="form-text">Download each document for review. Files are provided as attachments.</p>
-<p class="form-text">Dates use Asia/Amman. Expiring soon means today through the next 30 days. A missing date is unknown, not evidence of indefinite validity. These labels do not change supplier eligibility.</p>
+<p class="form-text">Expiring soon means today through the next 30 days. A missing date is unknown, not evidence of indefinite validity. These labels do not change supplier eligibility.</p>
 <ul class="supplier-document-list">
 @foreach (var document in Model.Documents) {
     var state = SupplierExpiryRules.Label(document.ExpiresOn, today);

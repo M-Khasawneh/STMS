@@ -255,7 +255,7 @@ public static class BidPhase3Checks
             var text = await summary.Content.ReadAsStringAsync();
             Check(summary.StatusCode == HttpStatusCode.OK && summary.Content.Headers.ContentDisposition?.FileNameStar?.EndsWith(".txt") == true && text.Contains("DRAFT") && text.Contains("6.64320875 JOD") && !text.Contains("StorageReference") && !text.Contains("App_Data"), "own UTF-8 summary has exact totals, Draft warning and no storage paths");
             html = await (await client.GetAsync(submit)).Content.ReadAsStringAsync();
-            Check(html.Contains("data-bid-submit") && html.Contains("Asia/Amman") && f.Store.Rows[id].Bid.Status == BidStatus.Draft, "confirmation verifies real documents without changing bid status");
+            Check(html.Contains("data-bid-submit") && !html.Contains("Asia/Amman") && f.Store.Rows[id].Bid.Status == BidStatus.Draft, "confirmation verifies real documents without changing bid status");
             version = BidRules.Version(f.Store.Rows[id]);
             Check((await Post(submit, new() { ["Version"] = version, ["Confirmed"] = "true" }, false)).StatusCode == HttpStatusCode.BadRequest, "final submission requires antiforgery");
             html = await (await Post(submit, new() { ["Version"] = version, ["Confirmed"] = "false" })).Content.ReadAsStringAsync();

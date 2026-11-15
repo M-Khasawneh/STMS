@@ -103,7 +103,7 @@ public static class BidPhase1Checks
         failed.Store.OnPersist=()=>throw new IOException("Injected persistence failure");var change=failed.Form();change.Version=before;change.PaymentTerms="Changed";
         try{await failed.Service.SaveDraftAsync(failed.User,fid,change);throw new Exception("Expected persistence failure");}catch(IOException){}
         Check((await failed.Service.DetailsAsync(failed.User,fid)).Version==before,"persistence failure rolls back service transaction contract");
-        Check(TenderTime.Display(f.Clock.Utc).Contains("Asia/Amman"),"existing timezone display reused");
+        Check(TenderTime.Display(f.Clock.Utc) == TenderTime.Local(f.Clock.Utc).ToString("yyyy-MM-dd HH:mm"),"existing timezone display reused");
         Authorization();SqlShape();
         Console.WriteLine($"PASS: {checks} database-free bid Phase 1 checks; no SQL connection opened.");
     }

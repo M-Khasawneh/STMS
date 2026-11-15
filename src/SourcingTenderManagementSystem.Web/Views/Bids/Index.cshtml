@@ -10,7 +10,7 @@
     }
     else
     {
-        <div class="table-responsive bid-table" role="region" aria-label="My offers" tabindex="0"><table class="table align-middle"><caption class="visually-hidden">Offers belonging to your supplier account. All times use Asia/Amman.</caption><thead><tr><th scope="col">Tender / offer</th><th scope="col">Status</th><th scope="col">Submitted · Asia/Amman</th><th scope="col">Actions</th></tr></thead><tbody>
+        <div class="table-responsive bid-table" role="region" aria-label="My offers" tabindex="0"><table class="table align-middle"><caption class="visually-hidden">Offers belonging to your supplier account. </caption><thead><tr><th scope="col">Tender / offer</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col">Actions</th></tr></thead><tbody>
         @foreach (var row in Model)
         {
             <tr><th scope="row"><a asp-action="Details" asp-route-id="@row.Bid.Id">@row.Tender.Title</a><small class="bid-reference">@row.Bid.Id</small></th><td><span class="bid-status @(row.Bid.Status == BidStatus.Draft ? "is-draft" : "")">@row.Bid.Status</span></td><td>@(row.Bid.SubmittedAt.HasValue ? TenderTime.Local(row.Bid.SubmittedAt.Value).ToString("yyyy-MM-dd HH:mm") : "Not submitted")</td><td><div class="bid-actions"><a asp-action="Details" asp-route-id="@row.Bid.Id">View</a>@if (row.CanEdit) { <a asp-action="Edit" asp-route-id="@row.Bid.Id">Edit draft</a> }<a asp-action="Summary" asp-route-id="@row.Bid.Id" download>Download summary</a></div></td></tr>

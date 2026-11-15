@@ -35,7 +35,7 @@ public static class AdminDashboardChecks
             Check(response.Headers.CacheControl?.NoStore == true, "Admin data is never browser cached");
             if (state == "populated") {
                 Check(html.Contains("42") && html.Contains("Pending Admin review") && html.Contains("Converted to tender"), "aggregate and status labels render");
-                Check(html.Contains("Asia/Amman") && html.Contains("Requisition created"), "actual audit metadata uses existing time display");
+                Check(!html.Contains("Asia/Amman") && html.Contains("Requisition created"), "actual audit metadata uses existing time display");
                 Check(!html.Contains("Technical Proposal") && !html.Contains("/Bids/") && !html.Contains("StorageReference"), "confidential bid contents excluded");
             }
             if (state == "empty") Check(html.Contains("No records yet") && html.Contains("No recorded activity yet") && html.Contains("No upcoming Open tender deadlines"), "zero data has honest empty states");
