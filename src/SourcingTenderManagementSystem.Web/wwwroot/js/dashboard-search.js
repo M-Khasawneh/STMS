@@ -11,7 +11,8 @@
     const status = root.querySelector('[data-work-status]');
     const count = root.querySelector('[data-work-count]');
     const empty = root.querySelector('[data-work-empty]');
-    const normalize = text => text.normalize('NFKD').replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g, '').toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+    // Speech services may append punctuation; match words consistently in both rows and queries.
+    const normalize = text => text.normalize('NFKD').replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g, '').toLocaleLowerCase().replace(/\p{P}+/gu, ' ').replace(/\s+/g, ' ').trim();
     const records = [...dashboard.querySelectorAll('[data-work-record]')].map(row => ({ row, words: normalize(`${row.dataset.workSection} ${row.textContent}`) }));
     let recognition = null, session = 0, timer;
     const Constructor = window.SpeechRecognition || window.webkitSpeechRecognition;

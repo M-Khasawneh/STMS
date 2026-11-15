@@ -9,6 +9,7 @@ The employee-only Razor view renders the control when dashboard data is availabl
 - Native SpeechRecognition or webkitSpeechRecognition, one explicit single-utterance session at a time; English or Arabic (Jordan).
 - Text input works when recognition is unsupported, denied or unavailable. No automatic microphone activation, fake transcript, simulated audio waveform, external transcription integration or application audio storage.
 - Final recognition results populate the same bounded 160-character query; all words must match. Unicode/Arabic marks are normalized. Transcript is assigned as input value, never HTML or a command/URL.
+- Punctuation is treated as word separators in both record text and queries, so speech-service punctuation such as `Network renewal.` or `مراجعة الأجهزة؟` does not hide the matching record.
 - Explicit cancel, Escape, typing, language changes, hidden page, page exit and a 20-second timeout abort the session. Late callbacks cannot overwrite a newer or cancelled search.
 - Permission, microphone, network, no-speech, language and start errors recover without altering the stored records.
 - Accessible labels and status announcements, keyboard focus, responsive controls and reduced-motion listening feedback. Without JavaScript, all original dashboard records remain visible and the unavailable enhancement stays hidden.
@@ -30,3 +31,16 @@ Views/Workspace/Roles.cshtml; wwwroot/css/dashboard-search.css; wwwroot/js/dashb
 The browser speech service may process audio remotely and needs browser/device/service support. The interface states this before activation. Unsupported configurations retain typed search; STMS does not introduce a separate speech provider or store recordings.
 
 Primary API references: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition and https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/abort .
+
+## Focused verification follow-up — 2026-11-15
+
+Reproduced and fixed a search defect: a final transcript of `Network renewal.` showed zero results for the existing `Network renewal` row. Normalizing punctuation consistently in rows and queries restores the match without modifying the transcript, source data, permissions or search scope.
+
+- Expanded `tests/voice-search-browser.cjs`: 59 passing checks, zero page JavaScript errors. Added English/Arabic punctuation, interim/empty/long transcripts, stale sessions, all documented error paths plus unknown errors, clear/hidden-page cancellation, keyboard activation, prefixed API, insecure connection, constructor/abort failures and typed fallback. These recognition events are deliberately simulated and are not evidence of transcription accuracy.
+- `tests/voice-search-native-browser.cjs` observes the installed Edge and Chrome native recognizers without injecting results. It always uses browser fake-capture flags and an explicitly supplied external synthetic WAV; it never opens the physical microphone. The English phrase was generated locally through the existing Windows speech synthesizer, with no new software installed. Both `en-US` and `ar-JO` configurations were exercised with that same English fixture; this is not an Arabic-speech accuracy test.
+- Native results on installed Edge/Chrome 157: audio/speech lifecycle events occurred, but **0 of 4 capture attempts returned a nonempty transcript**. Edge returned an empty result; Chrome ended without a result. Both recovered with truthful feedback and preserved the previous typed query. These runs do not establish why the browser service returned no transcription and do not prove end-to-end voice recognition works.
+- Two additional native permission-denial probes, one per browser, produced `not-allowed`; the UI displayed microphone-permission guidance and retained working typed search.
+- The final solution/Razor build passed with warnings treated as errors (zero warnings/errors); all three affected JavaScript files passed syntax checks. All 13 database-free MVC audience/no-store checks passed again.
+- No SQL operations, migrations, physical recordings, external transcription integration, dependencies or role changes were introduced. QA WAV files, logs and screenshots stay outside Git under the local `voice-qa` directory.
+
+Remaining acceptance: successful human English/Arabic transcription on a supported browser with a real microphone and working speech service. Browser-native SpeechRecognition has limited availability and may rely on a remote service; application filtering and failure recovery do not guarantee provider availability.
