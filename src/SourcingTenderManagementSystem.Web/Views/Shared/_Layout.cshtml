@@ -30,7 +30,7 @@
     <title>@ViewData["Title"] &middot; Sourcing &amp; Tender</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/work-hub.css" asp-append-version="true" /> }
+    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/work-hub.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/dashboard-search.css" asp-append-version="true" /> }
     @await RenderSectionAsync("Styles", required: false)
     @if (authenticated) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
@@ -92,7 +92,7 @@
                 <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
                 <div class="topbar-context">Workspace <span aria-hidden="true">/</span> <strong>@(adminDashboard ? "Administration" : controller == "Home" ? ViewData["Title"] : controller)</strong></div>
                 <a class="workspace-search-link" asp-controller="Work" asp-action="Search" aria-label="Search your workspace">&#8981; <span>Search</span></a>
-                @await RenderSectionAsync("HeaderTools", required: false)
+                <partial name="_WorkspaceSearch" />
                 <details class="notification-dropdown" data-menu-url="@Url.Action("Menu", "Notifications")" data-watch-url="@Url.Action("Watch", "Notifications")">
                     <summary class="workspace-notification-bell" aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notification-count" hidden="@(!(unread > 0))">@(unread > 99 ? "99+" : unread.ToString())</span></summary>
                     <div class="notification-popover" role="region" aria-labelledby="notification-menu-title"><partial name="_NotificationMenu" model="@(notificationMenu ?? new SourcingTenderManagementSystem.Web.Models.NotificationMenu([], unread, false))" /></div>
@@ -126,6 +126,6 @@
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script><script src="~/js/notification-inbox.js" asp-append-version="true"></script> }
-    @if (authenticated) { <script src="~/js/workspace-tables.js" asp-append-version="true"></script> }
+    @if (authenticated) { <script src="~/js/workspace-tables.js" asp-append-version="true"></script><script src="~/js/dashboard-search.js" asp-append-version="true"></script> }
 </body>
 </html>

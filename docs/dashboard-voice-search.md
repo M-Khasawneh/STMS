@@ -1,52 +1,36 @@
-# Employee dashboard voice search — V5 section 10.3
+# Workspace voice search and role dashboards
 
-## Delivered
+## Current behavior — 2026-11-15
 
-V5 requires speech-to-text search with SpeechRecognition on the Employee Dashboard task list. The current role dashboard already derives permitted recent work records from Identity, ownership, department review exclusions and effective tender committee assignments. This increment adds typed and voice filtering to those existing rendered rows, rather than creating a new task entity, workflow or access policy.
+The user expanded the original employee-dashboard voice input to **all authenticated internal pages and all existing roles**. `_WorkspaceSearch.cshtml` is rendered once by the shared authenticated layout, immediately beside Notifications. Public Home/About/Contact/Login/registration pages and standalone printable reports do not acquire a private search control. Existing modal form frames retain their intentional embedded layout; their parent workspace header remains the shared entry point outside the modal.
 
-The employee-only Razor view supplies a microphone icon beside the header notification bell when dashboard data is available. It opens a search popover; no large search section remains in the dashboard content. Admin and Supplier dashboards do not receive the control or its assets. Search covers visible recent record titles, statuses, dates and section names. It deliberately does not claim a global search of older records: the UI directs users to the existing workspaces for older records. KPI counts and source records remain unchanged.
+This is now a global search entry point, not a filter over dashboard rows. Its ordinary GET form submits `q` to the existing `Work/Search` MVC action. Result visibility, ownership, supplier isolation, department rules and committee/stage restrictions remain in the existing WorkspaceDiscovery service and destination services. No new endpoint, API, role or permission was introduced. The user reviews recognized words and explicitly chooses Search; recognition never automatically navigates or executes commands. The existing two-character minimum and 160-character limit apply. Typed search remains available without speech support, and the ordinary workspace-search link remains available without JavaScript.
 
-- Native SpeechRecognition or webkitSpeechRecognition, one explicit single-utterance session at a time; English or Arabic (Jordan).
-- Text input works when recognition is unsupported, denied or unavailable. No automatic microphone activation, fake transcript, simulated audio waveform, external transcription integration or application audio storage.
-- Final recognition results populate the same bounded 160-character query; all words must match. Unicode/Arabic marks are normalized. Transcript is assigned as input value, never HTML or a command/URL.
-- Punctuation is treated as word separators in both record text and queries, so speech-service punctuation such as `Network renewal.` or `مراجعة الأجهزة؟` does not hide the matching record.
-- Explicit cancel, Escape, typing, language changes, hidden page, page exit and a 20-second timeout abort the session. Late callbacks cannot overwrite a newer or cancelled search.
-- Permission, microphone, network, no-speech, language and start errors recover without altering the stored records.
-- Accessible labels and status announcements, keyboard focus, responsive controls and reduced-motion listening feedback. Without JavaScript, all original dashboard records remain visible and the unavailable enhancement stays hidden.
+The closed header popover focuses text input on opening without activating the microphone. Use voice explicitly starts one native SpeechRecognition/webkitSpeechRecognition session, English or Arabic (Jordan). Browser-generated terminal punctuation/quotes are trimmed from recognized input; internal punctuation such as record-ID hyphens is preserved. Typed input retains the existing search semantics. Transcripts are assigned to input values, never inserted as HTML or URLs.
+
+Cancel, Escape, close, outside interaction, keyboard departure, typing, language changes, hidden page, page exit and a 20-second timeout stop capture. Session guards reject late callbacks. Permission, device, network, language, empty/no-speech, constructor/start/abort failures recover while preserving typed input. Search and notification popovers dismiss one another. Keyboard labels/focus, mobile containment and reduced motion remain supported. No application audio upload/storage, external transcription integration, new dependencies or automatic microphone activation.
+
+## Non-Admin dashboard composition
+
+The existing `RoleDashboardModel.Sections` remain the data source. Employees, suppliers, officers, managers and committee members share a calmer layout: a modest heading, one My tasks link, grouped existing metrics, readable recent-record lists and a separate personal-notification summary. Desktop uses a primary column plus a narrow notification column; tablet/mobile stack the same content. Single metrics and mobile metrics use compact horizontal rows instead of oversized individual cards. Multi-role sections remain visible; no metrics are combined across roles and no charts, totals or work items are fabricated.
+
+Every existing metric count, destination, title, status and timestamp remains sourced from the original model. A record with no authorized destination remains plain text. Unavailable data stays an explicit warning. The existing Admin dashboard is unchanged apart from the shared search entry point. No production controllers, services, models, role policies, database schema, migrations or records were changed.
 
 ## Files
 
-Views/Workspace/Roles.cshtml; Views/Shared/_Layout.cshtml (optional HeaderTools section); wwwroot/css/dashboard-search.css; wwwroot/js/dashboard-search.js. No controllers, domain services, entities, authentication rules, migrations, SQL writes or dependencies changed.
+- Shared/_Layout.cshtml and Shared/_WorkspaceSearch.cshtml: one global authenticated search control and its assets.
+- wwwroot/js/dashboard-search.js and wwwroot/css/dashboard-search.css: progressive search, recognition lifecycle, popover and responsive controls.
+- Workspace/Roles.cshtml and wwwroot/css/role-dashboard.css: non-Admin dashboard presentation.
+- Test-only VoiceSearchChecks/BidPhase3Checks registration and browser checks: marked memory fixtures for the existing Work/Search action and representative role dashboards; fixture counts/records are synthetic and never seeded into SQL.
 
-## Verification
+## Verification and limits
 
-- Solution/Razor build: zero warnings and errors.
-- --voice-search-checks-only: 13 compiled MVC audience/data/no-store checks using memory stores only.
-- --workspace-ui-checks-only: 59 existing role/navigation checks passed.
-- tests/voice-search-browser.cjs: 38 Edge browser checks on a marked memory-only fixture. Covers final transcript filtering, Arabic normalization, cancellation/late callbacks, permission and network errors, timeout, typed fallback, safe transcript handling, keyboard operation, no-JS fallback, role audience, 1440/768/390/320 px overflow and reduced motion.
-- Browser recognition events are injected ONLY by the test harness. This does not prove actual microphone capture or speech-service accuracy. Actual English/Arabic microphone recognition requires manual verification in a supported browser with user permission and service connectivity.
+The global browser test covers seven roles on Dashboard, Reports, My tasks and Workspace search; explicit voice-to-query-to-MVC navigation; native form validation; error/cancellation/stale-result recovery; safe transcript handling; unsupported/insecure/prefixed API fallback; keyboard/reduced motion; public/no-JavaScript behavior; and desktop/mobile dashboard composition. The compiled MVC checks cover 36 audience/markup/no-store/other-page assertions.
 
-## Browser constraints and references
+Recognition events in these UI tests are injected deliberately and do not prove physical microphone capture or transcription accuracy. In the previous native probe, installed Edge and Chrome 157 processed a synthetic English WAV under en-US/ar-JO configurations, but **0 of 4 attempts returned a nonempty transcript**. Native microphone-denial handling passed in both browsers. The updated native probe opens the shared header and checks the global form; these UI changes do not re-certify the browser speech service. Successful human English/Arabic transcription on a supported browser with permission and a working speech service remains device acceptance.
 
-The browser speech service may process audio remotely and needs browser/device/service support. The interface states this before activation. Unsupported configurations retain typed search; STMS does not introduce a separate speech provider or store recordings.
+Browser SpeechRecognition has limited availability and may use a remote browser-vendor service. STMS states this before activation; microphone permission alone does not guarantee provider availability. Primary references: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition and https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/abort .
 
-Primary API references: https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition and https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/abort .
+QA screenshots, logs and coverage stay outside Git under the local `global-voice-qa` directory. No SQL write tests, migrations, production submissions, external speech providers or new libraries were used.
 
-## Focused verification follow-up — 2026-11-15
-
-Reproduced and fixed a search defect: a final transcript of `Network renewal.` showed zero results for the existing `Network renewal` row. Normalizing punctuation consistently in rows and queries restores the match without modifying the transcript, source data, permissions or search scope.
-
-- Expanded `tests/voice-search-browser.cjs`: 59 passing checks, zero page JavaScript errors. Added English/Arabic punctuation, interim/empty/long transcripts, stale sessions, all documented error paths plus unknown errors, clear/hidden-page cancellation, keyboard activation, prefixed API, insecure connection, constructor/abort failures and typed fallback. These recognition events are deliberately simulated and are not evidence of transcription accuracy.
-- `tests/voice-search-native-browser.cjs` observes the installed Edge and Chrome native recognizers without injecting results. It always uses browser fake-capture flags and an explicitly supplied external synthetic WAV; it never opens the physical microphone. The English phrase was generated locally through the existing Windows speech synthesizer, with no new software installed. Both `en-US` and `ar-JO` configurations were exercised with that same English fixture; this is not an Arabic-speech accuracy test.
-- Native results on installed Edge/Chrome 157: audio/speech lifecycle events occurred, but **0 of 4 capture attempts returned a nonempty transcript**. Edge returned an empty result; Chrome ended without a result. Both recovered with truthful feedback and preserved the previous typed query. These runs do not establish why the browser service returned no transcription and do not prove end-to-end voice recognition works.
-- Two additional native permission-denial probes, one per browser, produced `not-allowed`; the UI displayed microphone-permission guidance and retained working typed search.
-- The final solution/Razor build passed with warnings treated as errors (zero warnings/errors); all three affected JavaScript files passed syntax checks. All 13 database-free MVC audience/no-store checks passed again.
-- No SQL operations, migrations, physical recordings, external transcription integration, dependencies or role changes were introduced. QA WAV files, logs and screenshots stay outside Git under the local `voice-qa` directory.
-
-Remaining acceptance: successful human English/Arabic transcription on a supported browser with a real microphone and working speech service. Browser-native SpeechRecognition has limited availability and may rely on a remote service; application filtering and failure recovery do not guarantee provider availability.
-
-## Header placement follow-up — 2026-11-15
-
-Moved the existing employee dashboard search into a closed-by-default header popover, opened by a microphone icon immediately beside Notifications. Opening the panel focuses typed search without starting the microphone. Recording still requires the explicit Use voice button. Search and notification popovers dismiss one another. Close, outside pointer interaction and keyboard departure cancel capture; Escape first cancels recording, then closes an idle panel. Closing preserves the current filter and marks the header icon when a filter is active. No-JavaScript behavior preserves the original records and hides the unavailable enhancement.
-
-Verification: solution/Razor build passed with zero warnings/errors; 13 voice MVC audience/no-store checks and 59 existing workspace role/navigation checks passed. The expanded browser suite passed 72 checks including placement, removal from main content, focus restoration, late callbacks after closing, notification interaction, keyboard departure, reduced motion and viewport containment at 1440/768/390/320 px. Responsive review caught and fixed left-edge clipping on tablet. The native probe was updated to open the header panel; provider transcription results from the preceding focused review were not re-certified by these interface tests. No database changes or dependencies.
+Final verification for this revision: solution/Razor build passed with warnings treated as errors (zero warnings/errors), all 24 safe-acceptance groups passed and all 23 browser suites passed. The rewritten global voice/role-dashboard suite passed 188 assertions with zero page JavaScript errors, including notification-side-panel rendering for all six non-Admin roles. The 36 compiled voice MVC checks passed. This certifies the tested UI/navigation scenarios, not real microphone transcription or production SQL persistence.

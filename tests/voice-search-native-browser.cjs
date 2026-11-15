@@ -54,7 +54,7 @@ const fs = require('fs'), path = require('path');
                 if (supported && scenario === 'denied' && !events.some(event => event.error === 'not-allowed')) throw Error('Native permission denial was not handled.');
                 if (!transcribed && await query.inputValue() !== 'Finance') throw Error('Native failure erased existing search.');
                 await query.fill('Network');
-                if (await page.locator('[data-work-record]:visible').count() !== 1 || errors.length) throw Error('Typed fallback or JavaScript failed.');
+                if (await query.inputValue() !== 'Network' || !await page.locator('[data-work-search-submit]').isEnabled() || errors.length) throw Error('Typed fallback or JavaScript failed.');
                 const result = { channel, scenario, language, supported, transcribed, events, status: await page.locator('[data-work-status]').innerText(), errors };
                 results.push(result);
                 console.log(JSON.stringify(result));

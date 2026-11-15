@@ -1,9 +1,8 @@
-/* No audio upload, automatic microphone activation, external scripts or navigation. */
+/* Native voice input for the existing, explicitly submitted MVC search. No application audio storage. */
 (() => {
     'use strict';
     const root = document.querySelector('[data-dashboard-search]');
     if (!root) return;
-    const dashboard = document.querySelector('[data-role-dashboard]');
     const menu = root.closest('[data-work-search-menu]');
     const toggle = menu.querySelector('[data-work-search-toggle]');
     const query = root.querySelector('[data-work-query]');
@@ -11,26 +10,14 @@
     const label = root.querySelector('[data-work-voice-label]');
     const language = root.querySelector('[data-work-language]');
     const status = root.querySelector('[data-work-status]');
-    const count = root.querySelector('[data-work-count]');
-    const empty = root.querySelector('[data-work-empty]');
-    // Speech services may append punctuation; match words consistently in both rows and queries.
-    const normalize = text => text.normalize('NFKD').replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g, '').toLocaleLowerCase().replace(/\p{P}+/gu, ' ').replace(/\s+/g, ' ').trim();
-    const records = [...dashboard.querySelectorAll('[data-work-record]')].map(row => ({ row, words: normalize(`${row.dataset.workSection} ${row.textContent}`) }));
+    const form = root.querySelector('[data-work-search-form]');
     let recognition = null, session = 0, timer;
     const Constructor = window.SpeechRecognition || window.webkitSpeechRecognition;
     const supported = typeof Constructor === 'function' && window.isSecureContext;
-    function filter() {
-        const terms = normalize(query.value.slice(0, 160)).split(' ').filter(Boolean);
-        let shown = 0;
-        for (const record of records) {
-            record.row.hidden = !terms.every(term => record.words.includes(term));
-            if (!record.row.hidden) shown++;
-        }
-        count.textContent = `${shown} of ${records.length} recent dashboard records shown.`;
-        toggle.classList.toggle('has-query', terms.length > 0);
-        toggle.setAttribute('aria-label', terms.length ? 'Voice and text search, dashboard filter active' : 'Voice and text search');
-        empty.hidden = !terms.length || shown > 0;
-        return shown;
+    function updateQuery() {
+        const ready = query.value.trim().length >= 2;
+        toggle.classList.toggle('has-query', ready);
+        toggle.setAttribute('aria-label', ready ? 'Voice and text search, query ready' : 'Voice and text search');
     }
     function finish(message, abort = false) {
         const current = recognition;
@@ -66,9 +53,10 @@
             else closeSearch(true);
         }
     });
-    query.addEventListener('input', () => { cancel(); filter(); });
+    query.addEventListener('input', () => { cancel(); updateQuery(); });
+    form.addEventListener('submit', () => cancel());
     root.querySelector('[data-work-clear]').addEventListener('click', () => {
-        cancel(); query.value = ''; filter(); status.textContent = 'Search cleared. All recent records are shown.'; query.focus();
+        cancel(); query.value = ''; updateQuery(); status.textContent = 'Search cleared. Enter a new search.'; query.focus();
     });
     language.addEventListener('change', () => cancel('Voice language changed. Start voice input when ready.'));
     window.addEventListener('pagehide', () => cancel());
@@ -85,16 +73,16 @@
             current.interimResults = false;
             current.maxAlternatives = 1;
             const valid = () => ticket === session && recognition === current;
-            current.onstart = () => { if (valid()) status.textContent = 'Listening. Say a title or status. Choose Cancel voice or press Escape to stop.'; };
+            current.onstart = () => { if (valid()) status.textContent = 'Listening. Say a title, company or account name. Choose Cancel voice or press Escape to stop.'; };
             current.onresult = event => {
                 if (!valid()) return;
                 const result = Array.from(event.results).find(item => item.isFinal);
                 if (!result) return;
-                const text = result[0]?.transcript?.trim().slice(0, 160);
+                const text = result[0]?.transcript?.trim().replace(/^[\s"'“”«»]+|[\s"'“”«».!?؟،؛]+$/gu, '').slice(0, 160);
                 if (!text) { finish('No speech was recognized. Try again or type your search.', true); return; }
                 query.value = text;
-                const shown = filter();
-                finish(`Voice search applied. ${shown} matching dashboard records. You can edit the search words.`, true);
+                updateQuery();
+                finish('Voice input is ready. Review the words, then choose Search.', true);
             };
             current.onerror = event => {
                 if (!valid()) return;
@@ -121,8 +109,8 @@
     if (!supported) {
         voice.disabled = true;
         language.disabled = true;
-        status.textContent = 'Voice input is unavailable in this browser or connection. Type to search your dashboard.';
+        status.textContent = 'Voice input is unavailable in this browser or connection. Type your search and choose Search.';
     }
-    filter();
+    updateQuery();
     menu.hidden = false;
 })();

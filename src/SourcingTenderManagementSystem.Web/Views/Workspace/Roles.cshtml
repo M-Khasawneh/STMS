@@ -1,36 +1,47 @@
 @model RoleDashboardModel
 @using SourcingTenderManagementSystem.Web.Models.Tenders
-@using SourcingTenderManagementSystem.Web.Security
-@{ ViewData["Title"] = "My dashboard"; var employeeSearch = Model.Available && Model.Roles.Count > 0 && !Model.Roles.Contains(ApplicationRoles.Supplier) && !Model.Roles.Contains(ApplicationRoles.Admin); }
-@section Styles { @if (employeeSearch) { <link rel="stylesheet" href="~/css/dashboard-search.css" asp-append-version="true" /> } }
-@section HeaderTools {
-@if (employeeSearch) {
-    <div class="dashboard-search-menu" data-work-search-menu hidden>
-    <button type="button" class="dashboard-search-toggle" data-work-search-toggle aria-label="Voice and text search" title="Voice and text search" aria-expanded="false" aria-controls="dashboard-search-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></button>
-    <section id="dashboard-search-panel" class="dashboard-search" data-dashboard-search hidden aria-labelledby="work-search-heading">
-        <div class="dashboard-search-heading"><div><span class="eyebrow">FIND YOUR WORK</span><h2 id="work-search-heading">Search your dashboard</h2><p id="work-search-scope">Search titles, statuses and sections in the recent records shown below. Open a workspace to find older records. Counts stay unchanged.</p></div><button type="button" class="dashboard-search-close" data-work-search-close aria-label="Close search">&#215;</button></div>
-        <div class="dashboard-search-controls">
-            <div class="dashboard-search-input"><label for="work-search-query">Search words</label><input id="work-search-query" type="search" class="form-control" maxlength="160" autocomplete="off" placeholder="Type a title or status" aria-describedby="work-search-scope work-search-count" data-work-query /></div>
-            <div><label for="work-search-language">Voice language</label><select id="work-search-language" class="form-select" data-work-language><option value="en-US">English</option><option value="ar-JO">العربية</option></select></div>
-            <button type="button" class="dashboard-voice" aria-pressed="false" aria-label="Start voice search" data-work-voice><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg><span data-work-voice-label>Use voice</span></button>
-            <button type="button" class="btn btn-outline-secondary" data-work-clear>Clear</button>
+@{
+    ViewData["Title"] = "My dashboard";
+    var updates = Model.Sections.Where(x => x.Title == "My notifications").ToArray();
+    var work = Model.Sections.Where(x => x.Title != "My notifications").ToArray();
+}
+@section Styles { <link rel="stylesheet" href="~/css/role-dashboard.css" asp-append-version="true" /> }
+<div class="role-dashboard @(updates.Length > 0 ? "has-updates" : "")" data-role-dashboard>
+    <header class="role-dashboard-header">
+        <div><span class="eyebrow">YOUR WORKSPACE</span><h1>My dashboard</h1><p>Welcome, @User.Identity?.Name. Here is your current work at a glance.</p></div>
+        <a asp-controller="Work" asp-action="Tasks" class="btn btn-primary">My tasks <span aria-hidden="true">&#8594;</span></a>
+    </header>
+    @if (!Model.Available) { <div class="alert alert-warning" role="alert">Dashboard data is temporarily unavailable. Your existing navigation and workspace search remain available.</div> }
+    <div class="role-overview-grid">
+        <div class="role-primary-panels">
+        @foreach (var panel in work) {
+            <section class="role-work-panel">
+                <header class="role-panel-heading"><h2>@panel.Title</h2><span class="role-panel-label">Overview</span></header>
+                <p class="role-panel-description">@panel.Description</p>
+                <div class="role-summary-metrics">@foreach (var metric in panel.Metrics) {
+                    <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View records <span aria-hidden="true">&#8599;</span></a> }</article>
+                }</div>
+                <div class="role-record-heading"><h3>Recent records</h3><span>Recorded / deadline</span></div>
+                @if (panel.Records.Count == 0) { <p class="role-work-empty">No records available in this section.</p> }
+                else { <ul class="role-record-list">@foreach (var row in panel.Records) {
+                    <li data-work-record data-work-section="@panel.Title"><div class="role-record-content">
+                        @if (row.Controller is not null) { <a asp-controller="@row.Controller" asp-action="@row.Action" asp-route-id="@(row.Action == "Index" ? (Guid?)null : row.Id)">@row.Title</a> } else { <strong>@row.Title</strong> }
+                        <small>@if (row.At.HasValue) { <time datetime="@row.At.Value.ToString("O")">@TenderTime.Display(row.At.Value)</time> } else { <span>No date recorded</span> }</small>
+                    </div><span class="status-pill">@row.Status</span></li>
+                }</ul> }
+            </section>
+        }
         </div>
-        <p class="dashboard-search-status" role="status" aria-live="polite" aria-atomic="true" data-work-status>Type to filter, or start voice input.</p>
-        <p class="dashboard-search-privacy">Voice starts only when you choose it. Your browser’s speech service may process audio online. STMS does not upload or store audio.</p>
-        <p id="work-search-count" class="dashboard-search-count" data-work-count></p>
-        <p class="role-empty" data-work-empty hidden>No matching records on this dashboard. Try another word or open the relevant workspace.</p>
-    </section>
+        @if (updates.Length > 0) { <aside class="role-updates" aria-label="Your notification summary">
+            @foreach (var panel in updates) {
+                <section class="role-work-panel">
+                    <header class="role-panel-heading"><h2>@panel.Title</h2><span class="role-panel-label">Personal</span></header>
+                    <p class="role-panel-description">@panel.Description</p>
+                    <div class="role-summary-metrics">@foreach (var metric in panel.Metrics) { <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View notifications <span aria-hidden="true">&#8599;</span></a> }</article> }</div>
+                    @if (panel.Records.Count == 0) { <p class="role-work-empty">No notifications to display.</p> }
+                    else { <ul class="role-record-list">@foreach (var row in panel.Records) { <li><div class="role-record-content">@if (row.Controller is not null) { <a asp-controller="@row.Controller" asp-action="@row.Action" asp-route-id="@(row.Action == "Index" ? (Guid?)null : row.Id)">@row.Title</a> } else { <strong>@row.Title</strong> }<small>@if (row.At.HasValue) { <time datetime="@row.At.Value.ToString("O")">@TenderTime.Display(row.At.Value)</time> }</small></div><span class="status-pill">@row.Status</span></li> }</ul> }
+                </section>
+            }
+        </aside> }
     </div>
-}
-}
-<div class="role-dashboard" data-role-dashboard><header class="page-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h1>My dashboard</h1><p>Welcome, @User.Identity?.Name. Your work, within your assigned roles.</p></div><a asp-controller="Profile" asp-action="Index" class="btn btn-outline-secondary">Profile settings</a></header>
-@if (!Model.Available) { <div class="alert alert-warning" role="alert">Dashboard data is temporarily unavailable. Your existing navigation remains available.</div> }
-@foreach (var panel in Model.Sections) {
-    <section class="role-dashboard-section"><div class="role-section-heading"><h2>@panel.Title</h2><p>@panel.Description</p></div><div class="role-metrics">@foreach (var metric in panel.Metrics) { <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">Open workspace ↗</a> }</article> }</div>
-    @if (panel.Records.Count == 0) { <p class="role-empty">No records available in this section.</p> }
-    else { <div class="table-responsive" role="region" aria-label="@panel.Title" tabindex="0"><table class="table"><thead><tr><th scope="col">Record</th><th scope="col">Status</th><th scope="col">Recorded / deadline</th></tr></thead><tbody>@foreach (var row in panel.Records) { <tr data-work-record data-work-section="@panel.Title"><td>@if (row.Controller is not null) { <a asp-controller="@row.Controller" asp-action="@row.Action" asp-route-id="@(row.Action == "Index" ? (Guid?)null : row.Id)">@row.Title</a> } else { @row.Title }</td><td><span class="status-pill">@row.Status</span></td><td>@(row.At.HasValue ? TenderTime.Display(row.At.Value) : "—")</td></tr> }</tbody></table></div> }
-    </section>
-}
 </div>
-
-@section Scripts { @if (employeeSearch) { <script src="~/js/dashboard-search.js" asp-append-version="true"></script> } }
