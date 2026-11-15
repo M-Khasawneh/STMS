@@ -5,7 +5,7 @@ using SourcingTenderManagementSystem.Web.Data;
 using SourcingTenderManagementSystem.Web.Models.Reports;
 namespace SourcingTenderManagementSystem.Web.Controllers;
 
-[Authorize]
+[Authorize(Policy = "SignedInAccount")]
 [AutoValidateAntiforgeryToken]
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 public sealed class ReportsController(IReporting reports, ILogger<ReportsController> logger, TimeProvider clock) : Controller

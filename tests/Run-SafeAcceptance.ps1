@@ -63,7 +63,10 @@ try {
         RunCheck 'ai-local-model' @($authentication,'--ai-local-model-checks-only') | Out-Null
         RunCheck 'ai-document-model' @($authentication,'--ai-document-model-checks-only') | Out-Null
     }
-    if ($IncludeSqlReadOnly) { RunCheck 'sql-select-only' @($authentication,'--reporting-read-only-checks') | Out-Null }
+    if ($IncludeSqlReadOnly) {
+        RunCheck 'sql-select-only' @($authentication,'--reporting-read-only-checks') | Out-Null
+        RunCheck 'workspace-sql-select-only' @($authentication,'--workspace-read-only-checks') | Out-Null
+    }
     $completed = $true
 }
 finally {

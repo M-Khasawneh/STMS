@@ -15,7 +15,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 // This runner has no fixture creation, SaveChanges, SQL mutations, export-file writes or cleanup operations.
 internal static class ReportingReadOnlyChecks
 {
-    public static async Task RunAsync()
+    public static async Task RunAsync(bool workspaceOnly = false)
     {
         using var json = JsonDocument.Parse(await File.ReadAllTextAsync("src/SourcingTenderManagementSystem.Web/appsettings.json"));
         var target = new SqlConnectionStringBuilder(json.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString());
@@ -25,6 +25,7 @@ internal static class ReportingReadOnlyChecks
         services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<BidData>(); services.AddScoped<IBidData>(s => s.GetRequiredService<BidData>()); services.AddScoped<TenderManagement>(); services.AddScoped<EvaluationManagement>(); services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>()); services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>(); services.AddScoped<IReporting, Reporting>(); services.AddScoped<ITopCommitteeData, TopCommitteeData>(); services.AddScoped<ITopCommitteeManagement, TopCommitteeManagement>();
         services.AddScoped<IBidSubmissionDocuments,BidSubmissionDocumentsPending>(); services.AddScoped<BidManagement>(); services.AddScoped<BidReviewPages>(); services.AddScoped<IAiBidData,AiBidData>(); services.AddSingleton<IAiBidDocuments,TestAiDocuments>();
+        services.AddScoped<IWorkspaceDiscovery, WorkspaceDiscovery>(); services.AddScoped<ISupplierTenderPortal,SupplierTenderPortal>(); services.AddScoped<SupplierBidPages>();
         await using var provider = services.BuildServiceProvider(); var count = 0; var skipped = new List<string>();
         foreach (var role in ApplicationRoles.All)
         {
@@ -33,6 +34,25 @@ internal static class ReportingReadOnlyChecks
             ClaimsPrincipal? actor = null;
             foreach (var id in ids) { var candidate = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "ReadOnlyReportCheck")); var account = await data.AccountAsync(candidate, now, CancellationToken.None); if (account != null && ReportRules.Categories(account).Length > 0) { actor = candidate; break; } }
             if (actor == null) { skipped.Add(role); continue; }
+            if (workspaceOnly) {
+                var discovery=scope.ServiceProvider.GetRequiredService<IWorkspaceDiscovery>();
+                var tasks=await discovery.ReadAsync(actor,true,null,null,1,CancellationToken.None);count++;
+                foreach(var category in tasks.Groups.Select(g=>g.Key)) {await discovery.ReadAsync(actor,true,null,category,1,CancellationToken.None);count++;}
+                var search=await discovery.ReadAsync(actor,false,"st",null,1,CancellationToken.None);count++;
+                foreach(var category in search.Groups.Select(g=>g.Key)) {await discovery.ReadAsync(actor,false,"st",category,2,CancellationToken.None);count++;}
+                var account=(await data.AccountAsync(actor,now,CancellationToken.None))!;
+                if(ReportRules.Admin(account)) {
+                    await discovery.AuditAsync(actor,null,null,null,null,1,CancellationToken.None);count++;
+                    await discovery.AuditAsync(actor,"Created","Tender",new DateOnly(1900,1,1),new DateOnly(2100,12,31),2,CancellationToken.None);count++;
+                }
+                if(account.Supplier) {
+                    var portal=scope.ServiceProvider.GetRequiredService<ISupplierTenderPortal>();
+                    var visible=await db.Tenders.AsNoTracking().Where(t=>t.Status!=TenderStatus.Draft&&db.TenderSuppliers.Any(l=>l.TenderId==t.Id&&l.SupplierProfileId==account.SupplierId&&db.Invitations.Any(i=>i.TenderSupplierId==l.Id))).OrderBy(t=>t.Id).Select(t=>t.Id).Take(2).ToListAsync();
+                    foreach(var tenderId in visible){await portal.ReadAsync(actor,tenderId,CancellationToken.None);count++;}
+                }
+                Console.WriteLine($"PASS: SELECT-only live workspace task/search/filter/portal queries for {role}.");
+                continue;
+            }
             var topData = scope.ServiceProvider.GetRequiredService<ITopCommitteeData>();
             var topAccount = await data.AccountAsync(actor, now, CancellationToken.None);
             if (topAccount is not null) {
@@ -76,7 +96,7 @@ internal static class ReportingReadOnlyChecks
                 if (page.Document.Tables.Count > 0) { var xlsx = ReportExports.Excel(page.Document); if (xlsx.Length < 100) throw new Exception("Empty Excel export."); count++; if (!ReportExports.HasRightToLeftText(page.Document)) { var pdf = ReportExports.Pdf(page.Document); if (pdf.Length < 100) throw new Exception("Empty PDF export."); count++; } else Console.WriteLine("LIMITATION: PDF skipped for right-to-left text; Excel verified."); }
             }
         }
-        Console.WriteLine($"PASS: {count} actual SQL read/report/export checks. SELECT-only interceptor active; no files or database rows written. Roles without eligible existing accounts: {string.Join(", ", skipped)}.");
+        Console.WriteLine($"PASS: {count} actual SQL {(workspaceOnly?"workspace":"read/report/export")} checks. SELECT-only interceptor active; no files or database rows written. Roles without eligible existing accounts: {string.Join(", ", skipped)}.");
     }
     private sealed class SelectOnly : DbCommandInterceptor
     {

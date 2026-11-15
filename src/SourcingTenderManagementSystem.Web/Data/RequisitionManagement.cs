@@ -19,7 +19,7 @@ public sealed class RequisitionException(int status, string message) : Exception
 
 public sealed class RequisitionManagement(ApplicationDbContext database, UserManager<IdentityUser> users, TimeProvider clock)
 {
-    public DateOnly Today => DateOnly.FromDateTime(clock.GetLocalNow().DateTime);
+    public DateOnly Today => DateOnly.FromDateTime(Models.Tenders.TenderTime.Local(clock.GetUtcNow()));
     public async Task<RequisitionActor> ActorAsync(ClaimsPrincipal principal)
     {
         var user = await users.GetUserAsync(principal) ?? throw new RequisitionException(403, "An employee account is required.");

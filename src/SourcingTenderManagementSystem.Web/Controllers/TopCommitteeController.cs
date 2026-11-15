@@ -5,7 +5,7 @@ using SourcingTenderManagementSystem.Web.Data;
 using SourcingTenderManagementSystem.Web.Models.TopCommittee;
 using SourcingTenderManagementSystem.Web.Security;
 namespace SourcingTenderManagementSystem.Web.Controllers;
-[Authorize,AutoValidateAntiforgeryToken,ResponseCache(Duration=0,NoStore=true,Location=ResponseCacheLocation.None)]
+[Authorize(Policy="SignedInAccount"),AutoValidateAntiforgeryToken,ResponseCache(Duration=0,NoStore=true,Location=ResponseCacheLocation.None)]
 public sealed class TopCommitteeController(ITopCommitteeManagement committee):Controller {
  private const string Readers=ApplicationRoles.SourcingManager+","+ApplicationRoles.SourcingOfficer+","+ApplicationRoles.TopCommittee;
  public override async Task OnActionExecutionAsync(ActionExecutingContext context,ActionExecutionDelegate next){var executed=await next();if(executed.Exception is not BidException error)return;executed.ExceptionHandled=true;if(error.Status==403)executed.Result=Forbid();else if(error.Status==404)executed.Result=NotFound();else{Response.StatusCode=error.Status;executed.Result=View("Problem",error.Message);}}

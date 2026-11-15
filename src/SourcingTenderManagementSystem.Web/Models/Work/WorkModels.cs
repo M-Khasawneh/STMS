@@ -4,7 +4,7 @@ public sealed class WorkRecord
 {
     public string Id { get; set; } = "";
     public string Title { get; set; } = "";
-    public int State { get; set; }
+    public string State { get; set; } = "";
     public DateTimeOffset? At { get; set; }
 }
 public sealed record WorkGroup(string Key, string Title, string Controller, string Action, string Parameter,

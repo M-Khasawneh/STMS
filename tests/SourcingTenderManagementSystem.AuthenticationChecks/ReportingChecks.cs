@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using System.IO.Compression;
 using System.Net;
 using System.Security.Claims;
@@ -49,6 +50,16 @@ internal static class ReportingChecks
     public static async Task Mvc(HttpClient client, IServiceProvider services)
     {
         int n = 0; void Check(bool yes, string label) { if (!yes) throw new Exception(label); n++; }
+        var policies=services.GetRequiredService<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider>();
+        var supplier=new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier,"supplier"),new Claim(ClaimTypes.Role,ApplicationRoles.Supplier)],"policy-check"));
+        using(var policyScope=services.CreateScope()){
+            var authorization=policyScope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Authorization.IAuthorizationService>();
+            var defaults=await policies.GetDefaultPolicyAsync();
+            Check(!(await authorization.AuthorizeAsync(supplier,null,defaults)).Succeeded,"Fixture uses production employee-only default policy");
+            var declared=typeof(SourcingTenderManagementSystem.Web.Controllers.ReportsController).GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),true).Cast<Microsoft.AspNetCore.Authorization.IAuthorizeData>();
+            var reportPolicy=(await Microsoft.AspNetCore.Authorization.AuthorizationPolicy.CombineAsync(policies,declared))!;
+            Check((await authorization.AuthorizeAsync(supplier,null,reportPolicy)).Succeeded,"Supplier personal reports use explicit signed-in policy, not employee-only default");
+        }
         async Task<HttpResponseMessage> Get(string actor, string url) { client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor"); client.DefaultRequestHeaders.Add("X-Bid-Test-Actor", actor); return await client.GetAsync(url); }
         Check((await Get("anonymous", "/Reports")).StatusCode == HttpStatusCode.Unauthorized, "Anonymous denied");
         foreach (var actor in new[] { "admin", "requester", "officer", "manager", "evaluator", "top", "supplier" }) { var res = await Get(actor, "/Reports"); var html = await res.Content.ReadAsStringAsync(); Check(res.StatusCode == HttpStatusCode.OK, "Compiled report " + actor); Check(html.Contains("Download Excel") && html.Contains("Download PDF"), "Export routes"); Check(!html.Contains("<script>report fixture</script>") && html.Contains("&lt;script&gt;report fixture&lt;/script&gt;"), "Encoded data"); Check(res.Headers.CacheControl?.NoStore == true, "No report cache"); }

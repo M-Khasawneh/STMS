@@ -24,6 +24,7 @@ internal static class WorkspaceEnhancementChecks
             var a=A(role);Check(WorkspaceDiscovery.Eligible(a),"Eligible known role "+role);
             foreach(var tasks in new[]{true,false})foreach(var group in service.Queries(a,department,tasks,f.Clock.Utc)){
                 var sql=group.Rows.Where(x=>x.Title.Contains("network")||x.Id=="reference").OrderBy(x=>x.At).ThenBy(x=>x.Id).Skip(20).Take(20).ToQueryString();
+                Check(!System.Text.RegularExpressions.Regex.IsMatch(sql,@"CAST\([^)]*\[Status\][^)]*AS int",System.Text.RegularExpressions.RegexOptions.IgnoreCase),"String-backed status must not be cast to SQL int "+group.Key);
                 Check(sql.Contains("SELECT")&&sql.Contains("OFFSET"),"Real SQL Server discovery translation "+role+"/"+tasks+"/"+group.Key);
                 if(role==ApplicationRoles.Supplier)Check(!sql.Contains("[UnitPrice]")&&!sql.Contains("[StorageReference]"),"Supplier discovery never projects confidential contents");
             }
@@ -99,7 +100,7 @@ internal sealed class WorkDiscoveryFixture(BidPhase1Checks.Fixture f):IWorkspace
 {
     public WorkPage? Last;public AuditPage? LastAudit;
     async Task<BidAccount> Actor(ClaimsPrincipal user){var a=await f.Store.AccountAsync(user,f.Clock.Utc,default);BidRules.Require(WorkspaceDiscovery.Eligible(a),403,"Eligible account required.");return a!;}
-    public async Task<WorkPage> ReadAsync(ClaimsPrincipal user,bool tasks,string? query,string? category,int page,CancellationToken ct){var a=await Actor(user);BidRules.Require((query?.Length??0)<=160,400,"Search too long.");return Last=new(tasks,query??"",category,page,[new("requests","Your authorized records",a.Supplier?"Bids":"Requisitions","Details","id",a.Supplier?"bid":"request",[new(){Id=Guid.NewGuid().ToString(),Title="<script>synthetic work</script>",State=0,At=f.Clock.Utc}],24)]);}
+    public async Task<WorkPage> ReadAsync(ClaimsPrincipal user,bool tasks,string? query,string? category,int page,CancellationToken ct){var a=await Actor(user);BidRules.Require((query?.Length??0)<=160,400,"Search too long.");return Last=new(tasks,query??"",category,page,[new("requests","Your authorized records",a.Supplier?"Bids":"Requisitions","Details","id",a.Supplier?"bid":"request",[new(){Id=Guid.NewGuid().ToString(),Title="<script>synthetic work</script>",State="Draft",At=f.Clock.Utc}],24)]);}
     public async Task<AuditPage> AuditAsync(ClaimsPrincipal user,string? query,string? type,DateOnly? from,DateOnly? to,int page,CancellationToken ct){BidRules.Require(ReportRules.Admin(await Actor(user)),403,"Admin required.");return LastAudit=new(query??"",type,from,to,page,42,[new(Guid.NewGuid(),"Tender.Created","Tender",Guid.NewGuid().ToString(),f.Clock.Utc)]);}
 }
 internal sealed class SupplierPortalFixture(BidPhase1Checks.Fixture f):ISupplierTenderPortal

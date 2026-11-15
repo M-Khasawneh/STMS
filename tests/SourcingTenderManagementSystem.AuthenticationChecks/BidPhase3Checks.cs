@@ -81,6 +81,8 @@ public static class BidPhase3Checks
         builder.Services.Configure<MvcOptions>(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         builder.Services.AddAuthentication("BidPhase3Only").AddScheme<AuthenticationSchemeOptions, BidMvcTestAuthentication>("BidPhase3Only", _ => { });
         builder.Services.AddAuthorization(options => {
+            options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder().RequireAuthenticatedUser().RequireRole(ApplicationRoles.EmployeeRoles).Build();
+
             options.AddPolicy("SignedInAccount", policy => policy.RequireAuthenticatedUser());
             foreach (var role in ApplicationRoles.EmployeeRoles) options.AddPolicy(role, policy => policy.RequireAuthenticatedUser().RequireRole(role));
         });

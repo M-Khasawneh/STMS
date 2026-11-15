@@ -9,7 +9,7 @@ using SourcingTenderManagementSystem.Web.Security;
 namespace SourcingTenderManagementSystem.AuthenticationChecks;
 
 // Loaded only by the explicit memory preview host, never by the production web assembly.
-[Authorize]
+[Authorize(Policy="SignedInAccount")]
 public sealed class NotesPreviewController : Controller
 {
     [HttpGet] public IActionResult SupplierExpiry([FromServices] SupplierExpiryChecks.MemoryStore store)

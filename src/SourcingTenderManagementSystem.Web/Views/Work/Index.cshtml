@@ -14,7 +14,7 @@ else{
 <section class="work-section" aria-labelledby="heading-@group.Key"><header><h2 id="heading-@group.Key">@group.Title <span>@group.Total.ToString("N0")</span></h2>@if(Model.Category is null&&group.Total>group.Items.Count){<a asp-action="@action" asp-route-q="@Model.Query" asp-route-category="@group.Key">View all &#8594;</a>}</header>
 @if(group.Items.Count==0){<p class="work-section-empty">No matching records in this category.</p>}else{<ul class="work-records">@foreach(var row in group.Items){
 var route=new Dictionary<string,string>{{group.Parameter,row.Id}};
-string status=group.StateKind switch{"request"=>((PurchaseRequestStatus)row.State).ToString(),"tender"=>((TenderStatus)row.State).ToString(),"bid"=>((BidStatus)row.State).ToString(),"supplier"=>((SupplierStatus)row.State).ToString(),"invitation"=>((InvitationStatus)row.State).ToString(),_=>""};
+string status=row.State;
 <li><span class="work-record-icon" aria-hidden="true">&#9636;</span><div><a asp-controller="@group.Controller" asp-action="@group.Action" asp-all-route-data="route">@row.Title</a><small>@if(status.Length>0){<span class="status-pill">@AdminDashboardModel.StatusLabel(status)</span>}@if(row.At.HasValue){<time datetime="@row.At.Value.ToString("O")">@TenderTime.Display(row.At.Value)</time>}</small></div><a class="work-open" asp-controller="@group.Controller" asp-action="@group.Action" asp-all-route-data="route" aria-label="Open @row.Title">&#8599;</a></li>
 }</ul>}</section>}
 @if(Model.Groups.Count==0){<div class="work-empty"><h2>No available work</h2><p>There are no records available for this view.</p></div>}
