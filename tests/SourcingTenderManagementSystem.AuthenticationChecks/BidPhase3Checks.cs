@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false, bool aiChecks = false, bool expiryChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false, bool aiChecks = false, bool expiryChecks = false, bool workHubChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -63,6 +63,14 @@ public static class BidPhase3Checks
         builder.Services.AddSingleton<ITopCommitteeManagement>(sp => new TopCommitteeManagement(sp.GetRequiredService<ITopCommitteeData>(), TimeProvider.System));
         builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
         builder.Services.AddScoped<NotificationInbox>();
+        builder.Services.AddSingleton<NotificationWatchGate>();
+        if (workHubChecks) {
+            foreach(var pair in new[]{("admin",ApplicationRoles.Admin),("requester",ApplicationRoles.RequestingDepartment),("officer",ApplicationRoles.SourcingOfficer),("manager",ApplicationRoles.SourcingManager),("evaluator",ApplicationRoles.EvaluationCommittee),("top",ApplicationRoles.TopCommittee)})
+                f.Store.Accounts[pair.Item1]=new(pair.Item1,[pair.Item2],null,false,true,true,[],[]);
+            builder.Services.AddSingleton<IWorkspaceDiscovery>(new WorkDiscoveryFixture(f));
+            builder.Services.AddSingleton<ISupplierTenderPortal>(new SupplierPortalFixture(f));
+        }
+
         builder.Services.AddPublicContact();
         builder.Services.RemoveAll<IContactMessageStore>();
         builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();
@@ -145,6 +153,7 @@ public static class BidPhase3Checks
             if (aiChecks) { await AiAnalysisChecks.Mvc(client,app.Services,f); return; }
             if (voiceChecks) { await VoiceSearchChecks.Mvc(client); return; }
             if (topChecks) { await TopCommitteeChecks.Mvc(client, app.Services); return; }
+            if (workHubChecks) { await WorkspaceEnhancementChecks.Mvc(client,app.Services,f); return; }
             if (reportingChecks) { await ReportingChecks.Mvc(client,app.Services); return; }
             if (clarificationChecks) { await InternalClarificationChecks.Mvc(client); return; }
             if (inboxChecks) { await NotificationChecks.RunAsync(client, app.Services); return; }

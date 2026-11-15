@@ -30,6 +30,9 @@ builder.Services.AddSingleton(new QrLinks(builder.Configuration["PublicSite:Orig
 builder.Services.AddPublicContact();
 builder.Services.AddScoped<INotificationStore, NotificationStore>();
 builder.Services.AddScoped<NotificationInbox>();
+builder.Services.AddScoped<IWorkspaceDiscovery, WorkspaceDiscovery>();
+builder.Services.AddScoped<ISupplierTenderPortal, SupplierTenderPortal>();
+builder.Services.AddSingleton<NotificationWatchGate>();
 builder.Services.AddScoped<IPublicStatistics, PublicStatistics>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboard>();
 builder.Services.AddScoped<IRoleDashboard, RoleDashboard>();

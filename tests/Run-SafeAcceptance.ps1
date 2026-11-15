@@ -56,7 +56,7 @@ try {
     RunCheck 'schema-model' @($schema) | Out-Null
     RunCheck 'authentication-employees-departments' @($authentication) | Out-Null
     # Fixed allowlist: no migrations, provisioning commands, SQL mutations, browser fixtures or seeding.
-    foreach ($name in @('experience','provisioning','workspace-ui','admin-dashboard','profile-picture','supplier-expiry','bid-phase3','bid-phase4','compliance','evaluation','report','top-committee','internal-clarification','contact','inbox','reporting','voice-search','passkey','ai','document-extraction','access-copy')) {
+    foreach ($name in @('work-hub','experience','provisioning','workspace-ui','admin-dashboard','profile-picture','supplier-expiry','bid-phase3','bid-phase4','compliance','evaluation','report','top-committee','internal-clarification','contact','inbox','reporting','voice-search','passkey','ai','document-extraction','access-copy')) {
         RunCheck $name @($authentication, "--$name-checks-only") | Out-Null
     }
     if ($IncludeLocalModel) {

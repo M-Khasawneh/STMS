@@ -1,0 +1,3 @@
+@model string
+@{ViewData["Title"]="Workspace action unavailable";}
+<section class="message-panel"><div class="eyebrow">PLEASE REVIEW</div><h1>This view could not be opened.</h1><p role="alert">@Model</p><p>Review your filters or reopen the record to check its current availability.</p><a asp-controller="Workspace" asp-action="Index" class="btn btn-primary">Return to dashboard</a></section>

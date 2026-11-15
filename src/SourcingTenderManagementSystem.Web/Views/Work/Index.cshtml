@@ -1,0 +1,24 @@
+@model SourcingTenderManagementSystem.Web.Models.Work.WorkPage
+@using SourcingTenderManagementSystem.Web.Data
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ViewData["Title"]=Model.Tasks?"My tasks":"Workspace search";var action=Model.Tasks?"Tasks":"Search";}
+<div class="work-hub">
+<header class="work-heading"><div><span class="eyebrow">YOUR AUTHORIZED WORKSPACE</span><h1>@ViewData["Title"]</h1><p>@(Model.Tasks?"Work that needs your attention, drawn from the existing workflow. Open a record to review its current available actions.":"Find records you are permitted to open. Search by title, company, account name or exact record ID.")</p></div><a class="btn btn-outline-secondary" asp-controller="Workspace" asp-action="Index">Dashboard</a></header>
+@if(Model.Tasks){<nav class="work-related" aria-label="Related inboxes"><span>Related inboxes</span><a asp-controller="Notifications" asp-action="Index">Notifications</a>@if(User.IsInRole("Admin")){<a asp-controller="Messages" asp-action="Index">Website messages</a>}else if(!User.IsInRole("Supplier")){<a asp-controller="Clarifications" asp-action="Index">Clarifications requiring your involvement</a>}</nav>}
+<form asp-action="@action" method="get" class="work-search">@if(Model.Category is not null){<input type="hidden" name="category" value="@Model.Category"/>}<label class="form-label" for="work-query">@(Model.Tasks?"Filter your work":"Search records")</label><div class="work-search-row"><input type="search" id="work-query" name="q" value="@Model.Query" maxlength="160" minlength="@(Model.Tasks?null:"2")" required="@(!Model.Tasks)" class="form-control" placeholder="Search your workspace..."/><button class="btn btn-primary" type="submit">Search</button>@if(Model.Query.Length>0||Model.Category is not null){<a asp-action="@action" class="quiet-link">Reset</a>}</div></form>
+@if(!Model.Tasks&&Model.Query.Length<2){<div class="work-empty"><span aria-hidden="true">&#8981;</span><h2>Start with a search</h2><p>Enter at least two characters. Results are checked against your current permissions.</p></div>}
+else{
+<div class="work-summary" role="status"><strong>@Model.Total.ToString("N0")</strong> @(Model.Tasks?"matching work records":"matching records") @if(Model.Category is not null){<a asp-action="@action" asp-route-q="@Model.Query">All categories</a>}</div>
+@foreach(var group in Model.Groups){
+<section class="work-section" aria-labelledby="heading-@group.Key"><header><h2 id="heading-@group.Key">@group.Title <span>@group.Total.ToString("N0")</span></h2>@if(Model.Category is null&&group.Total>group.Items.Count){<a asp-action="@action" asp-route-q="@Model.Query" asp-route-category="@group.Key">View all &#8594;</a>}</header>
+@if(group.Items.Count==0){<p class="work-section-empty">No matching records in this category.</p>}else{<ul class="work-records">@foreach(var row in group.Items){
+var route=new Dictionary<string,string>{{group.Parameter,row.Id}};
+string status=group.StateKind switch{"request"=>((PurchaseRequestStatus)row.State).ToString(),"tender"=>((TenderStatus)row.State).ToString(),"bid"=>((BidStatus)row.State).ToString(),"supplier"=>((SupplierStatus)row.State).ToString(),"invitation"=>((InvitationStatus)row.State).ToString(),_=>""};
+<li><span class="work-record-icon" aria-hidden="true">&#9636;</span><div><a asp-controller="@group.Controller" asp-action="@group.Action" asp-all-route-data="route">@row.Title</a><small>@if(status.Length>0){<span class="status-pill">@AdminDashboardModel.StatusLabel(status)</span>}@if(row.At.HasValue){<time datetime="@row.At.Value.ToString("O")">@TenderTime.Display(row.At.Value)</time>}</small></div><a class="work-open" asp-controller="@group.Controller" asp-action="@group.Action" asp-all-route-data="route" aria-label="Open @row.Title">&#8599;</a></li>
+}</ul>}</section>}
+@if(Model.Groups.Count==0){<div class="work-empty"><h2>No available work</h2><p>There are no records available for this view.</p></div>}
+@if(Model.Category is not null){<nav class="work-pagination" aria-label="Result pages">@if(Model.Page>1){<a class="btn btn-outline-secondary" asp-action="@action" asp-route-q="@Model.Query" asp-route-category="@Model.Category" asp-route-page="@(Model.Page-1)">Previous</a>}<span>Page @Model.Page</span>@if(Model.More){<a class="btn btn-outline-secondary" asp-action="@action" asp-route-q="@Model.Query" asp-route-category="@Model.Category" asp-route-page="@(Model.Page+1)">Next</a>}</nav>}
+}
+<p class="work-footnote">This view does not change workflow status or assign work. Existing ownership, committee membership and approval rules apply when you open a record.</p>
+</div>

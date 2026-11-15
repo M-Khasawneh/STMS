@@ -4,6 +4,7 @@
 @{ViewData["Title"]="Invitation details";}
 <section class="requisition-detail-panel"><div class="eyebrow">YOUR INVITATION</div><h1>@Model.Tender.Title</h1><p>Status: <strong>@Model.Invitation.Status</strong></p><p>Invited company: @Model.Supplier.CompanyName</p><p>Deadline: @TenderTime.Display(Model.Tender.SubmissionDeadline)</p>
 @if(Model.Invitation.RespondedAt.HasValue){<p>Responded: @TenderTime.Display(Model.Invitation.RespondedAt.Value)</p>}
+<a asp-controller="SupplierPortal" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-primary">Open tender workspace</a>
 <a asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary">View tender</a>
 @if(Model.Invitation.Status==InvitationStatus.Accepted){<a asp-controller="Bids" asp-action="Create" asp-route-tenderId="@Model.Tender.Id" class="btn btn-primary">Prepare offer</a><a asp-controller="Bids" asp-action="Index" class="quiet-link">My Offers</a>}
 @if(Model.Invitation.Status==InvitationStatus.Pending){<form asp-action="Respond" asp-route-id="@Model.Invitation.Id" method="post" class="mt-4"><input type="hidden" name="version" value="@SourcingTenderManagementSystem.Web.Data.TenderManagement.InvitationVersion(Model)" /><p>Your response is final and cannot be changed.</p><div class="d-flex flex-wrap gap-2"><button type="submit" name="decision" value="Accepted" class="btn btn-primary">Accept invitation</button><button type="submit" name="decision" value="Declined" class="btn btn-outline-secondary">Decline invitation</button></div></form>}
