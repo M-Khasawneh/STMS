@@ -53,6 +53,10 @@ internal static class ReportingReadOnlyChecks
                 var visible=await data.VisibleQuery(topAccount,now).OrderBy(b=>b.Id).Select(b=>(Guid?)b.TenderId).FirstOrDefaultAsync();
                 if(visible.HasValue){var ai=scope.ServiceProvider.GetRequiredService<IAiBidData>();var evidence=await ai.SourceAsync(actor,visible.Value,CancellationToken.None);await ai.FindAsync(evidence,CancellationToken.None);count++;Console.WriteLine($"PASS: SELECT-only AI evidence/history queries for {role}. No Ollama call or analysis persistence.");}
             }
+            var identityUser = await db.Users.AsNoTracking().SingleAsync(u=>u.Id==actor.FindFirstValue(ClaimTypes.NameIdentifier));
+            var identityManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            _ = await identityManager.GetPasskeysAsync(identityUser); count++;
+            Console.WriteLine($"PASS: SELECT-only native Identity passkey-store query for {role}; no credentials registered.");
             var initial = await reports.ReadAsync(actor, new(), CancellationToken.None);
             foreach (var category in initial.Categories)
             {

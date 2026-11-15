@@ -5,10 +5,16 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 // Test-only stores: no SQL connection, persistent users, or default credentials.
 public sealed class MemoryUsers : IUserPasswordStore<IdentityUser>, IUserRoleStore<IdentityUser>,
     IUserSecurityStampStore<IdentityUser>, IUserLockoutStore<IdentityUser>,
-    IUserEmailStore<IdentityUser>, IUserPhoneNumberStore<IdentityUser>
+    IUserEmailStore<IdentityUser>, IUserPhoneNumberStore<IdentityUser>, IUserPasskeyStore<IdentityUser>
 {
     public Dictionary<string, IdentityUser> Users { get; } = [];
     public Dictionary<string, HashSet<string>> Roles { get; } = [];
+    public Dictionary<string,Dictionary<string,UserPasskeyInfo>> Passkeys {get;}=[];
+    public Task AddOrUpdatePasskeyAsync(IdentityUser user,UserPasskeyInfo passkey,CancellationToken ct){if(!Passkeys.TryGetValue(user.Id,out var keys))Passkeys[user.Id]=keys=[];keys[Convert.ToHexString(passkey.CredentialId)]=passkey;return Task.CompletedTask;}
+    public Task<IList<UserPasskeyInfo>> GetPasskeysAsync(IdentityUser user,CancellationToken ct)=>Task.FromResult<IList<UserPasskeyInfo>>(Passkeys.GetValueOrDefault(user.Id)?.Values.ToArray()??[]);
+    public Task<IdentityUser?> FindByPasskeyIdAsync(byte[] id,CancellationToken ct)=>Task.FromResult(Users.Values.SingleOrDefault(u=>Passkeys.GetValueOrDefault(u.Id)?.ContainsKey(Convert.ToHexString(id))==true));
+    public Task<UserPasskeyInfo?> FindPasskeyAsync(IdentityUser user,byte[] id,CancellationToken ct)=>Task.FromResult(Passkeys.GetValueOrDefault(user.Id)?.GetValueOrDefault(Convert.ToHexString(id)));
+    public Task RemovePasskeyAsync(IdentityUser user,byte[] id,CancellationToken ct){Passkeys.GetValueOrDefault(user.Id)?.Remove(Convert.ToHexString(id));return Task.CompletedTask;}
     public bool FailNextUpdate { get; set; }
     public void Dispose() { }
     public Task<IdentityResult> CreateAsync(IdentityUser user, CancellationToken token) { Users[user.Id] = user; return Task.FromResult(IdentityResult.Success); }

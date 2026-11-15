@@ -22,7 +22,7 @@ Employee dashboard voice search (V5 10.3): real browser SpeechRecognition integr
 ## Remaining mandatory advanced features
 
 1. **Ollama bid analysis (10.2): implemented for structured bid data and bounded private-document text/OCR.** Real local qwen3:4b, authorized MVC views, evidence-referenced advice and existing-table persistence are wired. The real model passed synthetic comparison tests. PDF text, scanned PDF and English/Arabic image OCR now feed cited page excerpts into the local model. Broader OCR/AI accuracy, deployment and actual SQL write/concurrency tests remain outstanding. See docs/ollama-bid-analysis.md and docs/bid-document-extraction.md; no decision or award is automated.
-2. **Face and fingerprint login (10.1): not implemented.** Current Account/Identity login is credential-based. Must verify actual account-linked biometric proofs and reject static-photo login. Device/OS/browser support and whether an authenticator that also permits PIN satisfies the explicit modalities need a concrete acceptance decision. Do not add cosmetic buttons, raw biometric storage or pretend passkeys prove a specific modality.
+2. **Face/fingerprint/PIN-backed passkeys (10.1): MVC/Identity integration implemented under the approved PIN allowance.** Password-confirmed enrollment/removal, native WebAuthn sign-in, exact HTTPS-origin binding, account eligibility and one-use challenge protection are implemented. See docs/identity-passkeys.md. Virtual-authenticator protocol/security tests passed; physical face/fingerprint demonstrations and actual SQL credential-write verification remain outstanding. STMS cannot identify which local biometric/PIN method was used.
 3. **Actual voice microphone demonstration:** the production browser integration now exists; English/Arabic device/service verification remains. Browser tests use injected recognition events only.
 
 ## Two required optional choices are still outstanding
@@ -39,4 +39,4 @@ No QR generation, user-specific document/report watermarking or digital-signatur
 
 ## Suggested order
 
-Finish manual voice verification and the documented AI/OCR verification limitations; resolve and implement biometric authentication with suitable hardware; select and implement two optional features; complete defined report/expiry gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.
+Finish manual voice verification and the documented AI/OCR verification limitations; demonstrate the implemented passkeys on suitable face/fingerprint hardware and the deployed HTTPS origin; select and implement two optional features; complete defined report/expiry gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.

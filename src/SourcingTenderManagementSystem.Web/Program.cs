@@ -72,6 +72,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddAuthenticationFoundation();
+builder.Services.AddStmsPasskeys(new PasskeySite(builder.Configuration["Passkeys:Origin"] ?? (builder.Environment.IsDevelopment() ? "https://localhost:7162" : null)));
 builder.Services.AddScoped<IDepartmentStore, DepartmentStore>();
 builder.Services.AddScoped<IEmployeeData, EmployeeData>();
 builder.Services.AddScoped<EmployeeManagement>();
