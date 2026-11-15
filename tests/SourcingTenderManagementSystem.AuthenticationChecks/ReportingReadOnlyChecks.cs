@@ -61,7 +61,17 @@ internal static class ReportingReadOnlyChecks
             foreach (var category in initial.Categories)
             {
                 var page = await reports.ReadAsync(actor, new() { Category = category }, CancellationToken.None); count++; Console.WriteLine($"PASS: read-only SQL report {role}/{category}; {page.Document.Tables.Count} tables.");
-                if (category is "requests" or "tenders" or "offers" or "evaluations" or "decisions") { await reports.ReadAsync(actor, new() { Category = category, From = new DateOnly(1900, 1, 1), To = new DateOnly(2100, 12, 31) }, CancellationToken.None); count++; }
+                if (category is "requests" or "tenders" or "offers" or "evaluations" or "decisions" or "awards") { await reports.ReadAsync(actor, new() { Category = category, From = new DateOnly(1900, 1, 1), To = new DateOnly(2100, 12, 31) }, CancellationToken.None); count++; }
+                if (category == "awards" && page.Document.Tables.Single().Rows.FirstOrDefault() is { } award)
+                {
+                    foreach (var column in new[] { 0, 1, 3 }.Where(i => award[i].Text != "Not recorded"))
+                    {
+                        var searched = await reports.ReadAsync(actor, new() { Category = "awards", Search = award[column].Text[..Math.Min(100, award[column].Text.Length)] }, CancellationToken.None);
+                        if (!searched.Document.Tables.Single().Rows.Any(row => row[4].Text == award[4].Text)) throw new Exception("Actual award search lost its source row."); count++;
+                    }
+                    var selected = await reports.ReadAsync(actor, new() { Category = "awards", TenderId = Guid.Parse(award[5].Text) }, CancellationToken.None);
+                    if (!selected.Document.Tables.Single().Rows.Any(row => row[4].Text == award[4].Text)) throw new Exception("Actual tender filter lost its award."); count++;
+                }
                 if (category == "unified" && page.Tenders.FirstOrDefault() is { } tender) { page = await reports.ReadAsync(actor, new() { Category = category, TenderId = tender.Id }, CancellationToken.None); count++; }
                 if (page.Document.Tables.Count > 0) { var xlsx = ReportExports.Excel(page.Document); if (xlsx.Length < 100) throw new Exception("Empty Excel export."); count++; if (!ReportExports.HasRightToLeftText(page.Document)) { var pdf = ReportExports.Pdf(page.Document); if (pdf.Length < 100) throw new Exception("Empty PDF export."); count++; } else Console.WriteLine("LIMITATION: PDF skipped for right-to-left text; Excel verified."); }
             }

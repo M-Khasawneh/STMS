@@ -56,6 +56,28 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
         tables.Add(SupplierParticipationReport.Table(rows)); notes.Add(SupplierParticipationReport.Definition);
         scope.AddRange(rows.Select(r => $"participation:{r.SupplierId}:{r.Invitations}:{r.SubmittedOffers}:{r.Awards}"));
     }
+    public IQueryable<AwardReportRow> AwardQuery(BidAccount actor, ReportFilter filter)
+    {
+        var visible = bids.VisibleQuery(actor, clock.GetUtcNow());
+        var query = db.TenderAwards.AsNoTracking().Where(w => actor.Internal && visible.Any(b => b.Id == w.BidId && b.TenderId == w.TenderId));
+        if (filter.TenderId.HasValue) query = query.Where(w => w.TenderId == filter.TenderId);
+        if (!string.IsNullOrWhiteSpace(filter.Search)) query = query.Where(w =>
+            w.ContractReference != null && w.ContractReference.Contains(filter.Search) ||
+            db.Tenders.Any(t => t.Id == w.TenderId && t.Title.Contains(filter.Search)) ||
+            db.Bids.Any(b => b.Id == w.BidId && b.TenderId == w.TenderId && db.TenderSuppliers.Any(l => l.Id == b.TenderSupplierId && l.TenderId == b.TenderId && db.SupplierProfiles.Any(s => s.Id == l.SupplierProfileId && s.CompanyName.Contains(filter.Search)))));
+        if (filter.DepartmentId.HasValue) query = query.Where(w => db.TenderPurchaseRequisitions.Any(l => l.TenderId == w.TenderId && db.PurchaseRequisitions.Any(r => r.Id == l.PurchaseRequisitionId && r.DepartmentId == filter.DepartmentId)));
+        var start = Start(filter.From); var end = End(filter.To);
+        if (start.HasValue) query = query.Where(w => w.AwardedAt >= start);
+        if (end.HasValue) query = query.Where(w => w.AwardedAt < end);
+        return from w in query
+               join b in db.Bids on w.BidId equals b.Id
+               join l in db.TenderSuppliers on b.TenderSupplierId equals l.Id
+               join s in db.SupplierProfiles on l.SupplierProfileId equals s.Id
+               join t in db.Tenders on w.TenderId equals t.Id
+               where w.TenderId == b.TenderId && l.TenderId == b.TenderId
+               orderby w.AwardedAt descending, w.Id
+               select new AwardReportRow(w.Id, t.Title, s.CompanyName, w.TenderId, w.BidId, w.TenderApprovalId, w.AwardedAt, w.ContractReference);
+    }
     private async Task<BidAccount> Account(ClaimsPrincipal user, CancellationToken ct) => await bids.AccountAsync(user, clock.GetUtcNow(), ct) ?? throw new BidException(403, "An authorized account is required.");
     public async Task<ReportPage> ReadAsync(ClaimsPrincipal user, ReportFilter f, CancellationToken ct)
     {
@@ -114,6 +136,18 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
             tables.Add(Table("Supplier verification and document expiry", ["Company", "Application status", "Reviewed (Amman)", "Registration documents", "Expired before today", "Expires within 30 days", "Expiry not recorded"], rows.Select(s => new[] { C(s.CompanyName), C(s.Status), C(Date(s.ReviewedAt)), N(docs.Count(d => d.SupplierProfileId == s.Id)), N(docs.Count(d => d.SupplierProfileId == s.Id && d.ExpiresOn.HasValue && d.ExpiresOn < today)), N(docs.Count(d => d.SupplierProfileId == s.Id && d.ExpiresOn >= today && d.ExpiresOn <= today.AddDays(SupplierExpiryRules.UpcomingDays))), N(docs.Count(d => d.SupplierProfileId == s.Id && !d.ExpiresOn.HasValue)) })));
             tables.Add(Table("Status breakdown", ["Status", "Suppliers"], rows.GroupBy(s => s.Status).Select(g => new[] { C(g.Key), N(g.Count()) })));
             notes.Add("Missing expiry dates mean unknown, not valid indefinitely. The 30-day upcoming window includes today and day 30 in Asia/Amman; a date before today is expired. Recording expiry dates does not automatically suspend suppliers. Delivery-quality performance is not scored. Participation indicators are available only within existing confidential tender-report permissions. Application approval is the existing verification state; no additional legal verification decision is inferred.");
+        }
+        else if (f.Category == "awards")
+        {
+            BidRules.Require(string.IsNullOrWhiteSpace(f.Status), 400, "Award records have no separate status filter. Use tender, department, search or award dates.");
+            var rows = await AwardQuery(a, f).Take(ReportRules.RowLimit + 1).ToListAsync(ct);
+            tables.Add(AwardReport.Table(rows)); notes.Add(AwardReport.Definition);
+            metrics.Add(new("Matching recorded awards", rows.Count.ToString()));
+            metrics.Add(new("With contract reference", rows.Count(w => !string.IsNullOrWhiteSpace(w.ContractReference)).ToString()));
+            metrics.Add(new("Reference not recorded", rows.Count(w => string.IsNullOrWhiteSpace(w.ContractReference)).ToString()));
+            scope.AddRange(rows.Select(w => "award:" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(w)))));
+            var winnerIds = rows.Select(w => w.BidId).Distinct().ToArray(); var fresh = await Account(user, ct);
+            BidRules.Require(await bids.VisibleQuery(fresh, clock.GetUtcNow()).CountAsync(b => winnerIds.Contains(b.Id), ct) == winnerIds.Length, 403, "Winning-offer access changed while generating the report.");
         }
         else if (f.Category is "offers" or "evaluations" or "decisions")
         {
@@ -199,7 +233,7 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
         if (categories.Contains("requests")) departments = await db.Departments.AsNoTracking().Where(d => requestScope.Any(q => q.DepartmentId == d.Id)).OrderBy(d => d.Name).Select(d => new ReportOption(d.Id, d.Name)).ToListAsync(ct);
         else if (!a.Supplier) departments = await db.Departments.AsNoTracking().Where(d => db.PurchaseRequisitions.Any(q => q.DepartmentId == d.Id && db.TenderPurchaseRequisitions.Any(l => l.PurchaseRequisitionId == q.Id && tenderScope.Any(t => t.Id == l.TenderId)))).OrderBy(d => d.Name).Select(d => new ReportOption(d.Id, d.Name)).ToListAsync(ct);
         var tenders = new List<ReportOption>();
-        if (f.Category is "offers" or "evaluations" or "decisions" or "unified") tenders = await db.Tenders.AsNoTracking().Where(t => bidScope.Any(b => b.TenderId == t.Id)).OrderBy(t => t.Title).Take(ReportRules.RowLimit + 1).Select(t => new ReportOption(t.Id, t.Title)).ToListAsync(ct);
+        if (f.Category is "offers" or "evaluations" or "decisions" or "unified" or "awards") tenders = await db.Tenders.AsNoTracking().Where(t => bidScope.Any(b => b.TenderId == t.Id && (f.Category != "awards" || db.TenderAwards.Any(w => w.TenderId == t.Id && w.BidId == b.Id)))).OrderBy(t => t.Title).Take(ReportRules.RowLimit + 1).Select(t => new ReportOption(t.Id, t.Title)).ToListAsync(ct);
         ReportRules.Limit(tenders.Count);
         var applied = new List<string>();
         if (!string.IsNullOrWhiteSpace(f.Search)) applied.Add("Search: " + f.Search);

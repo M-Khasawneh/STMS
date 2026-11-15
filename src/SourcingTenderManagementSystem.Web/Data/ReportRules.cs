@@ -15,7 +15,7 @@ public static class ReportRules
         var roles = a.Roles; var result = new List<string>();
         if (roles.Contains(ApplicationRoles.RequestingDepartment) || roles.Contains(ApplicationRoles.SourcingOfficer)) result.Add("requests");
         if (roles.Any(r => r is ApplicationRoles.RequestingDepartment or ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee)) result.Add("tenders");
-        if (roles.Any(r => r is ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee)) result.AddRange(["offers", "evaluations", "decisions", "unified"]);
+        if (roles.Any(r => r is ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee)) result.AddRange(["offers", "evaluations", "decisions", "unified", "awards"]);
         if (topOverview && roles.Contains(ApplicationRoles.TopCommittee)) result.Add("overview");
         return result.ToArray();
     }
@@ -23,5 +23,5 @@ public static class ReportRules
     public static decimal? ApprovalDays(DateTimeOffset? firstSubmission, DateTimeOffset? firstApproval) => firstSubmission.HasValue && firstApproval >= firstSubmission ? (decimal)(firstApproval.Value - firstSubmission.Value).TotalDays : null;
     public static decimal? Participation(int submitted, int invited) => invited > 0 ? 100m * submitted / invited : null;
     public static void Limit(int count) => BidRules.Require(count <= RowLimit, 400, "More than 10,000 records match. Refine the filters before viewing or exporting.");
-    public static string Label(string category) => category switch { "requests" => "Purchase requests", "tenders" => "Tenders", "suppliers" => "Supplier verification", "offers" => "Offers & commercial analysis", "evaluations" => "Technical & financial results", "decisions" => "Approvals & decisions", "unified" => "Unified evaluation report", "overview" => "Top Committee statistics", _ => "Reports" };
+    public static string Label(string category) => category switch { "requests" => "Purchase requests", "tenders" => "Tenders", "suppliers" => "Supplier verification", "offers" => "Offers & commercial analysis", "evaluations" => "Technical & financial results", "decisions" => "Approvals & decisions", "unified" => "Unified evaluation report", "overview" => "Top Committee statistics", "awards" => "Awards & contract references", _ => "Reports" };
 }
