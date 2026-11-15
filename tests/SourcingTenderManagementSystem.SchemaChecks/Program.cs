@@ -14,6 +14,18 @@ using System.Text.Json;
 if (args.Contains("--managed-networking"))
     AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
 
+if (args.Contains("--inspect-passkey-database")) {
+    using var configuration = JsonDocument.Parse(await File.ReadAllTextAsync("src/SourcingTenderManagementSystem.Web/appsettings.json"));
+    var target = new SqlConnectionStringBuilder(configuration.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString());
+    if (!target.IntegratedSecurity || target.DataSource != @"localhost\MSSQLSERVER02" || target.InitialCatalog != "SourcingTenderDB") throw new Exception("Unexpected read-only database target.");
+    target.ApplicationIntent=ApplicationIntent.ReadOnly;target.ConnectTimeout=5;
+    await using var connection=new SqlConnection(target.ConnectionString);await connection.OpenAsync();
+    await using var command=connection.CreateCommand();
+    command.CommandText="SELECT (SELECT COUNT_BIG(*) FROM dbo.AspNetUsers) AS Users, (SELECT COUNT_BIG(*) FROM dbo.AspNetRoles) AS Roles, (SELECT COUNT_BIG(*) FROM dbo.__EFMigrationsHistory) AS AppliedMigrations, CASE WHEN OBJECT_ID(N'dbo.AspNetUserPasskeys',N'U') IS NULL THEN 0 ELSE 1 END AS PasskeyTableExists, (SELECT COUNT_BIG(*) FROM dbo.__EFMigrationsHistory WHERE MigrationId=N'20261115034155_IdentityPasskeyStorage') AS PasskeyMigrationApplied";
+    await using var reader=await command.ExecuteReaderAsync();await reader.ReadAsync();
+    for(int i=0;i<reader.FieldCount;i++)Console.WriteLine(reader.GetName(i)+": "+reader.GetValue(i));
+    Console.WriteLine("PASS: SELECT-only passkey database preflight; no credentials or records written.");return 0;
+}
 var failures = new List<string>();
 if (args.Contains("--apply-evaluation-migration")) return await EvaluationSchemaChecks.ApplyAsync();
 if (args.Contains("--populate-demo-data")) return await DemoPopulation.RunAsync();
@@ -124,6 +136,13 @@ if (migrations.Migrations.Count > 0)
     Check(topRoundMigration.UpOperations.OfType<AddColumnOperation>().Select(o => o.Name).Order().SequenceEqual(new[] { "RoundOpenedAt", "RoundClosedAt", "RoundCloseReason", "RoundMemberSnapshot" }.Order()), "Round migration must add only the four reviewed columns");
     Check(topRoundMigration.UpOperations.OfType<AlterColumnOperation>().All(o => o.Table == "TenderApprovals" && o.Name == "DecidedAt" && o.IsNullable), "Unexpected round migration column alteration");
     if (args.Contains("--write-top-committee-script")) File.WriteAllText("docs/top-committee-voting-migration.sql", context.GetService<IMigrator>().GenerateScript("20261114190000_EvaluationConfirmation", "20261114220000_TopCommitteeVotingRounds").TrimEnd()+Environment.NewLine);
+    var passkeys = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_IdentityPasskeyStorage")).Value, context.Database.ProviderName!);
+    Check(passkeys.UpOperations.All(o => o is CreateTableOperation or CreateIndexOperation), "Passkey migration must not alter existing tables or data");
+    Check(passkeys.UpOperations.OfType<CreateTableOperation>().Select(o=>o.Name).SequenceEqual(new[]{"AspNetUserPasskeys"}), "Passkey migration must add only the Identity passkey table");
+    var passkeyModel = model.FindEntityType(typeof(IdentityUserPasskey<string>))!;
+    Check(passkeyModel.FindPrimaryKey()!.Properties.Single().Name == "CredentialId", "Passkey credential must be globally unique");
+    Check(passkeyModel.GetForeignKeys().Single().DeleteBehavior == DeleteBehavior.NoAction, "Passkey credentials must not be silently cascade-deleted");
+    if (args.Contains("--write-passkey-script")) File.WriteAllText("docs/identity-passkey-migration.sql", context.GetService<IMigrator>().GenerateScript("20261114220000_TopCommitteeVotingRounds", "20261115034155_IdentityPasskeyStorage"));
     Check(!context.Database.HasPendingModelChanges(), "Model differs from migration snapshot");
     var clarification = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_ClarificationAttachments")).Value, context.Database.ProviderName!);
     Check(clarification.UpOperations.All(x => x is CreateTableOperation or CreateIndexOperation), "Clarification migration alters existing schema");

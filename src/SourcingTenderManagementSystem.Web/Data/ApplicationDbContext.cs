@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SourcingTenderManagementSystem.Web.Models.Entities;
 
@@ -42,6 +43,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        // Add only the .NET 10 Identity passkey mapping; preserve existing V1 user/login/token columns.
+        builder.Entity<IdentityUserPasskey<string>>(entity => {
+            entity.ToTable("AspNetUserPasskeys");
+            entity.HasKey(p => p.CredentialId);
+            entity.Property(p => p.CredentialId).HasMaxLength(1024);
+            entity.HasOne<IdentityUser>().WithMany().HasForeignKey(p => p.UserId).IsRequired().OnDelete(DeleteBehavior.NoAction);
+            entity.OwnsOne(p => p.Data).ToJson();
+        });
         ProcurementModelConfiguration.Configure(builder);
     }
 }
