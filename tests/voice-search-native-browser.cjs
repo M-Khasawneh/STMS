@@ -26,6 +26,7 @@ const fs = require('fs'), path = require('path');
                 page.on('pageerror', error => errors.push(error.message));
                 const response = await page.goto(base + '/Workspace');
                 if (response.headers()['x-stms-bid-fixture'] !== 'memory-only') throw Error('Refusing non-memory host.');
+                await page.locator('[data-work-search-toggle]').click();
                 // Observe genuine events without replacing the recognizer or injecting results.
                 const supported = await page.evaluate(() => {
                     window.nativeVoiceEvents = [];

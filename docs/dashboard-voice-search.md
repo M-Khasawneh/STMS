@@ -4,7 +4,7 @@
 
 V5 requires speech-to-text search with SpeechRecognition on the Employee Dashboard task list. The current role dashboard already derives permitted recent work records from Identity, ownership, department review exclusions and effective tender committee assignments. This increment adds typed and voice filtering to those existing rendered rows, rather than creating a new task entity, workflow or access policy.
 
-The employee-only Razor view renders the control when dashboard data is available. Admin and Supplier dashboards do not receive the control or its assets. Search covers visible recent record titles, statuses, dates and section names. It deliberately does not claim a global search of older records: the UI directs users to the existing workspaces for older records. KPI counts and source records remain unchanged.
+The employee-only Razor view supplies a microphone icon beside the header notification bell when dashboard data is available. It opens a search popover; no large search section remains in the dashboard content. Admin and Supplier dashboards do not receive the control or its assets. Search covers visible recent record titles, statuses, dates and section names. It deliberately does not claim a global search of older records: the UI directs users to the existing workspaces for older records. KPI counts and source records remain unchanged.
 
 - Native SpeechRecognition or webkitSpeechRecognition, one explicit single-utterance session at a time; English or Arabic (Jordan).
 - Text input works when recognition is unsupported, denied or unavailable. No automatic microphone activation, fake transcript, simulated audio waveform, external transcription integration or application audio storage.
@@ -16,7 +16,7 @@ The employee-only Razor view renders the control when dashboard data is availabl
 
 ## Files
 
-Views/Workspace/Roles.cshtml; wwwroot/css/dashboard-search.css; wwwroot/js/dashboard-search.js. No controllers, domain services, entities, authentication rules, migrations, SQL writes or dependencies changed.
+Views/Workspace/Roles.cshtml; Views/Shared/_Layout.cshtml (optional HeaderTools section); wwwroot/css/dashboard-search.css; wwwroot/js/dashboard-search.js. No controllers, domain services, entities, authentication rules, migrations, SQL writes or dependencies changed.
 
 ## Verification
 
@@ -44,3 +44,9 @@ Reproduced and fixed a search defect: a final transcript of `Network renewal.` s
 - No SQL operations, migrations, physical recordings, external transcription integration, dependencies or role changes were introduced. QA WAV files, logs and screenshots stay outside Git under the local `voice-qa` directory.
 
 Remaining acceptance: successful human English/Arabic transcription on a supported browser with a real microphone and working speech service. Browser-native SpeechRecognition has limited availability and may rely on a remote service; application filtering and failure recovery do not guarantee provider availability.
+
+## Header placement follow-up — 2026-11-15
+
+Moved the existing employee dashboard search into a closed-by-default header popover, opened by a microphone icon immediately beside Notifications. Opening the panel focuses typed search without starting the microphone. Recording still requires the explicit Use voice button. Search and notification popovers dismiss one another. Close, outside pointer interaction and keyboard departure cancel capture; Escape first cancels recording, then closes an idle panel. Closing preserves the current filter and marks the header icon when a filter is active. No-JavaScript behavior preserves the original records and hides the unavailable enhancement.
+
+Verification: solution/Razor build passed with zero warnings/errors; 13 voice MVC audience/no-store checks and 59 existing workspace role/navigation checks passed. The expanded browser suite passed 72 checks including placement, removal from main content, focus restoration, late callbacks after closing, notification interaction, keyboard departure, reduced motion and viewport containment at 1440/768/390/320 px. Responsive review caught and fixed left-edge clipping on tablet. The native probe was updated to open the header panel; provider transcription results from the preceding focused review were not re-certified by these interface tests. No database changes or dependencies.

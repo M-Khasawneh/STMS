@@ -3,7 +3,9 @@
     'use strict';
     const root = document.querySelector('[data-dashboard-search]');
     if (!root) return;
-    const dashboard = root.closest('[data-role-dashboard]');
+    const dashboard = document.querySelector('[data-role-dashboard]');
+    const menu = root.closest('[data-work-search-menu]');
+    const toggle = menu.querySelector('[data-work-search-toggle]');
     const query = root.querySelector('[data-work-query]');
     const voice = root.querySelector('[data-work-voice]');
     const label = root.querySelector('[data-work-voice-label]');
@@ -25,6 +27,8 @@
             if (!record.row.hidden) shown++;
         }
         count.textContent = `${shown} of ${records.length} recent dashboard records shown.`;
+        toggle.classList.toggle('has-query', terms.length > 0);
+        toggle.setAttribute('aria-label', terms.length ? 'Voice and text search, dashboard filter active' : 'Voice and text search');
         empty.hidden = !terms.length || shown > 0;
         return shown;
     }
@@ -40,12 +44,33 @@
         if (message) status.textContent = message;
     }
     function cancel(message = 'Voice input cancelled. Your search is unchanged.') { if (recognition) finish(message, true); }
+    function closeSearch(restoreFocus = false) {
+        cancel(); root.hidden = true; toggle.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) toggle.focus();
+    }
+    toggle.addEventListener('click', () => {
+        if (!root.hidden) { closeSearch(true); return; }
+        const notifications = document.querySelector('.notification-dropdown');
+        if (notifications) notifications.open = false;
+        root.hidden = false; toggle.setAttribute('aria-expanded', 'true'); query.focus();
+    });
+    root.querySelector('[data-work-search-close]').addEventListener('click', () => closeSearch(true));
+    document.addEventListener('pointerdown', event => { if (!root.hidden && !menu.contains(event.target)) closeSearch(); });
+    menu.addEventListener('focusout', event => {
+        if (event.relatedTarget && !menu.contains(event.relatedTarget)) closeSearch();
+    });
+    menu.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !root.hidden) {
+            event.preventDefault();
+            if (recognition) { cancel(); query.focus(); }
+            else closeSearch(true);
+        }
+    });
     query.addEventListener('input', () => { cancel(); filter(); });
     root.querySelector('[data-work-clear]').addEventListener('click', () => {
         cancel(); query.value = ''; filter(); status.textContent = 'Search cleared. All recent records are shown.'; query.focus();
     });
     language.addEventListener('change', () => cancel('Voice language changed. Start voice input when ready.'));
-    root.addEventListener('keydown', event => { if (event.key === 'Escape' && recognition) { event.preventDefault(); cancel(); query.focus(); } });
     window.addEventListener('pagehide', () => cancel());
     document.addEventListener('visibilitychange', () => { if (document.hidden) cancel('Voice input stopped when the page was hidden.'); });
     voice.addEventListener('click', () => {
@@ -99,5 +124,5 @@
         status.textContent = 'Voice input is unavailable in this browser or connection. Type to search your dashboard.';
     }
     filter();
-    root.hidden = false;
+    menu.hidden = false;
 })();
