@@ -45,7 +45,7 @@ public static class BidPhase4Checks
         var form = f.Form(); form.Version = details.Version;
         await bids.SaveDraftAsync(f.User, id, form);
         Check(f.Store.Activity.Any(x => x.Action == "DraftUpdated"), "draft edit records an audit event");
-        byte[] pdf = Encoding.ASCII.GetBytes("%PDF-1.4\nprivate technical proposal\n%%EOF");
+        byte[] pdf = DocumentExtractionChecks.TextPdf();
         FormFile Upload() => new(new MemoryStream(pdf), 0, pdf.Length, "File", "technical.pdf");
         details = await bids.DetailsAsync(f.User, id);
         var documentId = await documents.UploadAsync(f.User, id, details.Version, "Technical Proposal", Upload());
@@ -115,9 +115,11 @@ public static class BidPhase4Checks
             Check(response.StatusCode == HttpStatusCode.OK && html.Contains("Payment terms") && html.Contains("technical.pdf"), "closed offer details render for " + actor);
             Check(!html.Contains("Edit draft") && !html.Contains("StorageReference"), "internal details contain no supplier editing or storage identifiers");
             var download = await Get($"/ReviewBids/Document/{id}?documentId={documentId}", actor);
-            Check(download.StatusCode == HttpStatusCode.OK && (await download.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf) &&
+            Check(download.StatusCode == HttpStatusCode.OK && !(await download.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf) &&
                 download.Content.Headers.ContentDisposition?.DispositionType == "attachment" && download.Headers.CacheControl?.NoStore == true,
-                "internal download uses verified private attachment and no-store headers");
+                "internal download uses a watermarked private attachment and no-store headers");
+            var queryDownload = await Get($"/reviewbids/document?id={id}&documentId={documentId}&view=true", actor);
+            Check(queryDownload.StatusCode == HttpStatusCode.OK && queryDownload.Content.Headers.ContentDisposition?.DispositionType == "inline" && !(await queryDownload.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf), "query-bound IDs and alternate URL casing preserve secure download behavior");
             var comparison = await Get($"/ReviewBids/Compare?tenderId={tender.Id}", actor);
             var comparisonHtml = await comparison.Content.ReadAsStringAsync();
             Check(comparison.StatusCode == HttpStatusCode.OK && comparisonHtml.Contains(id.ToString()) && comparisonHtml.Contains(secondId.ToString()) &&
@@ -167,7 +169,7 @@ public static class BidPhase4Checks
         var bids = scope.ServiceProvider.GetRequiredService<BidManagement>();
         var documents = scope.ServiceProvider.GetRequiredService<BidDocumentManagement>();
         var id = await bids.CreateDraftAsync(f.User, f.Context.Tender.Id, f.Form());
-        var pdf = Encoding.ASCII.GetBytes("%PDF-1.4\nprivate technical proposal\n%%EOF");
+        var pdf = DocumentExtractionChecks.TextPdf();
         var file = new FormFile(new MemoryStream(pdf), 0, pdf.Length, "File", "technical.pdf");
         var version = (await bids.DetailsAsync(f.User, id)).Version;
         await documents.UploadAsync(f.User, id, version, "Technical Proposal", file);

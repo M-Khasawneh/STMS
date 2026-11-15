@@ -1,5 +1,7 @@
 @model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
 @{ ViewData["Title"] = "Submit unified report"; }
+@section Styles { <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" /> }
+<partial name="_AccessWatermark" />
 <section class="requisition-detail-panel">
     <h1>Submit the saved committee report</h1><p>@Model.Tender.Title</p>
     @if (Model.CanEdit && Model.Ready && Model.Report is not null && Model.Report.RecommendedBidId.HasValue && !string.IsNullOrWhiteSpace(Model.Report.FinalResult) && !string.IsNullOrWhiteSpace(Model.Report.Recommendation)) {

@@ -104,7 +104,9 @@ public sealed class BidsController(SupplierBidPages pages, BidManagement bids, B
         View(await bids.HistoryAsync(User, id, ct));
     [HttpGet] public async Task<IActionResult> Summary([FromRoute] Guid id, CancellationToken ct)
     {
-        var bytes = await pages.SummaryAsync(User, id, ct);
+        var original = await pages.SummaryAsync(User, id, ct);
+        var stamp = AccessStamp.Create(User, HttpContext.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow());
+        var bytes = System.Text.Encoding.UTF8.GetBytes(System.Text.Encoding.UTF8.GetString(original) + "\n\nPersonal copy: " + stamp.Label + "\n");
         Response.Headers["X-Content-Type-Options"] = "nosniff";
         Response.Headers["Content-Security-Policy"] = "sandbox; default-src 'none'";
         return File(bytes, "text/plain; charset=utf-8", $"STMS-offer-{id:N}.txt");

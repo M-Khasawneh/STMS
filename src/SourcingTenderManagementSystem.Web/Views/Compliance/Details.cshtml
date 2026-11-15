@@ -51,7 +51,7 @@
                 @foreach (var reply in thread.Replies) {
                     <div class="clarification-reply"><strong>Supplier response</strong><small>@TenderTime.Display(reply.Response.RespondedAt)</small><p class="compliance-text">@reply.Response.Response</p>
                         <ul>@foreach (var file in reply.Attachments) {
-                            <li><a asp-action="Document" asp-route-id="@Model.BidId" asp-route-attachmentId="@file.Id">@file.OriginalName</a> <small>@((file.Size / 1024m).ToString("N0")) KB</small></li>
+                            <li><a asp-action="Document" asp-route-id="@Model.BidId" asp-route-attachmentId="@file.Id" asp-route-view="true" target="_blank" rel="noopener">View watermarked copy</a> <a asp-action="Document" asp-route-id="@Model.BidId" asp-route-attachmentId="@file.Id">@file.OriginalName</a> <small>@((file.Size / 1024m).ToString("N0")) KB</small></li>
                         }</ul>
                     </div>
                 }

@@ -26,6 +26,11 @@ public sealed class RequisitionsController(RequisitionManagement requisitions) :
         try { return View(await requisitions.DetailsAsync(id, actor)); }
         catch (RequisitionException exception) { return StatusCode(exception.Status); }
     }
+    [HttpGet] public async Task<IActionResult> Qr(Guid id, [FromServices] QrLinks codes) {
+        try { _ = await requisitions.DetailsAsync(id,actor); var bytes=codes.Png("Requisitions",id); _ = await requisitions.DetailsAsync(id,actor); Response.Headers["X-Content-Type-Options"]="nosniff"; return File(bytes,"image/png",$"STMS-Requisitions-{id:N}-QR.png"); }
+        catch (RequisitionException e) { return StatusCode(e.Status); }
+        catch (BidException e) { return StatusCode(e.Status,e.Message); }
+    }
     [HttpGet]
     public async Task<IActionResult> Create()
     {

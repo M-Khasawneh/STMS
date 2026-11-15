@@ -18,6 +18,6 @@ public sealed record ReportCell(string Text, decimal? Number = null)
 }
 public sealed record ReportTable(string Title, string[] Columns, IReadOnlyList<ReportCell[]> Rows);
 public sealed record ReportMetric(string Label, string Value);
-public sealed record ReportDocument(string Title, DateTimeOffset GeneratedAt, IReadOnlyList<ReportMetric> Metrics, IReadOnlyList<ReportTable> Tables, IReadOnlyList<string> Notes);
+public sealed record ReportDocument(string Title, DateTimeOffset GeneratedAt, IReadOnlyList<ReportMetric> Metrics, IReadOnlyList<ReportTable> Tables, IReadOnlyList<string> Notes) { public string? AccessWatermark { get; init; } }
 public sealed record ReportOption(Guid Id, string Label);
 public sealed record ReportPage(ReportFilter Filter, string[] Categories, ReportDocument Document) { public string ScopeKey { get; init; } = ""; public IReadOnlyList<ReportOption> Departments { get; init; } = []; public IReadOnlyList<ReportOption> Tenders { get; init; } = []; }

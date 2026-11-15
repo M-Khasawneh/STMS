@@ -8,15 +8,16 @@ namespace SourcingTenderManagementSystem.Web.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-public sealed class ReportsController(IReporting reports, ILogger<ReportsController> logger) : Controller
+public sealed class ReportsController(IReporting reports, ILogger<ReportsController> logger, TimeProvider clock) : Controller
 {
+    private ReportPage Stamp(ReportPage page) => page with { Document = page.Document with { AccessWatermark = AccessStamp.Create(User, clock.GetUtcNow()).Label } };
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next) { var executed = await next(); if (executed.Exception is not BidException error) return; executed.ExceptionHandled = true; if (error.Status == 403) executed.Result = Forbid(); else if (error.Status == 404) executed.Result = NotFound(); else { Response.StatusCode = error.Status; executed.Result = View("Problem", error.Message); } }
-    [HttpGet] public async Task<IActionResult> Index([FromQuery] ReportFilter filter, CancellationToken ct) { if (!ModelState.IsValid) return BadRequest("Invalid report filters."); return View(await reports.ReadAsync(User, filter, ct)); }
+    [HttpGet] public async Task<IActionResult> Index([FromQuery] ReportFilter filter, CancellationToken ct) { if (!ModelState.IsValid) return BadRequest("Invalid report filters."); var page = await reports.ReadAsync(User, filter, ct); return View(Stamp(page)); }
     [HttpGet]
     public async Task<IActionResult> Print([FromQuery] ReportFilter filter, CancellationToken ct)
     {
         if (!ModelState.IsValid) return BadRequest("Invalid report filters.");
-        var page = await reports.ReadAsync(User, filter, ct);
+        var page = Stamp(await reports.ReadAsync(User, filter, ct));
         BidRules.Require(page.Document.Tables.Count > 0, 400, "Select a report context before printing.");
         return View(page.Document);
     }
@@ -25,7 +26,7 @@ public sealed class ReportsController(IReporting reports, ILogger<ReportsControl
     {
         if (!ModelState.IsValid) return BadRequest("Invalid report filters.");
         if (format is not ("xlsx" or "pdf")) return BadRequest("Choose Excel or PDF.");
-        var page = await reports.ReadAsync(User, filter, ct);
+        var page = Stamp(await reports.ReadAsync(User, filter, ct));
         BidRules.Require(page.Document.Tables.Count > 0, 400, "Choose a populated report context before exporting.");
         byte[] content;
         try { content = format == "xlsx" ? ReportExports.Excel(page.Document) : ReportExports.Pdf(page.Document); }

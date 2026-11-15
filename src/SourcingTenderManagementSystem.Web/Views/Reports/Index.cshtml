@@ -10,6 +10,7 @@
 }
 @section Styles {<link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />}
 <div class="page-heading"><div><div class="eyebrow">REAL DATA / YOUR AUTHORIZED SCOPE</div><h1>Reports &amp; insights</h1><p>Clear views of the work, decisions and records available to you.</p></div></div>
+@if (document.AccessWatermark is not null) { <p class="access-stamp" dir="auto">@document.AccessWatermark</p><div class="report-watermark" aria-hidden="true">@document.AccessWatermark</div> }
 <nav class="report-tabs" aria-label="Report categories">@foreach(var category in Model.Categories){<a asp-action="Index" asp-route-category="@category" aria-current="@(category==f.Category?"page":null)">@ReportRules.Label(category)</a>}</nav>
 <section class="requisition-detail-panel report-filter" aria-labelledby="filter-heading"><h2 id="filter-heading">@document.Title</h2>
 <form asp-action="Index" method="get"><input name="Category" type="hidden" value="@f.Category"/><div class="report-filter-fields">

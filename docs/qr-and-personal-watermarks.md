@@ -1,0 +1,30 @@
+# Protected QR links and personalized copies — 2026-11-15
+
+## Approved scope and V5 evidence
+
+V5 P203 requires QR codes for tenders or purchase requests; P205 requires user-specific watermarks on viewing/downloading tender documents and reports. The user selected both features and explicitly approved QRCoder. No migration, data seed or SQL write test is part of this change.
+
+## Implementation
+
+- `QrLinks` generates PNG locally with QRCoder 1.8.1, ECC Q and quiet zones. Payload is only the existing `/Requisitions/Details/{id}` or `/Tenders/Details/{id}` HTTPS URL. It contains no access token, user identity or private document location. The Qr actions use the same record authorization as Details before and after generation. Existing controller role gates and no-store headers remain authoritative; a QR is not an access grant.
+- Set `PublicSite:Origin` to the deployed root HTTPS origin, for example `https://stms.example`. A configured Passkeys origin is a fallback; Development alone can fall back to `https://localhost:7162`. No request Host value controls the payload. Paths, credentials, fragments, HTTP and query strings are rejected. A localhost QR is suitable only on the development machine; other devices need the actual reachable HTTPS deployment origin. Subpath hosting is not supported by this configuration.
+- `DocumentWatermarkFilter` intercepts only the existing Bids, ReviewBids and Compliance `Document` actions after successful authorization and file-integrity verification. It reopens through the original service to recheck eligibility, ownership, membership and tender stage after rendering. Existing Admin and RequestingDepartment confidentiality restrictions remain intact. `?view=true` returns a safe inline personal copy; normal download returns an attachment. Both are no-store/private, nosniff and sandboxed. No original-file fallback is allowed.
+- PDF/JPG/PNG originals stay in their existing private stores, unchanged. A separate same-application worker renders PDF pages as images and stamps each image with trusted account name, account ID and UTC access time; PDF output contains the stamped images, without the original active document layer. JPG/PNG copies are PNGs. No uploaded path is executed or passed to a shell. Copies exist only in memory and are not cached or written into the database/private store.
+- Supported tender attachments are the currently implemented bid proposals/supporting documents and compliance attachments. There is no separate tender-document upload entity/workflow to add here. Supplier-registration legal certificates and profile photos are distinct and remain unchanged.
+- Reports Index and browser Print are personalized. Unified report Details/Review/Submit views use the same stamp. PDF export stamps every generated page. XLSX has an escaped visible identity row on every sheet and a print header, preserving typed cells and formula-injection defenses. Personal supplier TXT summaries include an identity footer. All existing report/summary access scoping remains in force.
+
+## Resource and format limitations
+
+- Worker request: original up to 5 MB; PDF up to 40 pages; images up to 6000 per dimension and 12 million source pixels; PDF raster target up to 2000x2600 per page. Worker output is capped at 40 MB; processing has a 45-second deadline and a 700-MB monitored process budget. At most two workers per application process, with a five-second admission wait. These are rendering safety limits, not changes to bid submission eligibility or original attachment storage.
+- Unreadable, encrypted, excessive or unsupported sources fail closed with a useful error. They never fall back to an unstamped original. Existing native PDF rendering is Windows-dependent; this is a separate process with resource monitoring, not an OS security sandbox.
+- PDF copies are rasterized: text selection, embedded links, searchable text, existing interactive fields and embedded signatures are not preserved in the derivative. Original bytes remain intact. Do not use this derivative as a substitute for legal signature verification.
+- Watermarks are attribution/deterrence, not DRM: recipients can screenshot, crop or edit copies. XLSX/TXT remain editable formats. Browser watermarking does not prevent copying authorized text.
+- Raster/native PDF text uses the existing fonts and does not add Arabic shaping libraries. Full account ID/UTC are present, but complex-script account-name shaping may be imperfect in native rendered copies. Browser views and Excel preserve Unicode; existing report-export RTL handling remains unchanged (browser Print/Save PDF or Excel for Arabic reports).
+
+## Verification
+
+- Solution build: zero errors and zero warnings.
+- 31 database-free checks cover trusted identities, QR origin/path rejection, PNG module equivalence to the canonical link, genuine PDF/image worker rendering, all-page personalization, immutable original hashes, different-viewer output, malformed/encrypted/over-limit failure, cancellation, escaped per-sheet XLSX stamps and all-page PDF report stamps.
+- Bid Phase 3 HTTP checks cover safe inline/attachment copies, original role gates on QR routes, competitor/Admin download denial, Razor forms and antiforgery. Existing bid-domain/private-file checks, 56 internal bid checks, 50 reporting rules/46 reporting MVC checks, 61 compliance rules/25 compliance MVC checks, 40 manager/report rules/29 report MVC checks and 59 workspace checks passed using synthetic memory fixtures.
+- Edge headless checked actual authorized inline response, report viewer and print watermark, 1440/768/390 layouts, absence of document overflow and JavaScript page errors. QA artifacts live outside the repository. No SQL writes, migrations, production supplier documents or test accounts were used.
+- Physical-phone QR scanning and production HTTPS deployment acceptance remain manual checks. QR target authorization uses the existing tested record services; no new production SQL mutation/concurrency claim is made.

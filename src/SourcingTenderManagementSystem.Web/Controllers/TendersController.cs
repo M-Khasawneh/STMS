@@ -27,6 +27,11 @@ public sealed class TendersController(TenderManagement tenders) : Controller
     [HttpGet] public async Task<IActionResult> Index() { ViewData["Actor"] = actor; return View(await tenders.ListAsync(actor)); }
     [HttpGet] public async Task<IActionResult> Details([FromRoute] Guid id)
     { try { return View(await tenders.DetailsAsync(id,actor)); } catch (TenderException exception) { return Failure(exception); } }
+    [HttpGet] public async Task<IActionResult> Qr(Guid id, [FromServices] QrLinks codes) {
+        try { _ = await tenders.DetailsAsync(id,actor); var bytes=codes.Png("Tenders",id); _ = await tenders.DetailsAsync(id,actor); Response.Headers["X-Content-Type-Options"]="nosniff"; return File(bytes,"image/png",$"STMS-Tenders-{id:N}-QR.png"); }
+        catch (TenderException e) { return StatusCode(e.Status); }
+        catch (BidException e) { return StatusCode(e.Status,e.Message); }
+    }
     [HttpGet] public async Task<IActionResult> Create(Guid? requisitionId)
     {
         if (!actor.Manage) return Forbid();

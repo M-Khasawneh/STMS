@@ -6,6 +6,7 @@ using SourcingTenderManagementSystem.Web.Security;
 if (args.Length > 0 && args[0] == "--extract-bid-text") {
     Environment.ExitCode = await BidTextWorker.RunAsync(args); return;
 }
+if(args.Length==1 && args[0]=="--watermark-document"){Environment.ExitCode=await DocumentWatermarkWorker.RunAsync();return;}
 var builder = WebApplication.CreateBuilder(args);
 
 var provisionFirstAdmin = args.Contains("--provision-first-admin", StringComparer.Ordinal);
@@ -22,7 +23,10 @@ if (provisionFirstAdmin)
 }
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options=>options.Filters.AddService<DocumentWatermarkFilter>());
+builder.Services.AddScoped<DocumentWatermarkFilter>();
+builder.Services.AddScoped<PrivateWatermarkedCopies>();
+builder.Services.AddSingleton(new QrLinks(builder.Configuration["PublicSite:Origin"]??builder.Configuration["Passkeys:Origin"]??(builder.Environment.IsDevelopment()?"https://localhost:7162":null)));
 builder.Services.AddPublicContact();
 builder.Services.AddScoped<INotificationStore, NotificationStore>();
 builder.Services.AddScoped<NotificationInbox>();

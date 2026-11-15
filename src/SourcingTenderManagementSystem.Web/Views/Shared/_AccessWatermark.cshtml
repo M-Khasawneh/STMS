@@ -1,0 +1,3 @@
+@inject TimeProvider WatermarkClock
+@{ var stamp = SourcingTenderManagementSystem.Web.Data.AccessStamp.Create(User, WatermarkClock.GetUtcNow()).Label; }
+<p class="access-stamp" dir="auto">@stamp</p><div class="report-watermark" aria-hidden="true">@stamp</div>

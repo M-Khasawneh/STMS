@@ -25,9 +25,9 @@ Employee dashboard voice search (V5 10.3): real browser SpeechRecognition integr
 2. **Face/fingerprint/PIN-backed passkeys (10.1): MVC/Identity integration implemented under the approved PIN allowance.** Password-confirmed enrollment/removal, native WebAuthn sign-in, exact HTTPS-origin binding, account eligibility and one-use challenge protection are implemented. See docs/identity-passkeys.md. Virtual-authenticator protocol/security tests passed; physical face/fingerprint demonstrations and actual SQL credential-write verification remain outstanding. STMS cannot identify which local biometric/PIN method was used.
 3. **Actual voice microphone demonstration:** the production browser integration now exists; English/Arabic device/service verification remains. Browser tests use injected recognition events only.
 
-## Two required optional choices are still outstanding
+## Two required optional choices implemented
 
-No QR generation, user-specific document/report watermarking or digital-signature integration was found in application code. V5 requires at least two of these three choices. QR plus watermarking remains a proposed pair, not an approved library/signing/privacy policy. Watermarking must cover viewing and downloading of supported tender documents and reports, preserve originals and keep private access restrictions. Digital signatures require defined signer/proof/verification expectations if selected.
+Protected tender/requisition QR generation and personalized tender-document/report copies are now implemented. QRCoder was explicitly approved. Original files remain private and unchanged; existing role/record/stage authorization is retained. See [QR and personalized copies](qr-and-personal-watermarks.md) for scope, verification and deployment/rendering limitations. Digital signatures were not selected and are not claimed as implemented.
 
 ## Partial requirements needing precise definitions
 
@@ -39,4 +39,4 @@ No QR generation, user-specific document/report watermarking or digital-signatur
 
 ## Suggested order
 
-Finish manual voice verification and the documented AI/OCR verification limitations; demonstrate the implemented passkeys on suitable face/fingerprint hardware and the deployed HTTPS origin; select and implement two optional features; complete defined report/expiry gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.
+Finish manual voice verification and the documented AI/OCR verification limitations; demonstrate the implemented passkeys on suitable face/fingerprint hardware and the deployed HTTPS origin; verify QR links on the deployed HTTPS origin and personalized document/report output; complete defined report/expiry gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.

@@ -21,6 +21,7 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--access-copy-checks-only", StringComparer.Ordinal)) { await AccessCopyChecks.Run(args.SkipWhile(a=>a!="--copy-output").Skip(1).FirstOrDefault()); return; }
 if (args.Contains("--passkey-checks-only", StringComparer.Ordinal)) { await PasskeyChecks.Run(false); return; }
 if (args.Contains("--passkey-browser-fixture", StringComparer.Ordinal)) { await PasskeyChecks.Run(true); return; }
 if (args.Contains("--ai-document-model-checks-only", StringComparer.Ordinal)) { await DocumentExtractionChecks.LocalModel(); return; }

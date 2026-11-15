@@ -46,7 +46,10 @@ public static class BidPhase3Checks
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(o => o.Listen(IPAddress.Loopback, 0));
         builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews(o => o.Filters.AddService<DocumentWatermarkFilter>());
+        builder.Services.AddScoped<DocumentWatermarkFilter>();
+        builder.Services.AddScoped<PrivateWatermarkedCopies>();
+        builder.Services.AddSingleton(new QrLinks("https://stms.test"));
         if (notesPreview || contactChecks) {
             builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer("Server=unused;Database=unused;Integrated Security=True").AddInterceptors(new NoSqlContactFixture()));
             builder.Services.AddScoped<SupplierRegistration>();
@@ -152,6 +155,9 @@ public static class BidPhase3Checks
                 // Per-request values override the default header in HttpClient.
                 return await client.SendAsync(request);
             }
+            foreach (var route in new[] { "/Requisitions/Qr/" + Guid.NewGuid(), "/Tenders/Qr/" + Guid.NewGuid() })
+                foreach (var unauthorized in new[] { "anonymous", "evaluator", "top" })
+                    Check((await Get(route, unauthorized)).StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized, "QR route retains original role gate for " + unauthorized);
             async Task<string> Token()
             {
                 var html = await (await client.GetAsync("/Bids")).Content.ReadAsStringAsync();
@@ -214,7 +220,7 @@ public static class BidPhase3Checks
                 if (token) content.Add(new StringContent(await Token()), "__RequestVerificationToken");
                 return await client.PostAsync(path, content);
             }
-            var pdf = Encoding.ASCII.GetBytes("%PDF-1.4\nprivate bid\n%%EOF");
+            var pdf = DocumentExtractionChecks.TextPdf();
             var upload = $"/Bids/Upload/{id}";
             version = BidRules.Version(f.Store.Rows[id]);
             Check((await Upload(upload, version, "proposal.pdf", pdf, false)).StatusCode == HttpStatusCode.BadRequest, "upload requires antiforgery");
@@ -223,9 +229,13 @@ public static class BidPhase3Checks
             var documentId = f.Store.Rows[id].Documents.Single().Id;
             var downloadPath = $"/Bids/Document/{id}?documentId={documentId}";
             var download = await client.GetAsync(downloadPath);
-            Check(download.StatusCode == HttpStatusCode.OK && (await download.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf), "protected MVC download returns verified bytes");
-            Check(download.Content.Headers.ContentDisposition?.DispositionType == "attachment" && download.Content.Headers.ContentType?.MediaType == "application/octet-stream" &&
+            Check(download.StatusCode == HttpStatusCode.OK && !(await download.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf), "protected MVC download returns a derived watermarked copy");
+            Check(download.Content.Headers.ContentDisposition?.DispositionType == "attachment" && download.Content.Headers.ContentType?.MediaType == "application/pdf" &&
                 download.Headers.CacheControl?.NoStore == true && download.Headers.GetValues("X-Content-Type-Options").Single() == "nosniff" && download.Headers.Contains("Content-Security-Policy"), "HTTP download applies attachment, no-store, nosniff and sandbox headers");
+            var caseVariant = await client.GetAsync($"/bids/document/{id}?DoCuMeNtId={documentId}");
+            Check(caseVariant.StatusCode == HttpStatusCode.OK && caseVariant.Content.Headers.ContentType?.MediaType == "application/pdf" && !(await caseVariant.Content.ReadAsByteArrayAsync()).SequenceEqual(pdf), "case-insensitive MVC URL cannot bypass personal-copy filter");
+            var inline = await client.GetAsync(downloadPath + "&view=true");
+            Check(inline.StatusCode == HttpStatusCode.OK && inline.Content.Headers.ContentDisposition?.DispositionType == "inline" && inline.Content.Headers.ContentType?.MediaType == "application/pdf", "view delivers only a safe inline personal copy");
             Check((await Get(downloadPath, "other")).StatusCode == HttpStatusCode.NotFound, "competing supplier download denied");
             Check((await Get(downloadPath, "admin")).StatusCode == HttpStatusCode.Forbidden, "Admin cannot use supplier download endpoint");
             version = BidRules.Version(f.Store.Rows[id]);

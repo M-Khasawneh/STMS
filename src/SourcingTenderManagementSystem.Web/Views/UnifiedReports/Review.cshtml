@@ -1,7 +1,8 @@
 @model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @{ ViewData["Title"] = "Manager report review"; }
-@section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/unified-reports.css" asp-append-version="true" /> }
+@section Styles { <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" /> <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/unified-reports.css" asp-append-version="true" /> }
+<partial name="_AccessWatermark" />
 <div class="bid-workspace unified-report-workspace">
     <header class="page-heading"><div><span class="eyebrow">SOURCING MANAGER</span><h1>Review committee recommendation</h1><p>@Model.Tender.Title</p></div></header>
     <a asp-action="Details" asp-route-id="@Model.Tender.Id">← Read the complete submitted report</a>
