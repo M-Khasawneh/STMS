@@ -89,6 +89,13 @@ const path = require('path');
             check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Login fits ' + width);
             if (width !== 320) await page.screenshot({ path: path.join(output, 'login-' + width + '.png'), fullPage: true });
         }
+        for (const width of [1440, 768, 390, 320]) {
+            await page.setViewportSize({ width, height: 1000 });
+            const response = await page.goto(base + '/Suppliers/Confirmation');
+            check(response.status() === 200 && response.headers()['x-stms-bid-fixture'] === 'memory-only', 'Anonymous registration receipt renders');
+            check(await page.locator('main h1').innerText() === 'Registration information', 'Receipt does not claim an unperformed registration');
+            check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Receipt fits ' + width);
+        }
         check(errors.length === 0, 'No JavaScript errors');
         fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify({ checks, errors }, null, 2));
         console.log('PASS: ' + checks + ' Word notes browser checks');

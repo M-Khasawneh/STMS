@@ -137,3 +137,6 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
 @media (prefers-reduced-motion: reduce) { .public-shell .topbar.public-topbar, .public-shell .public-topbar .public-nav > a { transition: none; } }
 
 @media (prefers-reduced-motion: reduce) { .sticky-public-footer a { transition: none; } }
+
+/* Keyboard focus must reveal a sticky-footer link immediately, without the global smooth-scroll delay. */
+html:has(.footer-keyboard-flow){scroll-behavior:auto!important}

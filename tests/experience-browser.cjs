@@ -27,7 +27,7 @@ const fs=require('fs'),path=require('path');
     }
     await page.setViewportSize({width:1440,height:1000});await page.goto(base+'/Account/Login');
     await page.locator('[name=UserName]').fill('admin');await page.locator('[name=Password]').fill(process.env.STMS_UI_TEST_PASSWORD);
-    await Promise.all([page.waitForURL('**/Workspace'),page.locator('form button[type=submit]').click()]);
+    await Promise.all([page.waitForURL('**/Workspace'),page.getByRole('button',{name:'Log in to your workspace',exact:true}).click()]);
     await page.goto(base+'/Employees');
     ok(await page.locator('tbody tr').filter({hasText:/\badmin\b/}).count()===1,'only ordinary department-admin remains; built-in admin hidden');
     ok(await page.locator('tbody tr td').filter({hasText:/^admin$/}).count()===0,'built-in admin absent from Employees');

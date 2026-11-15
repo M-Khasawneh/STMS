@@ -129,6 +129,8 @@ public static class BidPhase3Checks
         if (reportChecks) builder.Services.AddSingleton<IUnifiedReportManagement, UnifiedReportPresentationFixture>();
         builder.Services.AddScoped<BidDocumentManagement>();
         builder.Services.AddScoped<SupplierBidPages>();
+        BrowserViewCoverage.Register(builder.Services);
+        if(browserFixture)builder.Services.AddControllersWithViews().AddApplicationPart(typeof(UiPagePreviewController).Assembly);
         await using var app = builder.Build();
         app.Use(async (context, next) => { context.Response.Headers["X-STMS-Bid-Fixture"] = "memory-only"; await next(); });
         app.UseStaticFiles(); app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();

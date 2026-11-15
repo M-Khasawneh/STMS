@@ -176,7 +176,7 @@
 .review-decision-records small { display: block; margin: 7px 0; color: #626e77; }
 .review-decision-records p { margin: 0; }
 @media (max-width: 640px) {
-    .workspace .requisition-item { grid-template-columns: minmax(0, 1fr); padding: 18px; }
+    .workspace .requisition-item, .workspace .requisition-item:not([data-requisition-item]) { grid-template-columns: minmax(0, 1fr); padding: 18px; }
     .workspace .requisition-item > * { grid-column: 1 !important; }
     .workspace .form-grid, .supplier-registration-panel .form-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     .workspace .form-section, .workspace .request-form-section { padding: 18px; }

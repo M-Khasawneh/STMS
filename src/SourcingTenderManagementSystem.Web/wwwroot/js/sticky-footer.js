@@ -50,7 +50,8 @@
         if (keyboard && footer.classList.contains('footer-sticky-ready')) {
             animations.forEach(animation => animation.cancel()); animations.clear();
             footer.classList.add('footer-keyboard-flow');
-            requestAnimationFrame(() => event.target.scrollIntoView({ block: 'nearest', behavior: 'instant' }));
+            // Resolve the flow change synchronously before the browser performs native focus scrolling.
+            event.target.scrollIntoView({ block: 'nearest', behavior: 'instant' });
         }
     });
     footer.addEventListener('focusout', event => { if (event.relatedTarget && !footer.contains(event.relatedTarget)) footer.classList.remove('footer-keyboard-flow'); });

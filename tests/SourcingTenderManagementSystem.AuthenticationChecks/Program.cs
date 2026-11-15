@@ -195,6 +195,7 @@ builder.Logging.ClearProviders();
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
 builder.Services.AddControllersWithViews().AddApplicationPart(typeof(ProtectionController).Assembly);
+BrowserViewCoverage.Register(builder.Services);
 builder.Services.AddSingleton<IPublicStatistics, UnavailablePublicStatistics>();
 builder.Services.AddSingleton<IInternalClarifications, InternalClarificationFixture>();
 builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();

@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
     const check = (ok, message) => { if (!ok) throw Error(message); checks++; };
     try {
         fs.mkdirSync(output, { recursive: true });
-        const context = await browser.newContext({ extraHTTPHeaders: { 'X-Bid-Test-Actor': 'admin' } });
+        const context = await browser.newContext({ extraHTTPHeaders: { 'X-Bid-Test-Actor': 'admin', 'X-Admin-Test-State': 'populated' } });
         const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
         for (const width of [1440, 1024, 768, 390, 320]) {
             await page.setViewportSize({ width, height: 1000 });

@@ -46,9 +46,8 @@ const path = require('path');
             }
         }
         await page.goto(base + routes.details);
-        const downloaded = page.waitForEvent('download');
-        await page.getByRole('link', { name: /Download private file/ }).click();
-        check(!(await (await downloaded).failure()), 'authorized private download');
+        const [downloaded] = await Promise.all([page.waitForEvent('download',{timeout:60000}),page.getByRole('link', { name: /Download watermarked copy/ }).click()]);
+        check(!(await downloaded.failure()), 'authorized private download');
         await context.setExtraHTTPHeaders({ 'X-Bid-Test-Actor': 'supplier' });
         await page.goto(base + '/Bids/Details/' + bidId);
         await page.getByRole('link', { name: 'Activity history' }).click();
