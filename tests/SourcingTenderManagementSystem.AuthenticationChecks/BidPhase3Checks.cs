@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -77,6 +77,7 @@ public static class BidPhase3Checks
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<IAdminDashboard>(s => new TestAdminDashboard(s.GetRequiredService<IHttpContextAccessor>(), f.Clock, adminChecks));
         builder.Services.AddSingleton<IRoleDashboard, TestRoleDashboard>();
+        if (voiceChecks) builder.Services.AddSingleton<IRoleDashboard, VoiceDashboardFixture>();
         var departments = new MemoryDepartments();
         var initialDepartment = new Department { Id = Guid.NewGuid(), Name = "Administration" };
         departments.Departments[initialDepartment.Id] = initialDepartment;
@@ -122,6 +123,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (voiceChecks) { await VoiceSearchChecks.Mvc(client); return; }
             if (topChecks) { await TopCommitteeChecks.Mvc(client, app.Services); return; }
             if (reportingChecks) { await ReportingChecks.Mvc(client,app.Services); return; }
             if (clarificationChecks) { await InternalClarificationChecks.Mvc(client); return; }

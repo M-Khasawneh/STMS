@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--voice-search-checks-only", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(voiceChecks: true); return; }
+if (args.Contains("--voice-search-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, voiceChecks: true); return; }
 if (args.Contains("--top-committee-checks-only", StringComparer.Ordinal)) { TopCommitteeRuleChecks.Run(); await TopCommitteeChecks.Rules(); await BidPhase3Checks.RunAsync(topChecks: true); return; }
 if (args.Contains("--top-committee-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, topChecks: true); return; }
 if (args.Contains("--top-committee-rules-only", StringComparer.Ordinal)) { TopCommitteeRuleChecks.Run(); return; }
