@@ -1,8 +1,30 @@
+@inject TimeProvider SupplierClock
+@using SourcingTenderManagementSystem.Web.Data
 @model SourcingTenderManagementSystem.Web.Models.Suppliers.SupplierReviewViewModel
-@{ var supplier = Model.Supplier!; }
+@{ var supplier = Model.Supplier!; var today = SupplierExpiryRules.Today(SupplierClock.GetUtcNow()); }
 <dl class="supplier-facts"><div><dt>Company</dt><dd>@supplier.CompanyName</dd></div><div><dt>Registration number</dt><dd>@supplier.RegistrationNumber</dd></div><div><dt>Tax registration number</dt><dd>@supplier.TaxNumber</dd></div><div><dt>Contact name</dt><dd>@supplier.ContactName</dd></div><div><dt>Contact email</dt><dd>@supplier.ContactEmail</dd></div><div><dt>Contact phone</dt><dd>@supplier.ContactPhone</dd></div><div><dt>Status</dt><dd><span class="status-pill">@supplier.Status</span></dd></div>
 @if (supplier.ReviewedAt.HasValue) { <div><dt>Reviewed at (UTC)</dt><dd>@supplier.ReviewedAt.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</dd></div> }
 @if (!string.IsNullOrWhiteSpace(supplier.ReviewReason)) { <div><dt>Review reason</dt><dd class="review-reason">@supplier.ReviewReason</dd></div> }
 </dl>
 <h2 class="supplier-form-heading">Official documents</h2><p class="form-text">Download each document for review. Files are provided as attachments.</p>
-<ul class="supplier-document-list">@foreach (var document in Model.Documents) { <li><div><strong>@document.DocumentType</strong><small>@document.OriginalName &middot; @((document.Size / 1024d).ToString("N1")) KB</small></div><a asp-action="Document" asp-route-id="@document.Id" class="table-action" aria-label="Download @document.DocumentType">Download</a></li> }</ul>
+<p class="form-text">Dates use Asia/Amman. Expiring soon means today through the next 30 days. A missing date is unknown, not evidence of indefinite validity. These labels do not change supplier eligibility.</p>
+<ul class="supplier-document-list">
+@foreach (var document in Model.Documents) {
+    var state = SupplierExpiryRules.Label(document.ExpiresOn, today);
+    var edit = Model.ExpiryEdit?.DocumentId == document.Id ? Model.ExpiryEdit : null;
+    var displayedDate = edit is not null ? edit.ExpiresOn : document.ExpiresOn;
+    <li><div class="supplier-document-info"><strong>@document.DocumentType</strong><small>@document.OriginalName &middot; @((document.Size / 1024d).ToString("N1")) KB</small>
+        <p class="supplier-expiry-state @(document.ExpiresOn < today ? "is-expired" : document.ExpiresOn <= today.AddDays(SupplierExpiryRules.UpcomingDays) ? "is-upcoming" : "")"><span class="status-pill">@state</span> @if(document.ExpiresOn.HasValue){<time datetime="@document.ExpiresOn.Value.ToString("yyyy-MM-dd")">@document.ExpiresOn.Value.ToString("yyyy-MM-dd")</time>}</p>
+        @if (User.IsInRole("Admin")) {
+            <form asp-action="DocumentExpiry" asp-route-id="@supplier.Id" method="post" class="supplier-expiry-form">
+                <strong class="supplier-expiry-document-title">@document.DocumentType</strong>
+                <input name="DocumentId" type="hidden" value="@document.Id" />
+                <input name="Version" type="hidden" value="@(edit?.Version ?? SupplierExpiryRules.Version(document))" />
+                <div><label for="expiry-@document.Id" class="form-label">Expiry date shown on the document</label><input name="ExpiresOn" id="expiry-@document.Id" type="date" value="@displayedDate?.ToString("yyyy-MM-dd")" min="0001-01-01" max="9999-12-31" class="form-control" aria-describedby="expiry-help-@document.Id" /><small id="expiry-help-@document.Id">Review the original before recording a date. Leave blank if the date is not recorded.</small></div>
+                <button type="submit" class="btn btn-outline-secondary">Save expiry date</button>
+            </form>
+            @if (edit is not null && !ViewData.ModelState.IsValid) { <a asp-action="Details" asp-route-id="@supplier.Id">Reload current document dates</a> }
+        }
+    </div><a asp-action="Document" asp-route-id="@document.Id" class="table-action" aria-label="Download @document.DocumentType">Download</a></li>
+}
+</ul>

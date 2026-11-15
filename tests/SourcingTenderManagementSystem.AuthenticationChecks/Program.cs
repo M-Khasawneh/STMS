@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--supplier-expiry-checks-only", StringComparer.Ordinal)) { await SupplierExpiryChecks.Rules(); await BidPhase3Checks.RunAsync(expiryChecks: true); return; }
+if (args.Contains("--supplier-expiry-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, expiryChecks: true); return; }
 if (args.Contains("--access-copy-checks-only", StringComparer.Ordinal)) { await AccessCopyChecks.Run(args.SkipWhile(a=>a!="--copy-output").Skip(1).FirstOrDefault()); return; }
 if (args.Contains("--passkey-checks-only", StringComparer.Ordinal)) { await PasskeyChecks.Run(false); return; }
 if (args.Contains("--passkey-browser-fixture", StringComparer.Ordinal)) { await PasskeyChecks.Run(true); return; }

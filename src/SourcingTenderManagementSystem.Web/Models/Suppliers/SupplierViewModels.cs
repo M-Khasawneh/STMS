@@ -21,9 +21,17 @@ public sealed class SupplierRegistrationViewModel
 
 public sealed class SupplierReviewViewModel
 {
+    [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public SupplierExpiryForm? ExpiryEdit { get; set; }
     [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public SupplierProfile? Supplier { get; set; }
     [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public IReadOnlyList<SupplierDocument> Documents { get; set; } = [];
     [Required] public SupplierStatus? Decision { get; set; }
     [StringLength(2000)] public string? Reason { get; set; }
     [Required] public SupplierStatus? ExpectedStatus { get; set; }
+}
+
+public sealed class SupplierExpiryForm
+{
+    public Guid DocumentId { get; set; }
+    [Required(ErrorMessage = "Reload the application before updating document dates."), StringLength(64, MinimumLength = 64, ErrorMessage = "Reload the application before updating document dates.")] public string Version { get; set; } = "";
+    [DataType(DataType.Date), Display(Name = "Expiry date shown on the document")] public DateOnly? ExpiresOn { get; set; }
 }

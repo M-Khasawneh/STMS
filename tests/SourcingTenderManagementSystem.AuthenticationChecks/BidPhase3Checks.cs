@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false, bool aiChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false, bool aiChecks = false, bool expiryChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -50,7 +50,7 @@ public static class BidPhase3Checks
         builder.Services.AddScoped<DocumentWatermarkFilter>();
         builder.Services.AddScoped<PrivateWatermarkedCopies>();
         builder.Services.AddSingleton(new QrLinks("https://stms.test"));
-        if (notesPreview || contactChecks) {
+        if (notesPreview || contactChecks || expiryChecks) {
             builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer("Server=unused;Database=unused;Integrated Security=True").AddInterceptors(new NoSqlContactFixture()));
             builder.Services.AddScoped<SupplierRegistration>();
             builder.Services.AddScoped<SupplierReview>();
@@ -66,7 +66,7 @@ public static class BidPhase3Checks
         builder.Services.AddPublicContact();
         builder.Services.RemoveAll<IContactMessageStore>();
         builder.Services.AddSingleton<IContactMessageStore, MemoryContactMessages>();
-        if (notesPreview) {
+        if (notesPreview || expiryChecks) {
             builder.Services.AddControllersWithViews().AddApplicationPart(typeof(NotesPreviewController).Assembly);
             builder.Services.AddSingleton<IWorkspacePresentation, NotesPresentation>();
         }
@@ -94,6 +94,13 @@ public static class BidPhase3Checks
         builder.Services.AddSingleton<IEmployeeData>(employeeData);
         builder.Services.AddScoped<EmployeeManagement>();
         builder.Services.AddSingleton<TimeProvider>(f.Clock);
+        if (expiryChecks) {
+            f.Store.Accounts["admin"] = new("admin", [ApplicationRoles.Admin], null, false, true, true, [], []);
+            builder.Services.AddSingleton<SupplierExpiryChecks.MemoryStore>();
+            builder.Services.AddSingleton<ISupplierExpiryStore>(sp => sp.GetRequiredService<SupplierExpiryChecks.MemoryStore>());
+            builder.Services.AddScoped<SupplierDocumentExpiry>();
+        }
+
         builder.Services.AddSingleton<IBidData>(f.Store);
         builder.Services.AddSingleton<IBidDocumentData>(f.Store);
         builder.Services.AddSingleton<IPrivateBidFiles>(new PrivateBidFiles(new FilesEnvironment(root)));
@@ -134,6 +141,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (expiryChecks) { await SupplierExpiryChecks.Mvc(client, app.Services); return; }
             if (aiChecks) { await AiAnalysisChecks.Mvc(client,app.Services,f); return; }
             if (voiceChecks) { await VoiceSearchChecks.Mvc(client); return; }
             if (topChecks) { await TopCommitteeChecks.Mvc(client, app.Services); return; }

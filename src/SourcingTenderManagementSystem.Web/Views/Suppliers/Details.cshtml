@@ -3,6 +3,7 @@
 @{ ViewData["Title"] = "Supplier review"; var supplier = Model.Supplier!; }
 <div class="row form-layout"><section class="form-panel" aria-labelledby="review-title"><div class="eyebrow">SUPPLIER REVIEW</div><h1 id="review-title">Review application</h1>
 @if (TempData["SupplierStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
 <partial name="_SupplierDetails" model="Model" />
 @if (supplier.Status is SupplierStatus.Pending or SupplierStatus.Approved) {
 <form asp-action="Review" asp-route-id="@supplier.Id" method="post" data-supplier-review>
@@ -15,3 +16,5 @@
 } else { <a asp-action="Index" class="btn btn-outline-secondary">Back to applications</a> }
 </section></div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/suppliers.js" asp-append-version="true"></script> }
+
+@section Styles { <link rel="stylesheet" href="~/css/supplier-expiry.css" asp-append-version="true" /> }

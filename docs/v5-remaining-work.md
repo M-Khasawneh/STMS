@@ -31,7 +31,7 @@ Protected tender/requisition QR generation and personalized tender-document/repo
 
 ## Partial requirements needing precise definitions
 
-- **Supplier-document expiry:** SupplierDocument.ExpiresOn and expiry/unknown-date reporting exist, but there is no date-capture/edit workflow in supplier review. Do not fabricate expiry dates or silently suspend companies; agree how true dates are entered and verified.
+- **Supplier-document expiry:** Admin date entry and supplier read-only labels are now implemented using the existing ExpiresOn field. The approved upcoming window is 30 days in Asia/Amman; unknown dates remain unknown and no automatic suspension is added. See [supplier document expiry](supplier-document-expiry.md). Live SQL write verification remains approval-dependent.
 - **Supplier performance:** existing transaction frequency counts recorded awards. Fulfillment/performance scoring has no agreed source data or formula; it must not be invented from bids or approval status.
 - **Final contract reporting:** TenderAward includes an optional ContractReference; this is not contract creation/signing or fulfillment management. V5's final-contract reporting scope needs definition before adding a contract workflow.
 - **Cancelled/Accepted/Rejected/Withdrawn enum values:** enum presence alone is not an implemented action. Current approved bid rules explicitly prohibit withdrawal/replacement/resubmission; do not add such actions merely because the Word status list mentions them. Any later cancellation or award-to-bid-status rule needs an approved transition policy.
@@ -39,4 +39,4 @@ Protected tender/requisition QR generation and personalized tender-document/repo
 
 ## Suggested order
 
-Finish manual voice verification and the documented AI/OCR verification limitations; demonstrate the implemented passkeys on suitable face/fingerprint hardware and the deployed HTTPS origin; verify QR links on the deployed HTTPS origin and personalized document/report output; complete defined report/expiry gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.
+Finish manual voice verification and the documented AI/OCR verification limitations; demonstrate the implemented passkeys on suitable face/fingerprint hardware and the deployed HTTPS origin; verify QR links on the deployed HTTPS origin and personalized document/report output; complete the still-undefined performance/contract reporting gaps and final acceptance. This checklist does not authorize migrations, dependency installation, data seeding or unrelated modules.

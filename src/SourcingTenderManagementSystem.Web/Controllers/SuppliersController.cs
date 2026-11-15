@@ -96,6 +96,39 @@ public sealed class SuppliersController(ApplicationDbContext database, SupplierR
         catch (UnauthorizedAccessException) { return StatusCode(503, "Document is temporarily unavailable."); }
     }
 
+    [Authorize(Policy = ApplicationRoles.Admin), HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DocumentExpiry([FromRoute] Guid id, SupplierExpiryForm form,
+        [FromServices] SupplierDocumentExpiry expiry, CancellationToken cancellationToken)
+    {
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await expiry.SaveAsync(User, id, form, cancellationToken);
+                TempData["SupplierStatus"] = "Document expiry date saved. Supplier account status has not changed.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (BidException e)
+            {
+                if (e.Status == 403) return Forbid();
+                if (e.Status == 404) return NotFound();
+                Response.StatusCode = e.Status; ModelState.AddModelError("", e.Message);
+            }
+            catch (Microsoft.Data.SqlClient.SqlException e) when (e.Number == 1205)
+            { Response.StatusCode = 409; ModelState.AddModelError("", "A concurrent update prevented saving. Reload before trying again."); }
+            catch (DbUpdateConcurrencyException)
+            { Response.StatusCode = 409; ModelState.AddModelError("", "The document changed. Reload before trying again."); }
+            catch (DbUpdateException)
+            { return StatusCode(503, "The expiry date could not be saved. Reload and try again; no partial update was committed."); }
+        }
+        else Response.StatusCode = 400;
+        var supplier = await database.SupplierProfiles.AsNoTracking().SingleOrDefaultAsync(s => s.Id == id, cancellationToken);
+        if (supplier is null) return NotFound();
+        var page = await DetailsAsync(supplier, cancellationToken);
+        page.ExpiryEdit = form;
+        return View("Details", page);
+    }
+
     private async Task<SupplierReviewViewModel> DetailsAsync(SupplierProfile supplier, CancellationToken cancellationToken) => new()
     {
         Supplier = supplier, ExpectedStatus = supplier.Status,

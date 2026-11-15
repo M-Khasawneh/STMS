@@ -12,6 +12,12 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 [Authorize]
 public sealed class NotesPreviewController : Controller
 {
+    [HttpGet] public IActionResult SupplierExpiry([FromServices] SupplierExpiryChecks.MemoryStore store)
+    {
+        RouteData.Values["controller"] = "Suppliers";
+        return View(User.IsInRole("Admin") ? "~/Views/Suppliers/Details.cshtml" : "~/Views/Suppliers/Status.cshtml",
+            new SourcingTenderManagementSystem.Web.Models.Suppliers.SupplierReviewViewModel { Supplier = store.Profile, Documents = store.Documents.Values.ToArray(), ExpectedStatus = store.Profile.Status });
+    }
     [HttpGet] public IActionResult ComposeRequest()
     {
         RouteData.Values["controller"] = "Requisitions"; RouteData.Values["action"] = "Create";

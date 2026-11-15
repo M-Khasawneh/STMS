@@ -40,6 +40,8 @@ builder.Services.AddScoped<IWorkspacePresentation, WorkspacePresentation>();
 builder.Services.AddScoped<IPrivateSupplierFiles, PrivateSupplierFiles>();
 builder.Services.AddScoped<SupplierRegistration>();
 builder.Services.AddScoped<SupplierReview>();
+builder.Services.AddScoped<ISupplierExpiryStore, SupplierExpiryStore>();
+builder.Services.AddScoped<SupplierDocumentExpiry>();
 builder.Services.AddScoped<RequisitionManagement>();
 builder.Services.AddScoped<TenderManagement>();
 builder.Services.AddScoped<BidData>();
