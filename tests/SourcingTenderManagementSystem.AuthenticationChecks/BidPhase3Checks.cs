@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false, bool voiceChecks = false, bool aiChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -97,6 +97,12 @@ public static class BidPhase3Checks
         builder.Services.AddScoped<IBidSubmissionDocuments, BidSubmissionDocuments>();
         builder.Services.AddScoped<BidManagement>();
         builder.Services.AddScoped<BidReviewPages>();
+        builder.Services.AddSingleton<AiAnalysisGate>();
+        builder.Services.AddSingleton<TestOllama>();
+        builder.Services.AddSingleton<IOllamaBidClient>(sp=>sp.GetRequiredService<TestOllama>());
+        builder.Services.AddSingleton<MemoryAiData>(sp => new MemoryAiData(new BidReviewPages(f.Store,f.Service,f.Clock),f.Store));
+        builder.Services.AddScoped<IAiBidData>(sp=>sp.GetRequiredService<MemoryAiData>());
+        builder.Services.AddScoped<IAiBidManagement,AiBidManagement>();
         if (complianceChecks) builder.Services.AddSingleton<IComplianceManagement, ComplianceMvcFixture>();
         if (evaluationChecks) builder.Services.AddSingleton<IEvaluationManagement, EvaluationPresentationFixture>();
         if (reportChecks) builder.Services.AddSingleton<IUnifiedReportManagement, UnifiedReportPresentationFixture>();
@@ -115,6 +121,7 @@ public static class BidPhase3Checks
             var url = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             if (browserFixture)
             {
+                if (aiChecks) await AiAnalysisChecks.Prepare(f);
                 if (topChecks) await TopCommitteeChecks.Prepare(app.Services.GetRequiredService<MemoryTopCommitteeData>(),app.Services.GetRequiredService<ITopCommitteeManagement>());
                 if (phase4Checks) await BidPhase4Checks.PrepareBrowserAsync(app.Services, f);
                 Console.WriteLine($"BID_BROWSER_FIXTURE {url} tender={f.Context.Tender.Id:D} temporary-storage={root}");
@@ -123,6 +130,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (aiChecks) { await AiAnalysisChecks.Mvc(client,app.Services,f); return; }
             if (voiceChecks) { await VoiceSearchChecks.Mvc(client); return; }
             if (topChecks) { await TopCommitteeChecks.Mvc(client, app.Services); return; }
             if (reportingChecks) { await ReportingChecks.Mvc(client,app.Services); return; }

@@ -40,6 +40,12 @@ builder.Services.AddScoped<IBidData>(services => services.GetRequiredService<Bid
 builder.Services.AddScoped<IBidDocumentData>(services => services.GetRequiredService<BidData>());
 builder.Services.AddScoped<BidManagement>();
 builder.Services.AddScoped<BidReviewPages>();
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
+builder.Services.AddSingleton<AiAnalysisGate>();
+builder.Services.AddHttpClient<IOllamaBidClient,OllamaBidClient>(client => client.Timeout=TimeSpan.FromMinutes(3))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect=false,UseProxy=false });
+builder.Services.AddScoped<IAiBidData,AiBidData>();
+builder.Services.AddScoped<IAiBidManagement,AiBidManagement>();
 builder.Services.AddScoped<IComplianceManagement, ComplianceManagement>();
 builder.Services.AddScoped<IInternalClarifications, InternalClarificationManagement>();
 builder.Services.AddScoped<IReporting, Reporting>();

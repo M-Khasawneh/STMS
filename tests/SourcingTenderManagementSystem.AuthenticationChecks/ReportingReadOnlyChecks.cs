@@ -24,6 +24,7 @@ internal static class ReportingReadOnlyChecks
         var services = new ServiceCollection(); services.AddLogging(); services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(target.ConnectionString).AddInterceptors(new SelectOnly()));
         services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<BidData>(); services.AddScoped<IBidData>(s => s.GetRequiredService<BidData>()); services.AddScoped<TenderManagement>(); services.AddScoped<EvaluationManagement>(); services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>()); services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>(); services.AddScoped<IReporting, Reporting>(); services.AddScoped<ITopCommitteeData, TopCommitteeData>(); services.AddScoped<ITopCommitteeManagement, TopCommitteeManagement>();
+        services.AddScoped<IBidSubmissionDocuments,BidSubmissionDocumentsPending>(); services.AddScoped<BidManagement>(); services.AddScoped<BidReviewPages>(); services.AddScoped<IAiBidData,AiBidData>();
         await using var provider = services.BuildServiceProvider(); var count = 0; var skipped = new List<string>();
         foreach (var role in ApplicationRoles.All)
         {
@@ -47,6 +48,10 @@ internal static class ReportingReadOnlyChecks
                     catch (BidException error) when (error.Status == 404) { /* Scoped query correctly returned no metadata. */ }
                     count++; Console.WriteLine($"PASS: SELECT-only protected outcome projection for {role}.");
                 }
+            }
+            if (topAccount is not null && topAccount.Internal && topAccount.Roles.Any(r=>r is ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee)) {
+                var visible=await data.VisibleQuery(topAccount,now).OrderBy(b=>b.Id).Select(b=>(Guid?)b.TenderId).FirstOrDefaultAsync();
+                if(visible.HasValue){var ai=scope.ServiceProvider.GetRequiredService<IAiBidData>();var evidence=await ai.SourceAsync(actor,visible.Value,CancellationToken.None);await ai.FindAsync(evidence,CancellationToken.None);count++;Console.WriteLine($"PASS: SELECT-only AI evidence/history queries for {role}. No Ollama call or analysis persistence.");}
             }
             var initial = await reports.ReadAsync(actor, new(), CancellationToken.None);
             foreach (var category in initial.Categories)

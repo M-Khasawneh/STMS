@@ -3,6 +3,7 @@
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
 <div class="bid-workspace">
     <header class="page-heading"><div><span class="eyebrow">SUBMITTED OFFERS / COMPARISON</span><h1>@Model.Tender.Title</h1><p>Saved offer values in JOD. This comparison does not assign scores or rankings.</p></div><a asp-action="Index" asp-route-tenderId="@Model.Tender.Id">Back to offers</a></header>
+    <a asp-controller="AiAnalysis" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary mb-3">Local AI advisory analysis</a>
     <div class="table-responsive bid-panel" tabindex="0" role="region" aria-label="Offer comparison"><table class="table bid-comparison">
         <caption>Commercial terms and authoritative quantities for offers available to your account.</caption>
         <thead><tr><th scope="col">Term / requested item</th>@foreach (var offer in Model.Offers) { <th scope="col"><a asp-action="Details" asp-route-id="@offer.Details.Snapshot.Bid.Id">@offer.SupplierName<br /><small>@offer.Details.Snapshot.Bid.Id</small></a></th> }</tr></thead>
