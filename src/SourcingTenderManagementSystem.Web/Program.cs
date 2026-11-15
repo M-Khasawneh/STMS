@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using SourcingTenderManagementSystem.Web.Data;
 using SourcingTenderManagementSystem.Web.Security;
 
+if (args.Length > 0 && args[0] == "--extract-bid-text") {
+    Environment.ExitCode = await BidTextWorker.RunAsync(args); return;
+}
 var builder = WebApplication.CreateBuilder(args);
 
 var provisionFirstAdmin = args.Contains("--provision-first-admin", StringComparer.Ordinal);
@@ -42,6 +45,9 @@ builder.Services.AddScoped<BidManagement>();
 builder.Services.AddScoped<BidReviewPages>();
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
 builder.Services.AddSingleton<AiAnalysisGate>();
+builder.Services.Configure<BidTextOptions>(builder.Configuration.GetSection("BidText"));
+builder.Services.AddScoped<IBidTextExtractor,BidTextExtractor>();
+builder.Services.AddScoped<IAiBidDocuments,AiBidDocuments>();
 builder.Services.AddHttpClient<IOllamaBidClient,OllamaBidClient>(client => client.Timeout=TimeSpan.FromMinutes(3))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect=false,UseProxy=false });
 builder.Services.AddScoped<IAiBidData,AiBidData>();

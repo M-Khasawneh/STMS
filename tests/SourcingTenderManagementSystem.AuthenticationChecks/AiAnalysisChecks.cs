@@ -17,8 +17,12 @@ internal sealed class MemoryAiData(BidReviewPages pages,IBidData bids):IAiBidDat
  public Task<AiResult?> FindAsync(AiEvidence source,CancellationToken ct)=>Task.FromResult<AiResult?>(Rows.FirstOrDefault(r=>r.Fingerprint==source.Fingerprint).Result);
  public async Task<AiResult> SaveAsync(ClaimsPrincipal user,AiEvidence source,string model,AiAdvice advice,CancellationToken ct){
   await using var tx=await bids.BeginAsync(source.TenderId,ct);var fresh=await SourceAsync(user,source.TenderId,ct);ComplianceRules.Version(source.Fingerprint,fresh.Fingerprint);var existing=await FindAsync(fresh,ct);if(existing!=null)return existing;
-  if(FailSave)throw new IOException("Injected analysis persistence failure");var result=new AiResult(Guid.NewGuid(),model,DateTimeOffset.UtcNow,advice);await tx.CommitAsync(ct);Rows.Add((source.Fingerprint,result));return result;
+  if(FailSave)throw new IOException("Injected analysis persistence failure");var result=new AiResult(Guid.NewGuid(),model,DateTimeOffset.UtcNow,advice){Documents=source.Documents};await tx.CommitAsync(ct);Rows.Add((source.Fingerprint,result));return result;
  }
+}
+internal sealed class TestAiDocuments : IAiBidDocuments {
+ public Task<AiEvidence> EnrichAsync(ClaimsPrincipal user,AiEvidence source,CancellationToken ct)=>Task.FromResult(AiDocumentRules.Compose(source,source.Offers.SelectMany(o=>o.Attachments.Select(d=>new AiDocumentEvidence(o.BidId,d.Id,d.Type,new string('A',64),new("Complete",1,[new(1,"PDF text","Synthetic document excerpt <script>document-fixture</script>",false,null)])))).ToArray()));
+ public Task ValidateAsync(ClaimsPrincipal user,AiEvidence source,IReadOnlyList<AiDocumentEvidence> docs,CancellationToken ct){AiDocumentRules.Validate(source,docs);return Task.CompletedTask;}
 }
 internal sealed class TestOllama:IOllamaBidClient {
  public string Model=>"qwen3:4b";internal int Calls;internal bool Fail;internal Func<Task>? During;
@@ -63,7 +67,7 @@ internal static class AiAnalysisChecks {
   async Task<HttpResponseMessage> Get(string actor){client.DefaultRequestHeaders.Remove("X-Bid-Test-Actor");client.DefaultRequestHeaders.Add("X-Bid-Test-Actor",actor);return await client.GetAsync("/AiAnalysis/Details/"+id);}
   foreach(var actor in new[]{"officer","manager","admin","requester","supplier","anonymous","evaluator","top"}){var response=await Get(actor);var allowed=actor is "officer" or "manager";Check(allowed?response.StatusCode==HttpStatusCode.OK:response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized or HttpStatusCode.NotFound,"AI audience/stage "+actor);}
   Check(model.Calls==0,"GET must not generate");
-  var page=await(await Get("officer")).Content.ReadAsStringAsync();Check(page.Contains("__RequestVerificationToken")&&page.Contains("file contents")&&page.Contains("JOD"),"compiled evidence/form/limitations");
+  var page=await(await Get("officer")).Content.ReadAsStringAsync();Check(page.Contains("__RequestVerificationToken")&&page.Contains("Extracted document excerpts")&&page.Contains("JOD"),"compiled evidence/form/limitations");
   Check((await client.PostAsync("/AiAnalysis/Run/"+id,new FormUrlEncodedContent([]))).StatusCode==HttpStatusCode.BadRequest,"CSRF required");
   var token=WebUtility.HtmlDecode(Regex.Match(page,"name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);var user=new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier,"officer")],"MemoryOnly"));var snapshot=await service.PageAsync(user,id);
   var fields=new Dictionary<string,string>{{"__RequestVerificationToken",token},{"Version",snapshot.Evidence.Fingerprint},{"Confirm","false"}};

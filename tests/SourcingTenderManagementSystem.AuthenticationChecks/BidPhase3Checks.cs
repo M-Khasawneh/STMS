@@ -98,6 +98,7 @@ public static class BidPhase3Checks
         builder.Services.AddScoped<BidManagement>();
         builder.Services.AddScoped<BidReviewPages>();
         builder.Services.AddSingleton<AiAnalysisGate>();
+        builder.Services.AddSingleton<IAiBidDocuments,TestAiDocuments>();
         builder.Services.AddSingleton<TestOllama>();
         builder.Services.AddSingleton<IOllamaBidClient>(sp=>sp.GetRequiredService<TestOllama>());
         builder.Services.AddSingleton<MemoryAiData>(sp => new MemoryAiData(new BidReviewPages(f.Store,f.Service,f.Clock),f.Store));

@@ -2,9 +2,9 @@
 
 ## Delivered scope and authorization
 
-V5 10.2 requires Ollama-assisted bid extraction/comparison, strengths/weaknesses and initial recommendations, while human committees retain decisions. The module now uses the real local Ollama qwen3:4b model. It extracts structured prices, requested specifications, offered technical details, quantities, optional charges, delivery, payment and validity from existing authorized bid/requisition records; document presence is derived from the actual bid attachment inventory.
+V5 10.2 requires Ollama-assisted bid extraction/comparison, strengths/weaknesses and initial recommendations, while human committees retain decisions. The module now uses the real local Ollama qwen3:4b model. It extracts structured prices, requested specifications, offered technical details, quantities, optional charges, delivery, payment and validity from existing authorized bid/requisition records; document presence is derived from the actual bid attachment inventory. The document-text/OCR extension is now implemented; see bid-document-extraction.md for the current pipeline, provenance, setup and verification.
 
-GET /AiAnalysis/Details/{tenderId} previews authoritative evidence and the current preserved result. POST /AiAnalysis/Run/{tenderId} explicitly generates an advisory result with antiforgery and stale-source validation. The entry link is on the existing authorized offer-comparison page. No Web API, frontend framework, NuGet package or role was added.
+GET /AiAnalysis/Details/{tenderId} previews authoritative evidence and the current preserved result. POST /AiAnalysis/Run/{tenderId} explicitly generates an advisory result with antiforgery and stale-source validation. The entry link is on the existing authorized offer-comparison page. The original advisory increment added no Web API, frontend framework, NuGet package or role. The separately approved document extension now adds the three documented parsing/OCR dependencies.
 
 Source loading reuses BidReviewPages and BidManagement/IBidData. Admin, RequestingDepartment, Supplier and anonymous actors cannot read or generate comparative analysis. Officers/managers follow existing closed-stage access; evaluation and Top Committee members require current tender assignments and their existing stage restrictions. Mixed Admin/Supplier role accounts cannot bypass internal eligibility. Fresh source authorization is repeated before returning a result and inside the persistence transaction.
 
@@ -48,7 +48,7 @@ Models/Analysis/AiModels.cs; Data/{AiBidRules,AiBidData,AiBidManagement,OllamaBi
 
 ## Explicit limitations
 
-Attachment inventory is analyzed; PDF text, scans and image contents are not extracted. No OCR, vision model, native extraction binary or new document parser was introduced without approval. Therefore no claim is made that the AI verified the contents of technical/financial proposals. It also does not independently verify file integrity or replace existing protected download/mandatory-document checks.
+Authorized PDF text, rendered scanned pages and JPG/PNG OCR excerpts are now analyzed locally through the approved document extension. Exact excerpts, page references, OCR confidence and truncation/unreadable coverage are preserved and shown. See bid-document-extraction.md; source files remain private and immutable, and full visual/semantic accuracy is not claimed.
 
 Large-tender analysis, semantic accuracy, broader model quality benchmarks and real SQL write/concurrency tests remain bounded/unverified as described above. Actual human approval and award workflows are unchanged.
 

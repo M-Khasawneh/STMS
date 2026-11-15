@@ -7,6 +7,7 @@ using SourcingTenderManagementSystem.Web.Models.Entities;
 namespace SourcingTenderManagementSystem.Web.Data;
 public static class AiBidRules {
  public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web){UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,Converters={new System.Text.Json.Serialization.JsonStringEnumConverter()}};
+ public static AiAttachment Attachment(BidDocument d)=>new(d.Id,d.DocumentType,d.ContentType,d.Size,Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(d.StorageReference))));
  public static AiEvidence Evidence(BidReviewComparison comparison){
   var offers=comparison.Offers.OrderBy(o=>o.Details.Snapshot.Bid.Id).Select(o=>{
    var s=o.Details.Snapshot;var b=s.Bid;BidRules.Require(s.Items.Count==comparison.RequestedItems.Count&&b.Currency=="JOD"&&s.Items.All(i=>i.UnitPrice>0),409,"Offer commercial or item records conflict.");var facts=new List<AiFact>();
@@ -18,10 +19,10 @@ public static class AiBidRules {
     Fact("item:"+item.Id,JsonSerializer.Serialize(new{item.Description,item.Specifications,RequestedQuantity=item.Quantity,line.UnitPrice,Total=item.Quantity*line.UnitPrice,OfferedSpecifications=line.Specifications},Json));
    }
    foreach(var cost in s.Charges.OrderBy(c=>c.Id))Fact("charge:"+cost.Id,JsonSerializer.Serialize(new{cost.CostType,cost.Amount,cost.Currency,cost.Notes},Json));
-   // Document inventory only. File bytes, storage paths and legal registration documents never enter the prompt.
-   Fact("files",JsonSerializer.Serialize(s.Documents.OrderBy(d=>d.Id).Select(d=>new{d.DocumentType,d.ContentType,d.Size}),Json));
+   // Stable extraction profile and private reference fingerprints invalidate older inventory-only results.
+   Fact("files",JsonSerializer.Serialize(new{ExtractionProfile=AiDocumentRules.Profile,Attachments=s.Documents.OrderBy(d=>d.Id).Select(Attachment)},Json));
    var missing=s.Documents.Any(d=>d.DocumentType=="Technical Proposal")?Array.Empty<string>():new[]{"Technical Proposal"};
-   return new AiOffer(b.Id,o.SupplierName??"Supplier",b.Status,o.Details.Total,b.DeliveryTimeframe,b.TechnicalDetails,facts,missing);
+   return new AiOffer(b.Id,o.SupplierName??"Supplier",b.Status,o.Details.Total,b.DeliveryTimeframe,b.TechnicalDetails,facts,missing){Attachments=s.Documents.OrderBy(d=>d.Id).Select(Attachment).ToArray()};
   }).ToArray();
   BidRules.Require(offers.Length>0&&offers.Length<=20,400,"Analysis supports between one and twenty visible submitted offers at a time.");
   var evidence=new AiEvidence(comparison.Tender.Id,comparison.Tender.Title,comparison.Tender.Status,offers,"");

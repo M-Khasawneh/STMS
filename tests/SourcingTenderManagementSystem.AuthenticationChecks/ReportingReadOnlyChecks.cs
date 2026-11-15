@@ -24,7 +24,7 @@ internal static class ReportingReadOnlyChecks
         var services = new ServiceCollection(); services.AddLogging(); services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(target.ConnectionString).AddInterceptors(new SelectOnly()));
         services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<BidData>(); services.AddScoped<IBidData>(s => s.GetRequiredService<BidData>()); services.AddScoped<TenderManagement>(); services.AddScoped<EvaluationManagement>(); services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>()); services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>(); services.AddScoped<IReporting, Reporting>(); services.AddScoped<ITopCommitteeData, TopCommitteeData>(); services.AddScoped<ITopCommitteeManagement, TopCommitteeManagement>();
-        services.AddScoped<IBidSubmissionDocuments,BidSubmissionDocumentsPending>(); services.AddScoped<BidManagement>(); services.AddScoped<BidReviewPages>(); services.AddScoped<IAiBidData,AiBidData>();
+        services.AddScoped<IBidSubmissionDocuments,BidSubmissionDocumentsPending>(); services.AddScoped<BidManagement>(); services.AddScoped<BidReviewPages>(); services.AddScoped<IAiBidData,AiBidData>(); services.AddSingleton<IAiBidDocuments,TestAiDocuments>();
         await using var provider = services.BuildServiceProvider(); var count = 0; var skipped = new List<string>();
         foreach (var role in ApplicationRoles.All)
         {
