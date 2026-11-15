@@ -31,7 +31,7 @@ Protected tender/requisition QR generation and personalized tender-document/repo
 
 ## Partial requirements needing precise definitions
 
-- **Supplier-document expiry:** Admin date entry and supplier read-only labels are now implemented using the existing ExpiresOn field. The approved upcoming window is 30 days in Asia/Amman; unknown dates remain unknown and no automatic suspension is added. See [supplier document expiry](supplier-document-expiry.md). Live SQL write verification remains approval-dependent.
+- **Supplier-document expiry:** Admin date entry and supplier read-only labels are now implemented using the existing ExpiresOn field. The approved upcoming window is 30 days in Asia/Amman; unknown dates remain unknown and no automatic suspension is added. See [supplier document expiry](supplier-document-expiry.md). Separately approved temporary SQL tests now verify persistence, audit, rollback, concurrency and exact cleanup.
 - **Supplier performance:** existing transaction frequency counts recorded awards. Fulfillment/performance scoring has no agreed source data or formula; it must not be invented from bids or approval status.
 - **Final contract reporting:** TenderAward includes an optional ContractReference; this is not contract creation/signing or fulfillment management. V5's final-contract reporting scope needs definition before adding a contract workflow.
 - **Cancelled/Accepted/Rejected/Withdrawn enum values:** enum presence alone is not an implemented action. Current approved bid rules explicitly prohibit withdrawal/replacement/resubmission; do not add such actions merely because the Word status list mentions them. Any later cancellation or award-to-bid-status rule needs an approved transition policy.
