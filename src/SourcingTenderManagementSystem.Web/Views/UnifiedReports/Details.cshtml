@@ -13,6 +13,7 @@
         <div><span class="eyebrow">COMMITTEE REPORT</span><h1>Unified evaluation report</h1><p>@Model.Tender.Title</p></div>
         <span class="bid-status">@(submitted ? "Submitted" : Model.Report is null ? "Not prepared" : "Draft")</span>
     </header>
+    @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && (User.IsInRole("SourcingOfficer") || User.IsInRole("SourcingManager") || User.IsInRole("TopCommittee"))) {<a asp-controller="TopCommittee" asp-action="Index" class="btn btn-outline-secondary mb-3">Final decisions workspace</a>}
     @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,Model.Tender.Id,Context.RequestAborted)) {
         <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@Model.Tender.Id" class="btn btn-outline-secondary">Transaction clarifications</a>
     }

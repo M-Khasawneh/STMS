@@ -1,20 +1,31 @@
-# Top Committee — prepared foundation, reviewed migration applied
+# Top Committee final decisions and explicit award
 
-## Delivery boundary
+## Implemented scope
 
-The user approved the seven proposed Top Committee/award rules. This increment prepares the pure rules and the essential migration. It does NOT complete or enable the assignment, voting, rework, award, notification or MVC workflows. The reviewed migration was applied on 2026-11-15 after separate explicit user approval. No seed, SQL write test, test records or application restart was performed. See top-committee-migration-verification.md for the guarded application and preservation evidence.
+The approved four-member collective decision workflow is now wired through the existing MVC, Identity, EF Core and SQL Server architecture. No new roles, tables, dependencies, bid statuses, contract workflow or procurement modules were introduced. The separately approved migration 20261114220000_TopCommitteeVotingRounds was already applied on 2026-11-15; this implementation did not apply or alter migrations or write database records.
 
-The database now contains the required round columns and constraints. Applying this migration does not enable the remaining transactional services or MVC screens. No application rollout or restart was performed as part of the migration-only approval.
+- The appointed evaluation Sourcing Manager selects four distinct enabled internal TopCommittee employees. Trusted queries exclude tender creators/preparers, evaluation participants (including historical appointments and recorded evaluators), report authors and manager approvers.
+- Replacement requires a reason, ends the superseded membership and closes an active round without deleting its votes. A fresh round freezes the new four membership IDs and approved report version.
+- Each appointed member confirms one immutable reasoned vote: approve, reject, or request details. Other members' choices stay sealed until all four vote, including incomplete abandoned rounds. Reporting/Excel/PDF queries also exclude incomplete-round votes. Audits and notifications contain no partial choices/reasons.
+- All four votes are required. Three matching choices produce the collective outcome. No majority leaves the tender AwaitingCommitteeDecision and requires a documented explicit new round.
+- Rejection or details request returns to UnderEvaluation, preserves the submitted report and confirmed scores, and creates a new report draft. Current-report selection recognizes the returned manager-approved version and requires renewed manager review.
+- Approval does not award automatically. Only the responsible tender-creator SourcingOfficer explicitly records the compliant recommended bid as winner. Approved supplier eligibility is checked again before commit. TenderAward, Awarded status, audits and existing in-app notifications share one transaction. Bid statuses remain unchanged.
+- An authorized outcome projection returns metadata and, for invited suppliers, only their own selected/not-selected result. It exposes no competitor name, bid ID, documents, prices or vote details. Admin receives metadata only.
 
-## Approved behavior represented by the pure rules
+## Application files and routes
 
-- Four distinct eligible TopCommittee employees; the tender preparers, evaluation participants and report approvers are rejected by the rules when the trusted exclusion set contains them. Building the fresh, record-specific candidate/exclusion queries remains part of the transactional service implementation.
-- Three vote choices: CommitteeApproved, CommitteeRejected and ReturnedForReview; each needs a nonblank justification of at most 8000 characters. Votes are immutable.
-- All four must vote before a collective result or other members' votes can be revealed. Three matching votes form a majority. The tests enumerate all 81 possible complete vote combinations. No majority means no decision; AwaitingCommitteeDecision remains unchanged.
-- Member replacement after voting closes the old round without a final outcome and starts a reasoned new round; confirmed old votes remain retained. Round snapshots store the original four membership IDs, independently of later appointment dates. Round opening/replacement persistence is still to be implemented after approval.
-- Rejection or request for details returns to UnderEvaluation for a new report version and manager review; confirmed evaluations are retained. Extending current-report selection for these versions remains part of the next implementation increment.
-- Approval alone is not an award. Only the responsible SourcingOfficer can confirm an unawarded tender, using the current approved report's compliant recommended bid and a verified four-vote majority. Award persistence will be atomic and leave the tender Awarded. No new bid-status transitions are inferred here.
-- Notification delivery and supplier-only outcome disclosure will be wired with the existing infrastructure; not enabled in this preparation increment.
+- Data/TopCommitteeData.cs: scoped EF queries, provenance, eligibility, history, protected outcome projection and immutable-record persistence.
+- Data/TopCommitteeManagement.cs: assignment, round, vote, rework and award orchestration; serializable tender lock, fresh account checks and stale-form versions.
+- Models/TopCommittee/TopCommitteeModels.cs and Controllers/TopCommitteeController.cs.
+- Views/TopCommittee/{Index,Details,Outcome,Problem}.cshtml and wwwroot/{css,js}/top-committee.*.
+- Existing shared navigation, notification destinations, tender/report/bid details and role dashboard link to authorized entry points.
+- Existing ReportReviewRules and UnifiedReportManagement support Top Committee report revisions; Reporting protects sealed ballots.
+
+GET /TopCommittee and /TopCommittee/Details/{tenderId} are restricted to the responsible officer, appointed manager and currently eligible assigned Top Committee members at their permitted stages. POST Assign/Open require the appointed manager; Vote requires the assigned member; Award requires the responsible officer. Every modifying action requires antiforgery. GET /TopCommittee/Outcome/{tenderId} applies its own record-level metadata projection and no-store headers.
+
+## Transaction and integrity details
+
+The existing IBidData serializable UPDLOCK/HOLDLOCK tender transaction serializes changes. SHA-256 versions cover trusted workflow/eligibility state and ballot metadata, never partial ballot choices. Existing records are updated through a narrow allowlist: tender status, membership end, and Top Committee round closure/decision fields. Reports, manager decisions, awards, existing votes and frozen rosters are immutable. Closing an old round is flushed before inserting its replacement to respect the filtered unique open-round index; both flushes, new votes, audits and notifications remain in the same transaction. Decision and closure timestamps use the same captured UTC instant to satisfy the SQL check constraint.
 
 ## Exact migration
 
@@ -29,25 +40,15 @@ The database now contains the required round columns and constraints. Applying t
 
 The generated review script is top-committee-voting-migration.sql. Its exact reviewed commands were applied in operation batches within an outer verification transaction. Earlier migration files are unchanged; the normal EF snapshot was updated for the prepared target. The existing manager-report view handles a nullable date defensively without changing its workflow.
 
-## Read-only preflight
+## Verification in this implementation
 
-Focused existing-database SELECTs found zero TenderApprovals, CommitteeVotes, TenderAwards and TopCommittee assignments, no duplicate vote/award groups, and a currently non-nullable DecidedAt column. These results reflect inspection time; repeat preflight immediately before any separately approved application. No existing records were altered.
+- Solution build and compiled Razor: zero warnings/errors.
+- --top-committee-checks-only: 128 pure voting/majority/secrecy/award checks, 49 production-service checks using serializable memory transactions, and 23 real compiled MVC checks. Covers role/appointment isolation, stale forms, concurrent votes/award, atomic failure rollback, replacement, ties, both return outcomes, renewed report selection, supplier result isolation, antiforgery and HTML encoding.
+- Existing checks passed: manager report review 40 + MVC 29; reporting/export 50 + MVC 46; workspace 59; internal clarification 127 + MVC 17; bid audit/internal visibility 54; evaluation MVC 15; compliance 61 + MVC 25; default HTTPS Identity/employee/department regression runner.
+- SchemaChecks: seven source migrations, snapshot/model agreement, constraints and 37 required tables passed. No migration applied by these checks.
+- SELECT-only actual SQL checks: 97 read/report/export checks passed, including new final-decision list/page and protected outcome projections for eligible existing accounts. No eligible existing TopCommittee account was available; that role was covered by memory service/MVC tests instead. The interceptor rejects non-SELECT commands.
+- Edge browser using a memory-only host: HTTP 200 at 1440, 768, 390 and 320 px; no document overflow or JavaScript errors; keyboard focus and reduced-motion mode checked. Screenshots and fixture assets stayed outside the repository. No live users were created.
 
-## Safe verification
+## Remaining verification boundary
 
-- Solution build: zero warnings/errors, including Razor compilation.
-- --top-committee-rules-only: 128 database-free voting, secrecy, fixed-roster, stale/duplicate vote, status and award-authority checks passed.
-- SchemaChecks: model/snapshot equivalence, reviewed migration operations, filtered/unique indexes and 37 required tables passed; seven migrations exist in source and the reviewed seventh migration is now applied to SQL Server. --write-top-committee-script only writes the review file locally.
-- Existing manager-review checks: 40 domain and 29 MVC checks passed using memory-only fixtures.
-
-No full SQL workflow, concurrency, notification, browser or award-persistence verification is claimed. These depend on the remaining module implementation and separately approved SQL tests. The prepared rules are not a substitute for the transactional service/controller authorization that must be wired next.
-
-## Remaining implementation after the migration-only step
-
-- The reviewed migration is already applied. Do not rerun it or advance unrelated migrations. The remaining service/UI work is not included in the completed migration-only step.
-- Add appointed-manager-only candidate/assignment and reasoned replacement services. Derive exclusions from actual tender preparation, evaluation involvement and report approvals; do not trust posted account or member identifiers.
-- Build transactional round opening, replacement/abandonment, all-four voting, no-consensus reopening and responsible-officer award confirmation with the existing serializable tender lock, current eligibility checks, stale versions, audits and atomic notifications.
-- Preserve vote secrecy in every reader: committee pages, existing decision reports/exports, notifications and audit previews. Never expose another member's choice/reason while fewer than four confirmed votes exist, including abandoned rounds. Own-vote access still requires current record eligibility.
-- Extend report-current/version selection and revision handling for Top Committee rejection/detail requests; existing ManagerApproved history must remain immutable, not deleted to allow a revision.
-- Implement the required Razor screens and role-aware navigation only after the service paths are ready. Keep suppliers restricted to their own award outcome and preserve existing request/tender/bid access.
-- Prepare and request separate approval for temporary SQL write/concurrency tests. The current approval request concerns the migration only, not test-data creation.
+Actual SQL writes, vote/award persistence, transaction failure and concurrent SQL operations have not been tested in this implementation. Memory concurrency proves service behavior, not SQL lock/index behavior. A separately approved temporary SQL integration test is still required before claiming complete database persistence/concurrency verification. No new migration is required. Do not rerun the already applied migration or seed committee accounts automatically.

@@ -1,0 +1,4 @@
+@model SourcingTenderManagementSystem.Web.Models.TopCommittee.TenderOutcome
+@using SourcingTenderManagementSystem.Web.Models.Tenders
+@{ViewData["Title"]="Tender outcome";}
+<div class="page-heading"><div><div class="eyebrow">TENDER / AUTHORIZED OUTCOME</div><h1>@Model.Title</h1><p>Your permitted outcome information.</p></div><span class="status-pill">@Model.Status</span></div><section class="requisition-detail-panel"><h2>@Model.Result</h2>@if(Model.AwardedAt.HasValue){<p>Recorded @TenderTime.Display(Model.AwardedAt.Value)</p>}<a asp-controller="Workspace" asp-action="Index" class="btn btn-outline-secondary">Back to dashboard</a></section>

@@ -65,6 +65,9 @@
                 @if (!admin && !User.IsInRole(ApplicationRoles.Supplier) && (User.IsInRole(ApplicationRoles.SourcingOfficer) || User.IsInRole(ApplicationRoles.SourcingManager) || User.IsInRole(ApplicationRoles.EvaluationCommittee) || User.IsInRole(ApplicationRoles.TopCommittee))) {
                     <a class="side-link @((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations" || controller == "UnifiedReports") ? "active" : "")" aria-current="@((controller == "ReviewBids" || controller == "Compliance" || controller == "Evaluations" || controller == "UnifiedReports") ? "page" : null)" asp-controller="ReviewBids" asp-action="Index">Submitted offers</a>
                 }
+                @if (!admin && !User.IsInRole(ApplicationRoles.Supplier) && (User.IsInRole(ApplicationRoles.SourcingOfficer) || User.IsInRole(ApplicationRoles.SourcingManager) || User.IsInRole(ApplicationRoles.TopCommittee))) {
+                    <a class="side-link @(controller == "TopCommittee" ? "active" : "")" aria-current="@(controller == "TopCommittee" ? "page" : null)" asp-controller="TopCommittee" asp-action="Index">Final decisions</a>
+                }
                 @if (!admin && !User.IsInRole("Supplier") && (User.IsInRole("RequestingDepartment") || User.IsInRole("SourcingOfficer") || User.IsInRole("SourcingManager") || User.IsInRole(ApplicationRoles.EvaluationCommittee) || User.IsInRole("TopCommittee"))) {
                     <a class="side-link @(controller == "Clarifications" ? "active" : "")" aria-current="@(controller == "Clarifications" ? "page" : null)" asp-controller="Clarifications" asp-action="Index"><span class="nav-icon" aria-hidden="true">&#8644;</span>Clarifications</a>
                 }

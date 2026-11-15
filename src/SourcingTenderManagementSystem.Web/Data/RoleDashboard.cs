@@ -65,8 +65,8 @@ public sealed class RoleDashboard(ApplicationDbContext db, UserManager<IdentityU
                     if (!roles.Contains(pair.Item1)) continue;
                     var assigned = AssignedTenders(user.Id, pair.Item2, now);
                     var recent = await assigned.OrderByDescending(x => x.SubmissionDeadline).ThenBy(x => x.Id).Take(5).ToListAsync(ct);
-                    sections.Add(new(pair.Item3, "Effective assignments only, restricted to the tender stages available to your committee. This overview does not provide evaluation or award actions.",
-                        [new("Available assigned tenders", await assigned.LongCountAsync(ct))], recent.Select(x => new WorkspaceRecord(x.Id, x.Title, AdminDashboardModel.Label(x.Status), At:x.SubmissionDeadline)).ToArray()));
+                    sections.Add(new(pair.Item3, "Effective assignments only, restricted to the tender stages available to your committee. Open an available assigned tender to continue its authorized workflow.",
+                        [new("Available assigned tenders", await assigned.LongCountAsync(ct))], recent.Select(x => new WorkspaceRecord(x.Id, x.Title, AdminDashboardModel.Label(x.Status), pair.Item2 == CommitteeKind.TopCommittee ? "TopCommittee" : null, "Details", x.SubmissionDeadline)).ToArray()));
                 }
             }
             var notices = db.Notifications.AsNoTracking().Where(x => x.RecipientUserId == user.Id);

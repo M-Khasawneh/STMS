@@ -32,7 +32,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase3Checks
 {
     private static int checks;
-    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false)
+    public static async Task RunAsync(bool browserFixture = false, bool workspaceChecks = false, bool adminChecks = false, bool phase4Checks = false, bool complianceChecks = false, bool evaluationChecks = false, bool reportChecks = false, bool notesPreview = false, bool contactChecks = false, bool inboxChecks = false, bool clarificationChecks = false, bool reportingChecks = false, bool topChecks = false)
     {
         var root = Path.Combine(Path.GetTempPath(), "bid-mvc-checks-" + Guid.NewGuid().ToString("N"));
         var source = Path.GetFullPath("src/SourcingTenderManagementSystem.Web");
@@ -55,6 +55,9 @@ public static class BidPhase3Checks
         }
         builder.Services.AddSingleton<IInternalClarifications, InternalClarificationFixture>();
         builder.Services.AddSingleton<IReporting, ReportingFixture>();
+        builder.Services.AddSingleton<MemoryTopCommitteeData>();
+        builder.Services.AddSingleton<ITopCommitteeData>(sp => sp.GetRequiredService<MemoryTopCommitteeData>());
+        builder.Services.AddSingleton<ITopCommitteeManagement>(sp => new TopCommitteeManagement(sp.GetRequiredService<ITopCommitteeData>(), TimeProvider.System));
         builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
         builder.Services.AddScoped<NotificationInbox>();
         builder.Services.AddPublicContact();
@@ -111,6 +114,7 @@ public static class BidPhase3Checks
             var url = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             if (browserFixture)
             {
+                if (topChecks) await TopCommitteeChecks.Prepare(app.Services.GetRequiredService<MemoryTopCommitteeData>(),app.Services.GetRequiredService<ITopCommitteeManagement>());
                 if (phase4Checks) await BidPhase4Checks.PrepareBrowserAsync(app.Services, f);
                 Console.WriteLine($"BID_BROWSER_FIXTURE {url} tender={f.Context.Tender.Id:D} temporary-storage={root}");
                 await app.WaitForShutdownAsync(); return;
@@ -118,6 +122,7 @@ public static class BidPhase3Checks
             checks = 0;
             using var handler = new HttpClientHandler { AllowAutoRedirect = false };
             using var client = new HttpClient(handler) { BaseAddress = new(url) };
+            if (topChecks) { await TopCommitteeChecks.Mvc(client, app.Services); return; }
             if (reportingChecks) { await ReportingChecks.Mvc(client,app.Services); return; }
             if (clarificationChecks) { await InternalClarificationChecks.Mvc(client); return; }
             if (inboxChecks) { await NotificationChecks.RunAsync(client, app.Services); return; }
@@ -269,7 +274,7 @@ public sealed class BidMvcTestAuthentication(IOptionsMonitor<AuthenticationSchem
         if (string.IsNullOrEmpty(actor) || actor == "anonymous") return Task.FromResult(AuthenticateResult.NoResult());
         var role = actor switch { "admin" => ApplicationRoles.Admin, "officer" => ApplicationRoles.SourcingOfficer,
             "requester" => ApplicationRoles.RequestingDepartment, "manager" => ApplicationRoles.SourcingManager,
-            "evaluator" => ApplicationRoles.EvaluationCommittee, "top" => ApplicationRoles.TopCommittee, _ => ApplicationRoles.Supplier };
+            "evaluator" => ApplicationRoles.EvaluationCommittee, "top" or "top2" or "top3" or "top4" or "top5" or "unrelatedtop" => ApplicationRoles.TopCommittee, _ => ApplicationRoles.Supplier };
         var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, actor), new Claim(ClaimTypes.Name, actor), new Claim(ClaimTypes.Role, role)], Scheme.Name);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name)));
     }

@@ -44,6 +44,8 @@ builder.Services.AddScoped<IComplianceManagement, ComplianceManagement>();
 builder.Services.AddScoped<IInternalClarifications, InternalClarificationManagement>();
 builder.Services.AddScoped<IReporting, Reporting>();
 builder.Services.AddScoped<CommitteeManagement>();
+builder.Services.AddScoped<ITopCommitteeData, TopCommitteeData>();
+builder.Services.AddScoped<ITopCommitteeManagement, TopCommitteeManagement>();
 builder.Services.AddScoped<EvaluationManagement>();
 builder.Services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>());
 builder.Services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>();

@@ -23,7 +23,7 @@ internal static class ReportingReadOnlyChecks
         target.ApplicationIntent = ApplicationIntent.ReadOnly; target.ConnectTimeout = 5;
         var services = new ServiceCollection(); services.AddLogging(); services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(target.ConnectionString).AddInterceptors(new SelectOnly()));
         services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); services.AddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddScoped<BidData>(); services.AddScoped<IBidData>(s => s.GetRequiredService<BidData>()); services.AddScoped<TenderManagement>(); services.AddScoped<EvaluationManagement>(); services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>()); services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>(); services.AddScoped<IReporting, Reporting>();
+        services.AddScoped<BidData>(); services.AddScoped<IBidData>(s => s.GetRequiredService<BidData>()); services.AddScoped<TenderManagement>(); services.AddScoped<EvaluationManagement>(); services.AddScoped<IEvaluationManagement>(s => s.GetRequiredService<EvaluationManagement>()); services.AddScoped<IUnifiedReportManagement, UnifiedReportManagement>(); services.AddScoped<IReporting, Reporting>(); services.AddScoped<ITopCommitteeData, TopCommitteeData>(); services.AddScoped<ITopCommitteeManagement, TopCommitteeManagement>();
         await using var provider = services.BuildServiceProvider(); var count = 0; var skipped = new List<string>();
         foreach (var role in ApplicationRoles.All)
         {
@@ -32,6 +32,22 @@ internal static class ReportingReadOnlyChecks
             ClaimsPrincipal? actor = null;
             foreach (var id in ids) { var candidate = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "ReadOnlyReportCheck")); var account = await data.AccountAsync(candidate, now, CancellationToken.None); if (account != null && ReportRules.Categories(account).Length > 0) { actor = candidate; break; } }
             if (actor == null) { skipped.Add(role); continue; }
+            var topData = scope.ServiceProvider.GetRequiredService<ITopCommitteeData>();
+            var topAccount = await data.AccountAsync(actor, now, CancellationToken.None);
+            if (topAccount is not null) {
+                if (topAccount.Internal && topAccount.Roles.Any(r => r is ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.TopCommittee)) {
+                    var top = scope.ServiceProvider.GetRequiredService<ITopCommitteeManagement>();
+                    var rows = await top.ListAsync(actor); count++;
+                    foreach (var row in rows.Take(2)) { await top.PageAsync(actor,row.Id); count++; }
+                    Console.WriteLine($"PASS: SELECT-only final-decision list/page queries for {role}; {rows.Count} authorized tenders.");
+                }
+                var tender = await db.Tenders.AsNoTracking().OrderBy(t=>t.Id).Select(t=>(Guid?)t.Id).FirstOrDefaultAsync();
+                if (tender.HasValue) {
+                    try { await topData.OutcomeAsync(topAccount,tender.Value,CancellationToken.None); }
+                    catch (BidException error) when (error.Status == 404) { /* Scoped query correctly returned no metadata. */ }
+                    count++; Console.WriteLine($"PASS: SELECT-only protected outcome projection for {role}.");
+                }
+            }
             var initial = await reports.ReadAsync(actor, new(), CancellationToken.None);
             foreach (var category in initial.Categories)
             {

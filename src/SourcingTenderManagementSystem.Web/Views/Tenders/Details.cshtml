@@ -7,6 +7,8 @@
 @if(TempData["TenderStatus"] is string message){<div class="alert alert-success" role="status">@message</div>}
 @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,t.Id,Context.RequestAborted)) { <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@t.Id" asp-route-requisition="false" class="btn btn-outline-secondary mb-3">Transaction clarifications</a> }
 
+<div class="d-flex flex-wrap gap-2 mb-3"><a asp-controller="TopCommittee" asp-action="Outcome" asp-route-id="@t.Id" class="btn btn-outline-secondary">Recorded outcome</a>
+@if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && (User.IsInRole("SourcingOfficer") || User.IsInRole("SourcingManager"))) {<a asp-controller="TopCommittee" asp-action="Index" class="btn btn-outline-secondary">Final decisions workspace</a>}</div>
 <section class="requisition-detail-panel"><h2>Description</h2><p class="requisition-text">@t.Description</p><h2>Terms</h2><p class="requisition-text">@t.Terms</p>
 @if(Model.Actor.SupplierId is null && (Model.Actor.Admin||Model.Actor.Officer||Model.Actor.Requester)){<a asp-controller="Requisitions" asp-action="Details" asp-route-id="@Model.Source.Id" class="quiet-link">Source requisition: @Model.Source.Title</a>}
 <p class="form-text">The configured deadline is exclusive. Tender status changes are explicit officer actions; the deadline remains authoritative even while status is Open.</p>

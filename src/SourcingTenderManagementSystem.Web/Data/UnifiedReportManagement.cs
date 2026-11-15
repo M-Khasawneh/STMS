@@ -40,7 +40,7 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
     {
         var reports = await db.EvaluationReports.AsNoTracking().Where(x => x.TenderId == id).ToListAsync(ct);
         var decisions = await db.TenderApprovals.AsNoTracking().Where(x => x.TenderId == id && x.Stage == ApprovalStage.Manager).ToListAsync(ct);
-        return ReportReviewRules.Current(reports, decisions);
+        return ReportReviewRules.Current(reports, decisions, await db.TenderApprovals.AsNoTracking().Where(x => x.TenderId == id && x.Stage == ApprovalStage.TopCommittee).ToListAsync(ct));
     }
     private static bool Ready(ReportSnapshot snapshot) => snapshot.Members.Count == 4 && snapshot.Criteria.Count > 0 &&
         snapshot.Offers.Any(x => x.Status == BidStatus.Compliant) && snapshot.Offers.All(x => x.Status == BidStatus.NonCompliant ||
@@ -171,8 +171,8 @@ public sealed class UnifiedReportManagement(ApplicationDbContext db, IBidData bi
             return true;
         });
     }
-    private Task<bool> IsRevision(Guid id, CancellationToken ct) => db.TenderApprovals.AnyAsync(x => x.TenderId == id && x.Stage == ApprovalStage.Manager &&
-        (x.Decision == DecisionStatus.ManagerRejected || x.Decision == DecisionStatus.ReturnedForReview), ct);
+    private Task<bool> IsRevision(Guid id, CancellationToken ct) => db.TenderApprovals.AnyAsync(x => x.TenderId == id && (x.Stage == ApprovalStage.Manager || x.Stage == ApprovalStage.TopCommittee && x.RoundClosedAt != null) &&
+        (x.Decision == DecisionStatus.ManagerRejected || x.Decision == DecisionStatus.CommitteeRejected || x.Decision == DecisionStatus.ReturnedForReview), ct);
     private static ClaimsPrincipal Principal(string id) => new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, id)], "ReportEligibility"));
     private static ReportSnapshot StoredSnapshot(EvaluationReport report)
     {

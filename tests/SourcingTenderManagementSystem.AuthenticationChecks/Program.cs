@@ -21,6 +21,8 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if (args.Contains("--top-committee-checks-only", StringComparer.Ordinal)) { TopCommitteeRuleChecks.Run(); await TopCommitteeChecks.Rules(); await BidPhase3Checks.RunAsync(topChecks: true); return; }
+if (args.Contains("--top-committee-browser-fixture", StringComparer.Ordinal)) { await BidPhase3Checks.RunAsync(browserFixture: true, topChecks: true); return; }
 if (args.Contains("--top-committee-rules-only", StringComparer.Ordinal)) { TopCommitteeRuleChecks.Run(); return; }
 if (args.Contains("--reporting-read-only-checks", StringComparer.Ordinal)) { await ReportingReadOnlyChecks.RunAsync(); return; }
 if (args.Contains("--reporting-checks-only", StringComparer.Ordinal)) { ReportingChecks.Rules(args.SkipWhile(a=>a!="--reporting-output").Skip(1).FirstOrDefault()); await BidPhase3Checks.RunAsync(reportingChecks: true); return; }
