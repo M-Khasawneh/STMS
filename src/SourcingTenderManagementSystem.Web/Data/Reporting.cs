@@ -36,6 +36,26 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
         if (f.DepartmentId.HasValue) q = q.Where(t => db.TenderPurchaseRequisitions.Any(l => l.TenderId == t.Id && db.PurchaseRequisitions.Any(r => r.Id == l.PurchaseRequisitionId && r.DepartmentId == f.DepartmentId)));
         var start = Start(f.From); var end = End(f.To); if (start.HasValue) q = q.Where(t => t.SubmissionDeadline >= start); if (end.HasValue) q = q.Where(t => t.SubmissionDeadline < end); return q;
     }
+    public IQueryable<SupplierParticipationRow> SupplierParticipationQuery(BidAccount actor, Guid[] tenderIds, DateTimeOffset now, string? companySearch = null)
+    {
+        var allowed = TenderQuery(actor).Where(t => tenderIds.Contains(t.Id) && actor.Internal && BidRules.ClosedStages.Contains(t.Status) &&
+            (actor.Roles.Contains(ApplicationRoles.SourcingOfficer) || actor.Roles.Contains(ApplicationRoles.SourcingManager) ||
+             actor.Roles.Contains(ApplicationRoles.EvaluationCommittee) && actor.EvaluationTenders.Contains(t.Id) ||
+             actor.Roles.Contains(ApplicationRoles.TopCommittee) && actor.TopTenders.Contains(t.Id) && (t.Status == TenderStatus.AwaitingCommitteeDecision || t.Status == TenderStatus.Awarded)));
+        var invited = db.TenderSuppliers.AsNoTracking().Where(l => allowed.Any(t => t.Id == l.TenderId) && db.Invitations.Any(i => i.TenderSupplierId == l.Id));
+        var submitted = bids.VisibleQuery(actor, now).Where(b => b.Status != BidStatus.Draft && b.SubmittedAt != null && invited.Any(l => l.Id == b.TenderSupplierId && l.TenderId == b.TenderId));
+        return db.SupplierProfiles.AsNoTracking().Where(s => invited.Any(l => l.SupplierProfileId == s.Id) && (string.IsNullOrWhiteSpace(companySearch) || s.CompanyName.Contains(companySearch))).OrderBy(s => s.CompanyName).ThenBy(s => s.Id)
+            .Select(s => new SupplierParticipationRow(s.Id, s.CompanyName,
+                invited.Count(l => l.SupplierProfileId == s.Id),
+                submitted.Count(b => invited.Any(l => l.Id == b.TenderSupplierId && l.SupplierProfileId == s.Id)),
+                db.TenderAwards.Count(w => submitted.Any(b => b.Id == w.BidId && b.TenderId == w.TenderId && invited.Any(l => l.Id == b.TenderSupplierId && l.SupplierProfileId == s.Id)))));
+    }
+    private async Task AddSupplierParticipation(BidAccount actor, Guid[] tenderIds, List<ReportTable> tables, List<string> notes, List<string> scope, CancellationToken ct)
+    {
+        var rows = await SupplierParticipationQuery(actor, tenderIds, clock.GetUtcNow()).Take(ReportRules.RowLimit + 1).ToListAsync(ct);
+        tables.Add(SupplierParticipationReport.Table(rows)); notes.Add(SupplierParticipationReport.Definition);
+        scope.AddRange(rows.Select(r => $"participation:{r.SupplierId}:{r.Invitations}:{r.SubmittedOffers}:{r.Awards}"));
+    }
     private async Task<BidAccount> Account(ClaimsPrincipal user, CancellationToken ct) => await bids.AccountAsync(user, clock.GetUtcNow(), ct) ?? throw new BidException(403, "An authorized account is required.");
     public async Task<ReportPage> ReadAsync(ClaimsPrincipal user, ReportFilter f, CancellationToken ct)
     {
@@ -79,6 +99,9 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
                 var allowed = Confidential(t); var count = offers.FirstOrDefault(b => b.Id == t.Id)?.Count ?? 0; var invitations = invited.FirstOrDefault(i => i.Id == t.Id)?.Count ?? 0; var rate = ReportRules.Participation(count, invitations); var began = started.FirstOrDefault(s => s.Id == t.Id.ToString())?.At;
                 return new[] { C(t.Title), C(t.Status), C(Date(t.SubmissionDeadline)), allowed ? N(invitations) : C("Restricted"), allowed ? N(count) : C("Restricted"), allowed && rate.HasValue ? N(rate.Value) : C(allowed ? "Not available" : "Restricted"), allowed ? C(count == 0 ? "Yes" : "No") : C("Restricted"), allowed && t.Status == TenderStatus.UnderEvaluation && began.HasValue ? N((decimal)(clock.GetUtcNow() - began.Value).TotalDays) : C("Not available") };
             })));
+            if (a.Internal && a.Roles.Any(r => r is ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee))
+                await AddSupplierParticipation(a, ids, tables, notes, scope, ct);
+            else notes.Add("Supplier participation details remain restricted under your existing role permissions.");
             tables.Add(Table("Status breakdown", ["Status", "Tenders"], rows.GroupBy(t => t.Status).Select(g => new[] { C(g.Key), N(g.Count()) })));
             notes.Add("Date filters apply to submission deadlines. Participation = submitted suppliers / invited suppliers × 100; drafts are excluded. Counts are confidential until authorized after closure. Evaluation elapsed days applies only to current Under Evaluation tenders, from the first start event through now (including rework); no delay threshold is inferred.");
         }
@@ -90,7 +113,7 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
             metrics.Add(new("Matching suppliers", rows.Count.ToString())); metrics.Add(new("Approved", rows.Count(s => s.Status == SupplierStatus.Approved).ToString())); metrics.Add(new("Suspended", rows.Count(s => s.Status == SupplierStatus.Suspended).ToString()));
             tables.Add(Table("Supplier verification and document expiry", ["Company", "Application status", "Reviewed (Amman)", "Registration documents", "Expired before today", "Expires within 30 days", "Expiry not recorded"], rows.Select(s => new[] { C(s.CompanyName), C(s.Status), C(Date(s.ReviewedAt)), N(docs.Count(d => d.SupplierProfileId == s.Id)), N(docs.Count(d => d.SupplierProfileId == s.Id && d.ExpiresOn.HasValue && d.ExpiresOn < today)), N(docs.Count(d => d.SupplierProfileId == s.Id && d.ExpiresOn >= today && d.ExpiresOn <= today.AddDays(SupplierExpiryRules.UpcomingDays))), N(docs.Count(d => d.SupplierProfileId == s.Id && !d.ExpiresOn.HasValue)) })));
             tables.Add(Table("Status breakdown", ["Status", "Suppliers"], rows.GroupBy(s => s.Status).Select(g => new[] { C(g.Key), N(g.Count()) })));
-            notes.Add("Missing expiry dates mean unknown, not valid indefinitely. The 30-day upcoming window includes today and day 30 in Asia/Amman; a date before today is expired. Recording expiry dates does not automatically suspend suppliers. Supplier performance is not scored because fulfillment/performance rules and data are not defined. Application approval is the existing verification state; no additional legal verification decision is inferred.");
+            notes.Add("Missing expiry dates mean unknown, not valid indefinitely. The 30-day upcoming window includes today and day 30 in Asia/Amman; a date before today is expired. Recording expiry dates does not automatically suspend suppliers. Delivery-quality performance is not scored. Participation indicators are available only within existing confidential tender-report permissions. Application approval is the existing verification state; no additional legal verification decision is inferred.");
         }
         else if (f.Category is "offers" or "evaluations" or "decisions")
         {
@@ -162,6 +185,12 @@ public sealed class Reporting(ApplicationDbContext db, BidData bids, IEvaluation
             var q = db.SupplierProfiles.AsNoTracking(); if (!string.IsNullOrWhiteSpace(f.Search)) q = q.Where(s => s.CompanyName.Contains(f.Search)); var suppliers = await q.OrderBy(s => s.CompanyName).ThenBy(s => s.Id).Take(ReportRules.RowLimit + 1).Select(s => new { s.Id, s.CompanyName }).ToListAsync(ct); ReportRules.Limit(suppliers.Count); scope.AddRange(suppliers.Select(x => x.Id.ToString()));
             var awards = await (from w in db.TenderAwards.AsNoTracking() join b in db.Bids on w.BidId equals b.Id join l in db.TenderSuppliers on b.TenderSupplierId equals l.Id where suppliers.Select(s => s.Id).Contains(l.SupplierProfileId) group w by l.SupplierProfileId into g select new { Id = g.Key, Count = g.Count() }).ToListAsync(ct);
             tables.Add(Table("Recorded award frequency by supplier", ["Supplier", "Recorded awards"], suppliers.Select(s => new[] { C(s.CompanyName), N(awards.FirstOrDefault(w => w.Id == s.Id)?.Count ?? 0) })));
+            var participationTenderIds = await TenderQuery(a).Select(t => t.Id).Take(ReportRules.RowLimit + 1).ToArrayAsync(ct); ReportRules.Limit(participationTenderIds.Length);
+            // Company search applies to the overview supplier tables, not tender titles.
+            var participationRows = SupplierParticipationQuery(a, participationTenderIds, clock.GetUtcNow(), f.Search);
+            var participation = await participationRows.Take(ReportRules.RowLimit + 1).ToListAsync(ct);
+            tables.Add(SupplierParticipationReport.Table(participation)); notes.Add(SupplierParticipationReport.Definition);
+            scope.AddRange(participation.Select(r => $"participation:{r.SupplierId}:{r.Invitations}:{r.SubmittedOffers}:{r.Awards}"));
             notes.Add("Site counts are the comprehensive Top Committee statistics required by V5. Frequency is explicitly recorded awards, not an invented fulfillment/performance score or a count of bids. Award execution is a separate module; no award records are fabricated.");
         }
         foreach (var table in tables) ReportRules.Limit(table.Rows.Count);
