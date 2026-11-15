@@ -31,6 +31,8 @@ const fs=require('fs'),path=require('path');
     await page.goto(base+'/Employees');
     ok(await page.locator('tbody tr').filter({hasText:/\badmin\b/}).count()===1,'only ordinary department-admin remains; built-in admin hidden');
     ok(await page.locator('tbody tr td').filter({hasText:/^admin$/}).count()===0,'built-in admin absent from Employees');
+    for(const width of[1440,390]){await page.setViewportSize({width,height:1000});await page.waitForTimeout(1000);ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'employee directory fits '+width);await page.screenshot({path:path.join(output,'employees-'+width+'.png'),fullPage:true});}
+    await page.setViewportSize({width:1440,height:1000});
     await page.getByRole('link',{name:'Create employee'}).click();
     let frame=page.frameLocator('dialog.workspace-popup iframe');await frame.locator('.role-picker').waitFor();
     await frame.locator('.role-picker summary').click();

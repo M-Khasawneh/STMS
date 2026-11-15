@@ -1,0 +1,91 @@
+/* Screen presentation only: original printable reports and export assets remain independent. */
+@media screen {
+    .workspace-theme {
+        --ui-paper: #fff;
+        --ui-soft: #f8f9f8;
+        --ui-line: #e4e7e5;
+        --ui-muted: #60717c;
+        --ui-shadow: 0 3px 6px #152b4003, 0 16px 40px -32px #152b4026;
+    }
+    .workspace-theme .content-area { padding-block: 34px 44px; }
+    .workspace-theme .content-area .page-heading { align-items: center; gap: 24px; margin-bottom: 28px; }
+    .workspace-theme .content-area .page-heading h1 { margin-block: 8px 10px; font-size: clamp(1.7rem, 2.7vw, 2.3rem); line-height: 1.18; letter-spacing: -.045em; }
+    .workspace-theme .content-area .page-heading p { max-width: 78ch; font-size: .88rem; line-height: 1.8; color: var(--ui-muted); margin-bottom: 0; }
+    .workspace-theme .content-area .eyebrow { font-size: .65rem; font-weight: 700; letter-spacing: .14em; }
+    .workspace-theme .content-area .record-count { display: flex; flex-direction: row; align-items: center; gap: 10px; min-width: 0; padding: 10px 15px; border: 1px solid var(--brand-border); border-radius: 12px; background: #fffdf8; flex-shrink: 0; }
+    .workspace-theme .content-area .record-count > span { font-size: 1.4rem; line-height: 1; letter-spacing: -.04em; }
+    .workspace-theme .content-area .record-count small { font-size: .75rem; margin: 0; }
+    .workspace-theme .page-heading-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .workspace-theme .workspace-empty-state { margin-block: 24px; padding: 34px; border: 1px dashed #cdd6d5; border-radius: 16px; background: #ffffffa6; }
+    .workspace-theme .workspace-empty-state h2 { font-size: 1.05rem; letter-spacing: -.02em; }
+    .workspace-theme .workspace-empty-state p { margin: 8px 0 0; color: var(--ui-muted); font-size: .85rem; }
+    .workspace-theme .priority-tag { display: inline-flex; padding: 4px 9px; border: 1px solid #e1e6e5; border-radius: 7px; background: #f6f8f7; font-size: .7rem; font-weight: 600; }
+    .workspace-theme .priority-tag[data-priority=High] { color: #855c1f; border-color: #eddfbf; background: #fcf6e8; }
+    .workspace-theme .priority-tag[data-priority=Urgent] { color: #913e50; border-color: #edd7dc; background: #fcf0f2; }
+    .workspace-theme .content-area :is(.form-panel, .requisition-detail-panel, .supplier-detail-panel, .bid-panel) {
+        background: var(--ui-paper); border: 1px solid var(--ui-line); border-radius: 18px; box-shadow: var(--ui-shadow);
+    }
+    .workspace-theme .content-area :is(.form-panel, .bid-panel, .requisition-detail-panel) > h2 { font-size: 1.12rem; line-height: 1.5; letter-spacing: -.025em; }
+    .workspace-theme .content-area :is(.bid-facts, .supplier-facts) { padding: 20px; border: 1px solid var(--ui-line); background: var(--ui-soft); border-radius: 14px; }
+    .workspace-theme .content-area :is(.bid-facts, .supplier-facts) dd { font-size: .88rem; color: var(--brand-ink); }
+    .workspace-theme .content-area .form-text { font-size: .78rem; line-height: 1.75; }
+    .workspace-theme .content-area .form-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .workspace-theme .content-area form .form-actions { margin: 24px 0 0; padding: 18px 0 0; background: transparent; border-radius: 0; }
+    .workspace-theme .content-area > .btn + .table-responsive { margin-top: 20px; }
+    .workspace-theme .content-area .table-responsive {
+        border: 1px solid var(--ui-line); border-radius: 16px; background: var(--ui-paper); box-shadow: var(--ui-shadow);
+        scrollbar-width: thin; scrollbar-color: #bbc4c5 #f2f4f2; overscroll-behavior-inline: contain;
+    }
+    .workspace-theme .content-area .table {
+        --bs-table-bg: transparent; --bs-table-color: var(--brand-ink); --bs-table-border-color: #edf0ed;
+        width: 100%; margin: 0; font-size: .84rem; line-height: 1.6;
+    }
+    .workspace-theme .content-area .table caption { caption-side: top; padding: 16px 20px; margin: 0; border-bottom: 1px solid var(--ui-line); background: #fff; font-size: .77rem; font-weight: 600; color: var(--ui-muted); text-align: start; }
+    .workspace-theme .content-area .table > thead > tr > th {
+        padding: 13px 20px; background: #f3f5f3; color: #4e626e; border-bottom: 1px solid var(--ui-line);
+        font-size: .68rem; font-weight: 700; letter-spacing: .045em; line-height: 1.5; text-transform: uppercase; white-space: nowrap;
+    }
+    .workspace-theme .content-area .table > tbody > tr > :is(td, th) {
+        padding: 17px 20px; border-color: #edf0ed; background: #fff; color: #415968; vertical-align: middle;
+        font-size: .83rem; line-height: 1.7; box-shadow: none;
+    }
+    .workspace-theme .content-area .table > tbody > tr:nth-child(even) > * { background: #fcfdfc; }
+    .workspace-theme .content-area .table > tbody > tr:hover > *, .workspace-theme .content-area .table > tbody > tr:focus-within > * { background: #faf8f1; }
+    .workspace-theme .content-area .table > tbody > tr:last-child > * { border-bottom-width: 0; }
+    .workspace-theme .content-area .table > tbody > tr > :first-child { color: var(--brand-ink); font-weight: 600; }
+    .workspace-theme .content-area .table :is(th,td).is-numeric { text-align: end; font-variant-numeric: tabular-nums; }
+    .workspace-theme .content-area .table :is(th,td).is-date { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .workspace-theme .content-area .table :is(.bid-reference, .work-reference), .workspace-theme .content-area .table th small { font-size: .7rem; font-weight: 400; line-height: 1.7; color: var(--ui-muted); overflow-wrap: anywhere; }
+    .workspace-theme .content-area .table .bid-specifications { font-size: .77rem; color: var(--ui-muted); line-height: 1.8; }
+    .workspace-theme .content-area .table .table-cell-actions { min-width: 112px; }
+    .workspace-theme .content-area .table .table-cell-actions :is(a, button) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 7px 11px; border: 1px solid #dce3e2; border-radius: 9px; background: #f6f8f7; color: var(--brand-ink); font-size: .74rem; line-height: 1.5; font-weight: 600; text-decoration: none; white-space: nowrap; margin: 3px 4px 3px 0; }
+    .workspace-theme .content-area .table .table-cell-actions :is(a, button):hover { background: #eee8d9; border-color: #c9b98e; color: #483b20; }
+    .workspace-theme .content-area .table .table-cell-actions form { margin: 0; }
+    .workspace-theme .content-area .table .table-cell-actions .bid-actions { gap: 2px; }
+    .workspace-theme .content-area .table .table-cell-actions :disabled { opacity: .6; cursor: not-allowed; }
+    .workspace-theme .content-area .table-responsive:focus-visible { outline: 3px solid var(--brand-gold); outline-offset: 4px; }
+    .workspace-theme .table-overflow-hint { display: flex; align-items: center; gap: 9px; margin: 12px 0 10px; color: var(--ui-muted); font-size: .72rem; line-height: 1.7; }
+    .workspace-theme .table-overflow-hint::before { content: '\2194'; font-size: 1rem; color: var(--brand-gold); }
+    .workspace-theme .table-overflow-hint[hidden] { display: none; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone] { --tone-ink: #536775; --tone-bg: #f0f3f4; --tone-line: #dde4e7; color: var(--tone-ink); background: var(--tone-bg); border: 1px solid var(--tone-line); padding: 5px 10px; font-size: .69rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone]::before { background: currentColor; width: 5px; height: 5px; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone=info] { --tone-ink: #315d85; --tone-bg: #edf4fc; --tone-line: #d4e3f4; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone=positive] { --tone-ink: #24604e; --tone-bg: #eef7f2; --tone-line: #d4e9dc; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone=attention] { --tone-ink: #805b20; --tone-bg: #fbf5e7; --tone-line: #ecdfc0; }
+    .workspace-theme :is(.status-pill,.bid-status)[data-ui-tone=negative] { --tone-ink: #913e50; --tone-bg: #fcf0f2; --tone-line: #f0d6dc; }
+    @media (max-width: 700px) {
+        .workspace-theme .content-area { padding-block: 24px 32px; }
+        .workspace-theme .content-area .page-heading { align-items: flex-start; flex-direction: column; gap: 18px; }
+        .workspace-theme .page-heading-actions { width: 100%; justify-content: space-between; }
+        .workspace-theme .content-area .table > thead > tr > th { padding: 12px 15px; }
+        .workspace-theme .content-area .table > tbody > tr > :is(td, th) { padding: 15px; }
+        .workspace-theme .content-area :is(.bid-facts,.supplier-facts) { padding: 16px; }
+        .workspace-theme .content-area .table-responsive { border-radius: 13px; }
+        .workspace-theme .content-area .table .table-cell-actions :is(a,button) { min-height: 40px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        .workspace-theme .content-area .table > tbody > tr > * { transition: background-color .16s ease; }
+        .workspace-theme .content-area .table .table-cell-actions :is(a,button) { transition: background-color .16s ease, border-color .16s ease; }
+    }
+}
+@media print { .table-overflow-hint { display: none !important; } }

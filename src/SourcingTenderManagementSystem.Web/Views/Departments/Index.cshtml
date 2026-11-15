@@ -1,17 +1,13 @@
 @model IReadOnlyList<SourcingTenderManagementSystem.Web.Models.Entities.Department>
 @{ ViewData["Title"] = "Departments"; }
-<div class="page-heading"><div><div class="eyebrow">ORGANIZATION</div><p class="page-intro">Keep your organization clearly connected.</p></div><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>departments</small></div></div>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 collection-heading">
-    <h1 class="mb-0">Departments</h1>
-    <a asp-action="Create" class="btn btn-primary">Create department</a>
-</div>
+<header class="page-heading"><div><div class="eyebrow">ORGANIZATION</div><h1>Departments</h1><p>Keep your organization clearly connected.</p></div><div class="page-heading-actions"><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>departments</small></div><a asp-action="Create" class="btn btn-primary">Create department</a></div></header>
 @if (TempData["DepartmentStatus"] is string status)
 {
     <div class="alert alert-success" role="status">@status</div>
 }
 @if (Model.Count == 0)
 {
-    <p>No departments have been created.</p>
+    <section class="workspace-empty-state"><h2>No departments yet</h2><p>No departments have been created.</p></section>
 }
 else
 {
@@ -23,7 +19,7 @@ else
                 @foreach (var department in Model)
                 {
                     <tr>
-                        <td class="text-break">@department.Name</td>
+                        <th scope="row" class="text-break">@department.Name</th>
                         <td><a class="table-action" asp-action="Edit" asp-route-id="@department.Id" aria-label="Edit @department.Name">Edit</a></td>
                     </tr>
                 }

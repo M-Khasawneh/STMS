@@ -1,22 +1,16 @@
 @model IReadOnlyList<SourcingTenderManagementSystem.Web.Models.Employees.EmployeeDetails>
 @{ ViewData["Title"] = "Employees"; }
-<div class="page-heading"><div><div class="eyebrow">PEOPLE &amp; ACCESS</div><p class="page-intro">Manage the people behind your workspace.</p></div><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>employees</small></div></div>
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 collection-heading">
-    <h1 class="mb-0">Employees</h1>
-    <a asp-action="Create" class="btn btn-primary">Create employee</a>
-</div>
+<header class="page-heading"><div><div class="eyebrow">PEOPLE &amp; ACCESS</div><h1>Employees</h1><p>Each employee belongs to one department. Supplier accounts are managed separately.</p></div><div class="page-heading-actions"><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>employees</small></div><a asp-action="Create" class="btn btn-primary">Create employee</a></div></header>
 @if (TempData["EmployeeStatus"] is string status)
 {
     <div class="alert alert-success" role="status">@status</div>
 }
-<p>Each employee belongs to one department. Supplier accounts are managed separately.</p>
 @if (Model.Count == 0)
 {
-    <p>No employee accounts found.</p>
+    <section class="workspace-empty-state"><h2>No employees to display</h2><p>No employee accounts found.</p></section>
 }
 else
 {
-    <p class="table-scroll-hint">Scroll horizontally to view all columns.</p>
     <div class="table-responsive" role="region" aria-label="Employees table" tabindex="0">
         <table class="table staff-table align-middle">
             <caption>Employee accounts</caption>
