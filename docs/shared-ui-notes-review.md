@@ -1,5 +1,12 @@
 # Shared UI notes review — 2026-11-16
 
+## Requisition detail composition rewrite
+
+The screenshot feedback called for a composition change rather than another layer of card polish. Requisition details now use a main content column and a compact status rail on desktop, stacking on smaller screens. Summary metadata uses a consistent two-column grid (one on very narrow phones), with larger readable content. Items remain the original responsive table. Actual change history is vertical within one activity section; review decisions and comments remain available in an accessible disclosure. All seven states remain in the existing progress component, and the duplicate status-reference component was removed. QR is a compact header action opening the existing protected enlargement dialog. All modifying forms, versions, validations, ownership conditions and review actions remain intact.
+
+An optional final PageStyles section lets this scoped composition load after shared shell styles. Regression expectations were updated for the intentionally changed composition, while retaining data, role, antiforgery and current-state assertions. Build passed with zero warnings/errors. Browser checks: 171 notes/layout/form checks, 499 state/dashboard/greeting checks, 395 shared consistency checks, 233 prior-note regression checks, 165 QR/dialog checks, and the 34-page/152-case presentation sweep. Realistic desktop and mobile screenshots were inspected. Tests used synthetic in-memory records; no SQL writes or migrations.
+
+
 ## Detail pages and QR enlargement
 
 - A shared detail-page stylesheet applies to authenticated Details, Status, Invitation and Outcome presentations. It refines panel hierarchy, metadata grids, headings, document rows and action spacing without rebuilding or changing any forms, permissions, routes or data. Mobile metadata stacks instead of becoming cramped. Empty history containers are hidden.

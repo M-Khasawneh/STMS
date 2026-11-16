@@ -27,9 +27,16 @@ const path = require('path');
                     check(await page.locator('form[data-requisition-form]').getAttribute('action') === '/Requisitions/Create', 'Real MVC form destination preserved');
                     if (width <= 390) check(await page.locator('[data-requisition-item] input:not([type=hidden])').first().evaluate(input => input.getBoundingClientRect().width >= 140), 'Mobile item descriptions remain usable');
                 } else {
-                    check(await page.locator('.requisition-history').first().evaluate(element => getComputedStyle(element).display === 'flex'), 'Straight horizontal history');
+                    check(await page.locator('.rq-columns').evaluate((e,width)=>getComputedStyle(e).gridTemplateColumns.split(' ').length===(width>850?2:1),width),'Responsive main and context columns');
+                    check(await page.locator('.rq-main .supplier-facts').evaluate((e,width)=>getComputedStyle(e).gridTemplateColumns.split(' ').length===(width>360?2:1),width),'Summary metadata uses a readable consistent grid');
+                    check(await page.locator('.rq-header-actions [data-qr-preview]').count()===1&&await page.locator('.record-quick-access').count()===0,'QR is a compact header action');
+                    check(await page.locator('.request-state-reference').count()===0,'No duplicate status reference');
+                    const decisions=page.locator('.rq-review-decisions');
+                    check(!await decisions.getAttribute('open'),'Review details start collapsed');
+                    await decisions.locator('summary').click();check(await decisions.locator('.review-decision-records').isVisible(),'Actual review comments remain available');await decisions.locator('summary').click();
+                    check(await page.locator('.requisition-history').first().evaluate(element => getComputedStyle(element).display === 'grid'), 'Readable vertical history');
                     check(await page.locator('.requisition-history > [aria-current=step]').count() === 1, 'Change history marks one actual current transition');
-                    check((await page.locator('.requisition-history > [aria-current=step]').innerText()).includes('UnderReview → Approved'), 'Highlighted change matches persisted current state');
+                    check((await page.locator('.requisition-history > [aria-current=step]').innerText()).includes('Under Review → Approved'), 'Highlighted change matches persisted current state');
                     check(await page.locator('.requisition-history > [aria-current=step]').evaluate(item => getComputedStyle(item, '::before').boxShadow !== 'none'), 'History circle is illuminated');
                     check(await page.locator('[data-request-state]').count() === 7, 'Every documented request state is visible');
                     check(await page.locator('[data-request-state][aria-current=step]').count() === 1, 'One actual current state');

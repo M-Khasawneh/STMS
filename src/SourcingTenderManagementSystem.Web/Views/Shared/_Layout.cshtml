@@ -42,6 +42,7 @@
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-reference.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/notes-consistency.css" asp-append-version="true" />
     @if (authenticated) { <link rel="stylesheet" href="~/css/record-details.css" asp-append-version="true" /> }
+    @await RenderSectionAsync("PageStyles", required: false)
 </head>
 <body class="@(action is "Details" or "Status" or "Invitation" or "Outcome" ? "record-details-page" : "") @(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell stms-public-reference") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>

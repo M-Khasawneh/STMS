@@ -28,12 +28,12 @@ const fs=require('fs'),path=require('path');
    check(await page.locator('[data-passkey-login] input[name=__RequestVerificationToken]').count()===1,'Passkey antiforgery preserved');
    for(const name of ['Requisitions','Tenders']){
     await visit('officer','/UiPagePreview/Page?name='+name+'/Details',theme,width);
-    check(await page.locator('.record-quick-access').count()===1,'One visible QR panel '+name);
-    check(await page.locator('.record-quick-access').evaluate(e=>e.getBoundingClientRect().top<document.querySelector('main .table-responsive').getBoundingClientRect().top),'QR precedes item tables '+name);
-    check(await page.locator('.record-quick-access img').evaluate(e=>e.complete&&e.naturalWidth>0),'QR actually loads '+name);
+    const qr=page.locator('[data-qr-preview]');check(await qr.count()===1,'One visible QR control '+name);
+    check(await qr.evaluate(e=>e.getBoundingClientRect().top<document.querySelector('main .table-responsive').getBoundingClientRect().top),'QR precedes item tables '+name);
+    await qr.click();await page.locator('.qr-preview-image').evaluate(e=>e.decode());check(await page.locator('.qr-preview-image').evaluate(e=>e.naturalWidth>0),'QR actually loads '+name);await page.keyboard.press('Escape');
    }
    await visit('requester','/NotesPreview/Record',theme,width);
-   check(await page.locator('.requisition-history').evaluate(e=>parseFloat(getComputedStyle(e).borderRadius)>=16),'History rounded container');
+   check(await page.locator('.rq-activity').evaluate(e=>parseFloat(getComputedStyle(e).borderRadius)>=16),'Activity rounded container');
    check(await page.locator('.requisition-history>li').first().evaluate(e=>getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)'),'History entries do not become square blocks');
    await visit('officer','/Reports?Category=offers&Search=commercial-fixture',theme,width);
    const table=page.locator('.report-results table').first();

@@ -9,13 +9,15 @@
     var currentChange = history.Where(x => x.NewStatus == request.Status.ToString())
         .OrderByDescending(x => x.PreviousStatus != x.NewStatus).ThenByDescending(x => x.OccurredAt).ThenByDescending(x => x.Id).FirstOrDefault();
 }
-<div class="page-heading"><div><div class="eyebrow">PURCHASE REQUISITIONS</div><h1>@request.Title</h1><p>@Model.DepartmentName &middot; Created by @Model.CreatorName</p></div><span class="status-pill">@RequisitionDisplay.Status(request.Status)</span></div>
+<div class="requisition-record">
+<div class="page-heading"><div><div class="eyebrow">PURCHASE REQUISITIONS</div><h1>@request.Title</h1><p>@Model.DepartmentName &middot; Created by @Model.CreatorName</p></div><div class="rq-header-actions"><span class="status-pill">@RequisitionDisplay.Status(request.Status)</span><a class="btn btn-outline-secondary" href="@Url.Action("Qr",new{id=request.Id})" data-qr-preview aria-label="Enlarge QR code"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h6v6H3Zm12 0h6v6h-6ZM3 15h6v6H3Zm12 0h3v3h3v3h-6Zm6-3v3M12 3v9H3m9 3v6"/></svg>QR code</a></div></div>
 
-<aside class="record-quick-access" aria-label="Quick access QR code"><a class="record-qr-trigger" href="@Url.Action("Qr",new{id=request.Id})" data-qr-preview aria-label="Enlarge QR code"><img src="@Url.Action("Qr",new{id=request.Id})" alt="QR code opening these protected details" width="112" height="112" /></a><div><h2>Quick access QR code</h2><span class="qr-enlarge-hint">Select the code to enlarge it for scanning.</span><p>Scan to open this record. Sign-in and your existing permissions are still required.</p><a asp-action="Qr" asp-route-id="@request.Id" download>Download QR code</a></div></aside>
+
 @if (TempData["RequisitionStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
 <div asp-validation-summary="All" class="text-danger" role="alert"></div>
 @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,true,request.Id,Context.RequestAborted)) { <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@request.Id" asp-route-requisition="true" class="btn btn-outline-secondary mb-3">Transaction clarifications</a> }
 
+<div class="rq-columns"><div class="rq-main">
 <section class="requisition-detail-panel" aria-label="Requisition information"><dl class="supplier-facts"><div><dt>Priority</dt><dd>@request.Priority</dd></div><div><dt>Target date</dt><dd>@request.TargetDate.ToString("yyyy-MM-dd")</dd></div><div><dt>Created (UTC)</dt><dd>@request.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</dd></div><div><dt>Last submitted (UTC)</dt><dd>@(request.SubmittedAt?.UtcDateTime.ToString("yyyy-MM-dd HH:mm") ?? "Not submitted")</dd></div></dl><h2>Reason</h2><p class="requisition-text">@request.Reason</p>
 @if (Model.Actor.CanEdit(request)) {
 <div class="d-flex flex-wrap gap-2"><a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-outline-secondary">Edit requisition</a><form asp-action="Submit" asp-route-id="@request.Id" method="post"><input type="hidden" name="Version" value="@Model.Version" /><button type="submit" class="btn btn-primary">@(request.Status == PurchaseRequestStatus.Returned ? "Resubmit for review" : "Submit for review")</button></form></div>
@@ -34,12 +36,18 @@ else { <div class="mb-3"><label for="Decision" class="form-label">Decision</labe
 <div class="mb-3"><label for="Comments" class="form-label">Review comments</label><textarea id="Comments" name="Comments" class="form-control" rows="3" aria-describedby="comments-help">@ViewContext.ViewData.ModelState["Comments"]?.AttemptedValue</textarea><span data-valmsg-for="Comments" data-valmsg-replace="true" class="text-danger"></span><div class="form-text" id="comments-help">A reason is required for rejection or return.</div></div><button type="submit" class="btn btn-primary">Save decision</button> }
 </form></section>
 } else if (Model.Actor.Officer && !Model.Actor.CanReview(request)) { <p class="form-text mt-4">Review is unavailable for your own requisition or a requisition from your department. Admins have read-only access.</p> }
-<partial name="_StatusProgress" model="Model" />
-<h2 class="requisition-section-title">Review decisions</h2>
+
+<section class="rq-activity" aria-labelledby="rq-activity-title"><h2 id="rq-activity-title">Activity &amp; decisions</h2><details class="rq-review-decisions"><summary>Review decisions <span>@Model.Reviews.Count</span></summary>
 @if (Model.Reviews.Count == 0) { <p>No review decisions yet.</p> }
 <ol class="review-decision-records">@foreach (var review in Model.Reviews.OrderBy(x => x.ReviewedAt)) { <li><strong>@RequisitionDisplay.Status(review.Outcome)</strong><small>@review.ReviewedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC</small><p class="requisition-text">@review.Comments</p></li> }</ol>
-<h2 class="requisition-section-title">Change history</h2>
-<partial name="_StateReference" model="request.Status" />
-<ol class="requisition-history" aria-label="Change history">@foreach (var entry in history) { var current = ReferenceEquals(entry, currentChange); <li class="@(current ? "is-current-change" : null)" aria-current="@(current ? "step" : null)"><strong>@RequisitionDisplay.Action(entry.Action)</strong>@if (current) { <span class="history-current-label">Current status</span> }<small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @entry.PreviousStatus &#8594; @entry.NewStatus</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
+</details><h3 class="rq-history-title">Change history</h3>
+@if (history.Length == 0) { <p class="form-text">No changes recorded.</p> }
+<ol class="requisition-history" aria-label="Change history">@foreach (var entry in history) { var current = ReferenceEquals(entry, currentChange); <li class="@(current ? "is-current-change" : null)" aria-current="@(current ? "step" : null)"><strong>@RequisitionDisplay.Action(entry.Action)</strong>@if (current) { <span class="history-current-label">Current status</span> }<small>@entry.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm") UTC &middot; @System.Text.RegularExpressions.Regex.Replace(entry.PreviousStatus ?? "", "(?<=[a-z])(?=[A-Z])", " ") &#8594; @System.Text.RegularExpressions.Regex.Replace(entry.NewStatus ?? "", "(?<=[a-z])(?=[A-Z])", " ")</small>@if (!string.IsNullOrEmpty(entry.Reason)) { <details><summary>Change details</summary><pre class="audit-changes">@RequisitionDisplay.Changes(entry)</pre></details> }</li> }</ol>
+</section>
+</div><aside class="rq-context" aria-label="Request status"><partial name="_StatusProgress" model="Model" />
+
+</aside></div>
 <a asp-action="Index" class="btn btn-outline-secondary">Back to requisitions</a>
+</div>
+@section PageStyles { <link rel="stylesheet" href="~/css/requisition-record.css" asp-append-version="true" /> }
 @section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/requisitions.js" asp-append-version="true"></script> }

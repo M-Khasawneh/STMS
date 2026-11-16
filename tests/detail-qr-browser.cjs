@@ -17,7 +17,7 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto');
    await page.setViewportSize({width,height:1000});const response=await page.goto(base+'/UiPagePreview/Page?name='+module+'/Details');
    if(response.headers()['x-stms-bid-fixture']!=='memory-only')throw Error('Refusing unmarked fixture');check(response.status()===200,'Details render');
    await page.evaluate(t=>{localStorage.setItem('stms-appearance',t);window.dispatchEvent(new StorageEvent('storage',{key:'stms-appearance',newValue:t}))},theme);
-   const trigger=page.locator('[data-qr-preview]');check(await trigger.getAttribute('href')===await trigger.locator('img').getAttribute('src'),'Preview uses exact existing protected endpoint');
+   const trigger=page.locator('[data-qr-preview]');check((await trigger.getAttribute('href')).startsWith('/'+module+'/Qr/'),'Preview uses the existing protected record endpoint');
    await trigger.click();const dialog=page.locator('dialog.qr-preview');await dialog.waitFor();await dialog.locator('img').evaluate(e=>e.decode());
    check(await dialog.locator('img').evaluate(e=>e.naturalWidth>200&&e.getBoundingClientRect().width>200),'QR enlarged and decoded at '+width);
    check(await page.evaluate(()=>document.activeElement?.getAttribute('aria-label')==='Close QR preview'),'Focus moves into dialog');

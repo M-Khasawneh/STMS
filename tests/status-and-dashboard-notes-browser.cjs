@@ -21,10 +21,10 @@ const fs=require('fs'),path=require('path');
    if(width===1440)await page.screenshot({path:path.join(out,`admin-${theme}.png`),fullPage:true});
    for(const state of ['Draft','Submitted','UnderReview','Approved','Rejected','Returned','ConvertedToTender']){
     await visit('requester','/UiPagePreview/Page?name=Requisitions/Details&state='+state,theme,width);
-    check(await page.locator('[data-reference-state]').count()===7,'Every status is shown even without audit history');
-    check(await page.locator('[data-reference-state][aria-current=step]').count()===1&&await page.locator(`[data-reference-state="${state}"]`).getAttribute('aria-current')==='step','Reference matches actual status');
+    check(await page.locator('[data-request-state]').count()===7,'Every status is shown even without audit history');
+    check(await page.locator('[data-request-state][aria-current=step]').count()===1&&await page.locator(`[data-request-state="${state}"]`).getAttribute('aria-current')==='step','Reference matches actual status');
     check(await page.locator('.requisition-history>li').count()===0,'No invented audit events for absent history');
-    check(await page.locator('[data-reference-state]').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1})),'All status labels wrap inside page');
+    check(await page.locator('[data-request-state]').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1})),'All status labels wrap inside page');
    }
   }
   for(const actor of ['admin','supplier','requester','officer','manager','evaluator','top']){
@@ -35,7 +35,7 @@ const fs=require('fs'),path=require('path');
   }
   await visit('requester','/NotesPreview/Record','light',390);
   check(await page.locator('.requisition-history>li').count()===4,'Real recorded events remain intact');
-  await page.locator('.request-state-reference').screenshot({path:path.join(out,'all-statuses-mobile.png')});
+  await page.locator('.request-progress-panel').screenshot({path:path.join(out,'all-statuses-mobile.png')});
   check(errors.length===0,'No JavaScript errors');fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({checks,errors},null,2));console.log(`PASS: ${checks} status reference, dashboard grid and one-time welcome checks; no SQL writes.`);
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
