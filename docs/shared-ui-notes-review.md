@@ -24,3 +24,14 @@ Source: the user's `New Microsoft Word Document (2).docx`, including its five sc
 All browser runs targeted a marked memory-only MVC host. Modifying requests were blocked in the review sweeps. Synthetic presentation records do not exist in the protected record store, so the focused visual test serves QR images from a fixture-only endpoint using the existing real QR generator; production QR authorization remains independently tested. No production database writes, migrations or dependencies were introduced.
 
 This is a broad presentation review, not a claim that every possible production record, device or business workflow was exercised. SQL-backed acceptance and a live end-to-end run against real accounts were not performed. The optional `21st` review CLI was not installed/available; the project browser and build checks supplied the verification evidence.
+
+## Follow-up document revision
+
+The next revision supplied four screenshots: tight profile sections in the popup, square search focus, square identity focus, and a tender rail colored after the saved stage.
+
+- Profile sections now use a grid gap (28 px desktop / 24 px mobile), avoiding the popup rule that forces panel margins to zero. Section padding and rounded borders remain consistent in the standalone and iframe presentations.
+- Header search uses a rounded focus-within ring around the whole search control; the input no longer draws a second square outline. The profile identity link has its own rounded, visible keyboard outline. No general keyboard focus indicator was removed.
+- Tender connectors now use individual rails filled only before the persisted current stage. The outgoing rail stays neutral and the final node has no trailing rail. The same direction applies to the requisition main track and recorded change history. Alternative outcomes are kept separate; cancellation does not invent a completed path. This is a position indicator, not evidence of historical completion.
+- The tender track fits the existing desktop content width while retaining horizontal keyboard scrolling on smaller screens.
+
+Verification: solution build succeeded with zero warnings/errors in a separate local output; 765 focused standalone checks across all seven roles, two themes and four widths; 169 additional checks of the real iframe embedding across seven roles, two themes and three widths; 395 shared consistency checks; the 34-page / 152-case sweep; and 199 existing tender-state/navigation/file-selection checks. No findings or JavaScript errors. All checks used the marked memory-only fixture; no SQL writes, backend changes, migrations or new dependencies. The optional 21st CLI remains unavailable. Presentation fixtures do not persist their synthetic records, so their real protected QR URLs cannot resolve those synthetic record IDs; this revision did not alter QR behavior.

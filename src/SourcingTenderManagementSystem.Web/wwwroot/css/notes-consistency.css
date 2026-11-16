@@ -40,3 +40,61 @@
     .record-quick-access h2 { font-size:.85rem; }
 }
 @media print { .record-quick-access { break-inside:avoid; } }
+
+/* Follow-up notes: account sections, rounded header focus, and rails ending at the saved stage. */
+.workspace-theme .content-area .profile-settings { display:grid; gap:28px; }
+.workspace-theme .content-area .profile-settings>.page-heading { margin-bottom:0; }
+.workspace-theme .content-area .profile-settings>.form-panel {
+    margin:0; padding:28px; border:1px solid var(--st-line);
+    border-radius:var(--st-radius-card); background:var(--st-panel);
+}
+.workspace-theme .content-area .profile-settings>.form-panel>h2 { margin:0 0 12px; }
+.workspace-theme .content-area .profile-settings>.form-panel>p { margin:0 0 24px; }
+.workspace-theme .content-area .profile-settings>.form-panel>form { margin-top:24px; }
+.workspace-theme .content-area .profile-settings :is(.validation-summary-valid,.text-danger:empty) { display:none; }
+.workspace-theme .topbar .workspace-header-search {
+    border-radius:14px; transition:border-color .18s,box-shadow .18s;
+}
+.workspace-theme .topbar .workspace-header-search:focus-within {
+    border-color:var(--st-focus); box-shadow:0 0 0 3px var(--st-focus-ring);
+}
+.workspace-theme .topbar .workspace-header-search input:is(:focus,:focus-visible) {
+    outline:0; box-shadow:none; background:transparent;
+}
+.workspace-theme .topbar .workspace-profile-link {
+    border-radius:14px; padding:6px; text-decoration:none;
+    transition:background .18s,box-shadow .18s;
+}
+.workspace-theme .topbar .workspace-profile-link:hover { background:var(--st-raised); }
+.workspace-theme .topbar .workspace-profile-link:focus-visible {
+    outline:2px solid var(--st-focus); outline-offset:3px; background:var(--st-raised);
+}
+.workspace-theme .content-area .tender-stage-list { width:100%; min-width:880px; }
+.workspace-theme .content-area .tender-stage-list>li {
+    width:auto; flex:1 0 110px; border-top-color:transparent;
+}
+.workspace-theme .content-area .tender-stage-list>li::before {
+    content:''; position:absolute; top:-2px; left:5px; right:-5px; height:2px; background:var(--st-line);
+}
+.workspace-theme .content-area .tender-stage-list>li:last-child::before { display:none; }
+.workspace-theme .content-area .tender-stage-list>li:has(~[aria-current="step"])::before,
+.workspace-theme .content-area .status-track:not(.status-branches)>li:has(~[aria-current="step"])::before {
+    background:var(--st-gold);
+}
+.workspace-theme .content-area .tender-stage-list>li:has(~[aria-current="step"])>span { border-color:var(--st-gold); }
+.workspace-theme .content-area .tender-stage-list>.is-current { border-top-color:transparent; }
+.workspace-theme .content-area .tender-stage-list>.is-current>span {
+    background:var(--st-gold); border-color:var(--st-panel);
+    box-shadow:0 0 0 3px var(--st-gold),0 0 0 7px var(--st-focus-ring);
+}
+.workspace-theme[data-workspace-controller="Requisitions"] .content-area .requisition-history>li:has(~[aria-current="step"]) {
+    border-top-color:var(--st-gold);
+}
+@media(max-width:600px) {
+    .workspace-theme .content-area .profile-settings { gap:24px; }
+    .workspace-theme .content-area .profile-settings>.form-panel { padding:20px; }
+    .workspace-theme .topbar .workspace-profile-link { max-width:none; flex:0 0 auto; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .workspace-theme .topbar :is(.workspace-profile-link,.workspace-header-search) { transition:none; }
+}
