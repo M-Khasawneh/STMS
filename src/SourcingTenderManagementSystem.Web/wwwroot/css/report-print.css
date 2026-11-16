@@ -3,3 +3,14 @@
 .access-stamp{padding:.8rem 1rem;border:1px solid #d7dee5;border-radius:.6rem;overflow-wrap:anywhere;font-size:.8rem;color:#526373;background:#f8fafc}.report-watermark{position:fixed;inset:48% 8% auto;z-index:4;transform:rotate(-24deg);opacity:.09;color:#152b40;font-size:clamp(.8rem,2vw,1.5rem);pointer-events:none;overflow-wrap:anywhere;text-align:center}@media print{.report-watermark{position:fixed;opacity:.16;print-color-adjust:exact}.access-stamp{font-size:9pt}}
 
 .report-number{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.report-text{text-align:start}.money-unit{font-size:.85em}
+@media screen {
+    main { border:1px solid #dce2e5; border-radius:18px; padding:32px; overflow-x:auto; }
+    table { font-size:13px; }
+    th,td { padding:12px; line-height:1.75; }
+    .print-toolbar { gap:20px; }
+    @media(max-width:700px) {
+        main { margin:0 16px 24px; padding:20px; }
+        .print-toolbar { margin:16px; padding:0; flex-direction:column; align-items:flex-start; }
+        table { min-width:700px; }
+    }
+}

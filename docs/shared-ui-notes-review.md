@@ -1,5 +1,13 @@
 # Shared UI notes review — 2026-11-16
 
+## Reports & insights reading layout
+
+The reporting workspace now separates its role-filtered report library from the active report. Desktop uses a narrow category rail; tablet/mobile use native horizontally scrollable category links. The active report has a clear heading, a two-column filter layout with grouped From/To fields, bound metric tiles, and a separate results/export area. Table values and headings are larger, numeric columns retain end alignment, and mobile overflow guidance no longer creates a large blank block. Definitions remain available in a native disclosure. Native print-preview screen styling is refined without changing printed pagination or export generation.
+
+Modified production files are limited to the Reports Razor view and reporting/print CSS. All category visibility, filters and query parameter names, data bindings, row paging, JOD presentation, Excel/PDF links, native Arabic printing, access identification and print-only watermark behavior are preserved. No backend, database or role changes were made.
+
+Final category matrix: 2523 passing checks across all authorized categories for seven roles, light/dark themes and four viewport widths, including grouped date fields and readable table values; no JavaScript errors. Build passed with zero warnings/errors. Existing regression checks passed: 160 database-free reporting rule/query/export/MVC checks, 40 browser download/filter/print/authorization checks, and 395 shared UI consistency checks. Role/category presentation tests use the marked memory-only fixture and block POSTs. SQL-backed acceptance and live user data were not modified or exercised.
+
 ## Site-wide reading rhythm, roof motion and navigation work
 
 - Added a shared readability layer to the existing layout for list, create/edit, review, confirmation and account pages, plus public contact/registration/login forms. It increases body/table/label legibility, standardizes spacing and separates form actions. Existing Details composition remains scoped and unchanged. This uses the existing MVC routes and tokens, with no new framework or business functions.
