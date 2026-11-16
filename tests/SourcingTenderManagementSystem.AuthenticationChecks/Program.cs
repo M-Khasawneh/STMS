@@ -22,6 +22,7 @@ using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
 if(args.Contains("--workspace-read-only-checks",StringComparer.Ordinal)){await ReportingReadOnlyChecks.RunAsync(workspaceOnly:true);return;}
+if(args.Contains("--ui-consistency-browser-fixture",StringComparer.Ordinal)){await BidPhase3Checks.RunAsync(browserFixture:true,workHubChecks:true,notesPreview:true,voiceChecks:true);return;}
 if(args.Contains("--face-settings-checks-only",StringComparer.Ordinal)){await PasskeyChecks.Run(false,true);return;}
 if(args.Contains("--face-settings-browser-fixture",StringComparer.Ordinal)){await PasskeyChecks.Run(true,true);return;}
 if(args.Contains("--static-asset-checks-only",StringComparer.Ordinal)){await StaticAssetPipelineChecks.Run();return;}

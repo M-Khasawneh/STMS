@@ -138,8 +138,8 @@
 .workspace .table caption { caption-side: top; padding: 14px 20px; background: #fbf9f4; font-size: .78rem; font-weight: 600; color: #626e77; border-bottom: 1px solid var(--brand-border); }
 .workspace.workspace-theme .table > thead > tr > th { background: var(--brand-ink); color: #fffefa; font-size: .72rem; letter-spacing: .04em; font-weight: 600; padding: 17px 20px; border-color: #2d4254; vertical-align: middle; }
 .workspace.workspace-theme .table > tbody > tr > :is(td, th) { padding: 19px 20px; border-color: #eae5dc; font-variant-numeric: tabular-nums; }
-.workspace.workspace-theme .table > tbody > tr:nth-child(even) { background: #faf8f3; }
-.workspace.workspace-theme .table > tbody > tr:hover { --bs-table-bg: #f4ecdd; background: #f4ecdd; }
+.workspace.workspace-theme .table > tbody > tr:nth-child(even) { background: var(--st-panel, #faf8f3); }
+.workspace.workspace-theme .table > tbody > tr:hover { --bs-table-bg: var(--st-raised, #f4ecdd); background: var(--st-raised, #f4ecdd); }
 .workspace .table tbody tr:last-child > * { border-bottom: 0; }
 .workspace .table :is(td, th) > p { margin-top: 8px; margin-bottom: 0; line-height: 1.7; }
 .workspace .table .table-action { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 11px; margin: 2px 4px 2px 0; border: 1px solid #d8c8a5; border-radius: 8px; font-size: .76rem; color: var(--brand-ink); background: #fff; text-decoration: none; }
