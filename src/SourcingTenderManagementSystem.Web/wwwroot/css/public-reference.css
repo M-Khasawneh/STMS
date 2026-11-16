@@ -1,6 +1,11 @@
 /* Public website only. Independently recreated Orange composition in STMS navy/ivory/gold.
    No Orange application source, branding, photographs or demo modules are included. */
 body.public-shell.stms-public-reference { --ref-accent:var(--st-gold); --ref-canvas:var(--st-canvas); --ref-panel:var(--st-panel); --ref-ink:var(--st-ink); --ref-muted:var(--st-muted); --ref-rule:var(--st-line); background:var(--ref-canvas); color:var(--ref-ink); font-family:"Segoe UI",Arial,sans-serif; }
+.stms-public-reference .ref-building:has(.ref-building-art) { background:none; }
+.ref-building-art { display:block; width:100%; height:100%; }
+.ref-roof-light { fill:none; stroke:#fff0bd; stroke-width:4; stroke-linecap:round; stroke-dasharray:14 86; opacity:0; pointer-events:none; }
+.hero-light-toggle { min-height:44px; padding:8px 12px; border:1px solid var(--st-line); border-radius:24px; color:var(--st-muted); background:var(--st-panel); font-size:.8rem; }
+.hero-light-toggle[hidden] { display:none; }
 body.public-shell.stms-public-reference .topbar.public-topbar { position:sticky; top:0; width:100%; max-width:none; min-height:84px; height:84px; margin:0; padding:12px clamp(20px,3.2vw,58px); gap:28px; border:0; border-bottom:1px solid var(--ref-rule); border-radius:0; background:var(--ref-panel); box-shadow:none; backdrop-filter:none; transform:none; z-index:100; }
 body.public-shell.stms-public-reference.home-is-scrolled .topbar.public-topbar { transform:none; background:var(--ref-panel); box-shadow:0 4px 22px #10243709; }
 body.public-shell.stms-public-reference .public-topbar .public-brand { gap:16px; letter-spacing:-.035em; font-size:1.35rem; }

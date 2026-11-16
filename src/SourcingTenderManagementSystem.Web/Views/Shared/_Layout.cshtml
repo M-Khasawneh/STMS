@@ -42,6 +42,7 @@
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-reference.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/notes-consistency.css" asp-append-version="true" />
     @if (authenticated) { <link rel="stylesheet" href="~/css/record-details.css" asp-append-version="true" /> }
+    <link rel="stylesheet" href="~/css/workspace-readability.css" asp-append-version="true" />
     @if (authenticated && action == "Details") { <link rel="stylesheet" href="~/css/details-workspace.css" asp-append-version="true" /> }
     @await RenderSectionAsync("PageStyles", required: false)
 </head>

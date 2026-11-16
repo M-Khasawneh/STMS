@@ -54,7 +54,7 @@
   function enter() {
     const parts = document.querySelectorAll('.page-heading, .collection-heading, .login-panel, .hero-copy, .document-panel, .message-panel');
     parts.forEach((element, index) => animate(element, [{opacity: .65, transform: 'translateY(8px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 240, delay: Math.min(index * 25, 75)}));
-    animate(document.querySelector('.side-link.active'), [{clipPath:'inset(0 100% 0 0 round 9px)'},{clipPath:'inset(0 0 0 0 round 9px)'}], {duration: 650});
+    animate(document.querySelector('.side-link.active'), [{clipPath:'inset(0 100% 0 0 round 9px)'},{clipPath:'inset(0 0 0 0 round 9px)'}], {duration: 180});
   }
   enter();
   let observer;
@@ -110,14 +110,7 @@
       setTimeout(() => button.removeAttribute('aria-busy'), 12000);
     }
   });
-  // Exit choreography runs alongside native navigation, with no delays or history interception.
-  document.addEventListener('click', event => {
-    const link = event.target.closest('a');
-    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target || link.hasAttribute('download')) return;
-    const target = new URL(link.href, location.href);
-    if (target.origin !== location.origin || target.hash || target.pathname === location.pathname && target.search === location.search) return;
-    animate(document.querySelector('main'), [{opacity:1, transform:'translateY(0)'},{opacity:.4, transform:'translateY(-7px)'}], {duration:160});
-  });
+  // Keep the current page fully readable while native navigation waits for its response.
   addEventListener('pageshow', event => {
     document.querySelectorAll('[aria-busy=true]').forEach(element => element.removeAttribute('aria-busy'));
     if (event.persisted) enter();

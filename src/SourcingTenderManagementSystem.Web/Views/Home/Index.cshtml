@@ -8,15 +8,16 @@
     <meta name="description" content="STMS connects purchase requests, sourcing teams and suppliers through one traceable sourcing process." />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/landing-premium.css" asp-append-version="true" />
+    <script src="~/js/hero-roof-light.js" asp-append-version="true" defer></script>
 }
 <div class="stms-landing landing-redesign">
     <section id="home" class="ref-showcase" aria-labelledby="home-title">
-        <div class="ref-building" aria-hidden="true"></div><div class="ref-hero-atmosphere" aria-hidden="true"></div>
+        <div class="ref-building" aria-hidden="true"><svg class="ref-building-art" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice"><image href="@Url.Content("~/images/brand/sourcing-architecture.svg")" width="1400" height="800"/><path class="ref-roof-light" pathLength="100" d="m270 348 730-248 400 223"/></svg></div><div class="ref-hero-atmosphere" aria-hidden="true"></div>
         <div class="ref-hero-copy">
             <p class="ref-hero-brand" data-public-reveal>STMS<span>SOURCING &amp; TENDER MANAGEMENT SYSTEM</span></p>
             <h1 id="home-title" data-public-reveal>Unified Platform for <span>Sourcing &amp; Tender</span> Management</h1>
             <p class="ref-hero-description" data-public-reveal>Streamline procurement, manage tenders and connect the people, documents and decisions behind every purchase.</p>
-            <div class="ref-hero-actions" data-public-reveal><a asp-controller="Suppliers" asp-action="Register" class="ref-primary">Get started <span aria-hidden="true">→</span></a><a href="#how-it-works" class="ref-secondary"><span class="ref-play-symbol" aria-hidden="true">▷</span> Explore the workflow</a></div>
+            <div class="ref-hero-actions" data-public-reveal><a asp-controller="Suppliers" asp-action="Register" class="ref-primary">Get started <span aria-hidden="true">→</span></a><a href="#how-it-works" class="ref-secondary"><span class="ref-play-symbol" aria-hidden="true">▷</span> Explore the workflow</a><button type="button" class="hero-light-toggle" data-hero-light-toggle hidden aria-pressed="false">Pause lighting</button></div>
         </div>
         <svg class="ref-hero-ribbon" viewBox="0 0 1400 280" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 205C170 310 280 150 470 165S700 240 900 108 1110 58 1420 140"/><path d="M-20 225C170 330 280 170 470 185S700 260 900 128 1110 78 1420 160"/></svg>
         <partial name="_PublicJourney" />

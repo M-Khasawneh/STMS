@@ -1,5 +1,7 @@
 (() => {
     'use strict';
+    // The parent workspace owns the visible bell; embedded forms must not duplicate its live connection.
+    try { if (window.frameElement?.matches('iframe[data-workspace-popup]')) return; } catch { return; }
     const dropdown = document.querySelector('.notification-dropdown');
     if (!dropdown) return;
     const trigger = dropdown.querySelector('summary');

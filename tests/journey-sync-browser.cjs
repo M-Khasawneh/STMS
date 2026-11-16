@@ -13,6 +13,7 @@ const fs=require('fs'),path=require('path');
             const response=await page.goto(base+'/');check(response.headers()['x-stms-bid-fixture']==='memory-only'&&response.status()===200,'Marked home '+width);
             await page.waitForFunction(()=>document.querySelector('[data-public-journey]').classList.contains('is-routed'));
             await page.locator('[data-public-journey]').scrollIntoViewIfNeeded();
+            await page.waitForTimeout(200); // Let native visibility/layout callbacks settle before freezing time.
             await page.clock.pauseAt(await page.evaluate(()=>Date.now()+500));
             const click=selector=>page.locator(selector).dispatchEvent('click');
             const state=()=>page.evaluate(()=>{
