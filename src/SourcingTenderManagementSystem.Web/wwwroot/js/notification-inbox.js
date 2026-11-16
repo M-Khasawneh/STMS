@@ -23,7 +23,7 @@
         }
         const old = dropdown.querySelector('.notification-menu-content');
         // A background refresh must not remove the link/button a keyboard user is using.
-        if (force || !old.contains(document.activeElement)) old.replaceWith(next);
+        if (old && (force || !old.contains(document.activeElement))) old.replaceWith(next);
         return dropdown.querySelector('.notification-menu-content');
     }
     function safeUrl(value) {
@@ -87,5 +87,8 @@
             button.disabled = false;
         } finally { pending = false; }
     });
-    connect();
+    // Paint the page first. One initial read also covers browsers without EventSource.
+    const start = () => { refresh(); connect(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1200 });
+    else setTimeout(start, 100);
 })();

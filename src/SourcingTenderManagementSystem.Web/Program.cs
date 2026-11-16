@@ -82,6 +82,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders();
 builder.Services.AddAuthenticationFoundation();
 builder.Services.AddStmsPasskeys(new PasskeySite(builder.Configuration["Passkeys:Origin"] ?? (builder.Environment.IsDevelopment() ? "https://localhost:7162" : null)));
+builder.Services.AddStmsFaceRecognition(builder.Configuration);
 builder.Services.AddScoped<IDepartmentStore, DepartmentStore>();
 builder.Services.AddScoped<IEmployeeData, EmployeeData>();
 builder.Services.AddScoped<EmployeeManagement>();
@@ -122,7 +123,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets().AllowAnonymous();
+// Only published wwwroot assets bypass cookie/database validation. Private document actions do not.
+app.MapStaticAssets().ShortCircuit().AllowAnonymous();
 
 app.MapControllerRoute(
     name: "default",

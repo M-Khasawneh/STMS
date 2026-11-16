@@ -11,9 +11,8 @@
     var adminDashboard = admin && ViewData["AdminDashboard"] is true;
     var adminWorkspace = authenticated && admin && !publicWebsite;
     var presentation = Services.GetService<IWorkspacePresentation>();
-    var inbox = authenticated ? Services.GetService<NotificationInbox>() : null;
-    var notificationMenu = inbox is not null ? (await inbox.MenuAsync(User)) with { ReturnUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString } : null;
-    long? unread = notificationMenu?.Unread ?? (authenticated && inbox is null && presentation is not null ? await presentation.UnreadAsync(User) : null);
+    // The authorized inbox endpoint loads after first paint; database latency must not block every page shell.
+    long? unread = null;
     var hasPicture = authenticated && presentation?.HasAvatar(User) == true;
     var roleName = admin ? "Administrator" : string.Join(" · ", new[] {
         (ApplicationRoles.Supplier, "Supplier"), (ApplicationRoles.RequestingDepartment, "Requesting department"),
@@ -28,6 +27,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B1220" />
     <title>@ViewData["Title"] &middot; Sourcing &amp; Tender</title>
+    <script src="~/js/appearance-init.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/work-hub.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/dashboard-search.css" asp-append-version="true" /> }
@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="~/css/workspace-refinements.css" asp-append-version="true" />
     @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-polish.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/record-guidance.css" asp-append-version="true" /> }
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-shell.css" asp-append-version="true" /> }
+    <link rel="stylesheet" href="~/css/appearance.css" asp-append-version="true" />
 </head>
 <body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -90,11 +91,13 @@
             {
                 <button class="menu-toggle" type="button" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Open navigation" hidden><span aria-hidden="true">&#9776;</span></button>
                 <div class="topbar-context">Workspace <span aria-hidden="true">/</span> <strong>@(adminDashboard ? "Administration" : controller == "Home" ? ViewData["Title"] : controller)</strong></div>
+                <form class="workspace-header-search" asp-controller="Work" asp-action="Search" method="get" role="search"><label class="visually-hidden" for="header-search-query">Search your workspace</label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="header-search-query" type="search" name="q" minlength="2" maxlength="160" required autocomplete="off" placeholder="Search the records available to you…" data-header-query /><button type="submit" aria-label="Search your workspace">Search</button></form>
                 <a class="workspace-search-link" asp-controller="Work" asp-action="Search" aria-label="Search your workspace">&#8981; <span>Search</span></a>
+                <partial name="_AppearanceToggle" />
                 <partial name="_WorkspaceSearch" />
                 <details class="notification-dropdown" data-menu-url="@Url.Action("Menu", "Notifications")" data-watch-url="@Url.Action("Watch", "Notifications")">
                     <summary class="workspace-notification-bell" aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")" title="Notifications"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notification-count" hidden="@(!(unread > 0))">@(unread > 99 ? "99+" : unread.ToString())</span></summary>
-                    <div class="notification-popover" role="region" aria-labelledby="notification-menu-title"><partial name="_NotificationMenu" model="@(notificationMenu ?? new SourcingTenderManagementSystem.Web.Models.NotificationMenu([], unread, false))" /></div>
+                    <div class="notification-popover" role="region" aria-labelledby="notification-menu-title"><div class="notification-menu-content" data-unread=""><div class="notification-menu-heading"><h2 id="notification-menu-title">Notifications</h2></div><p class="notification-empty" role="status">Loading your notifications…</p><a class="notification-view-all" asp-controller="Notifications" asp-action="Index">View all notifications <span aria-hidden="true">↗</span></a></div></div>
                 </details>
                 <a class="admin-header-identity workspace-profile-link" asp-controller="Profile" asp-action="Index" aria-label="Profile settings"><span aria-hidden="true">@if (hasPicture) { <img class="profile-picture" src="@Url.Action("Avatar", "Profile")" alt="" /> }@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpperInvariant() ?? "U")</span><div><strong>@User.Identity?.Name</strong><small>@roleName</small></div></a>
                 <span class="workspace-tag"><i aria-hidden="true"></i> @(admin ? "Administration" : User.IsInRole(ApplicationRoles.Supplier) ? "Supplier workspace" : "Employee workspace")</span>
@@ -120,6 +123,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/appearance.js" asp-append-version="true"></script>
     <script src="~/js/workspace-refinements.js" asp-append-version="true"></script>
     @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script><script src="~/js/sticky-footer.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)

@@ -11,10 +11,17 @@
     const language = root.querySelector('[data-work-language]');
     const status = root.querySelector('[data-work-status]');
     const form = root.querySelector('[data-work-search-form]');
+    const headerQuery = document.querySelector('[data-header-query]');
     let recognition = null, session = 0, timer;
     const Constructor = window.SpeechRecognition || window.webkitSpeechRecognition;
     const supported = typeof Constructor === 'function' && window.isSecureContext;
+    // Portable preferences only; microphone permission always remains with the browser.
+    try {
+        const saved = localStorage.getItem('stms-voice-language');
+        if ([...language.options].some(option => option.value === saved)) language.value = saved;
+    } catch { /* Storage may be blocked. */ }
     function updateQuery() {
+        if (headerQuery && headerQuery.value !== query.value) headerQuery.value = query.value;
         const ready = query.value.trim().length >= 2;
         toggle.classList.toggle('has-query', ready);
         toggle.setAttribute('aria-label', ready ? 'Voice and text search, query ready' : 'Voice and text search');
@@ -54,11 +61,15 @@
         }
     });
     query.addEventListener('input', () => { cancel(); updateQuery(); });
+    headerQuery?.addEventListener('input', () => { cancel(); query.value = headerQuery.value; updateQuery(); });
     form.addEventListener('submit', () => cancel());
     root.querySelector('[data-work-clear]').addEventListener('click', () => {
         cancel(); query.value = ''; updateQuery(); status.textContent = 'Search cleared. Enter a new search.'; query.focus();
     });
-    language.addEventListener('change', () => cancel('Voice language changed. Start voice input when ready.'));
+    language.addEventListener('change', () => {
+        cancel('Voice language changed. Start voice input when ready.');
+        try { localStorage.setItem('stms-voice-language', language.value); } catch { /* This session still works. */ }
+    });
     window.addEventListener('pagehide', () => cancel());
     document.addEventListener('visibilitychange', () => { if (document.hidden) cancel('Voice input stopped when the page was hidden.'); });
     voice.addEventListener('click', () => {

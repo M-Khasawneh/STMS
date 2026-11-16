@@ -905,6 +905,34 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                     b.ToTable("EvaluationReports", (string)null);
                 });
 
+            modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.FaceCredential", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("ProtectedTemplate")
+                        .IsRequired()
+                        .HasMaxLength(8192)
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("FaceCredentials");
+                });
+
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.FinancialEvaluation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1914,6 +1942,15 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
                         .HasForeignKey("RecommendedBidId", "TenderId")
                         .HasPrincipalKey("Id", "TenderId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.FaceCredential", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SourcingTenderManagementSystem.Web.Models.Entities.FinancialEvaluation", b =>

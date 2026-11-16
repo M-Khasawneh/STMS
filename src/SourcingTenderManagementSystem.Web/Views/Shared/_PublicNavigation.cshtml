@@ -14,4 +14,5 @@
     <a asp-controller="Home" asp-action="Contact" aria-current="@(controller == "Home" && action == "Contact" ? "page" : null)">Contact</a>
     <a asp-controller="Account" asp-action="Login" class="public-login-link btn btn-primary" aria-current="@(controller == "Account" && action == "Login" ? "page" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h5v16h-5M3 12h12m-4-4 4 4-4 4" /></svg>Login</a>
     <a asp-controller="Suppliers" asp-action="Register" class="registration-link" aria-current="@(controller == "Suppliers" && action == "Register" ? "page" : null)">Supplier Registration <span aria-hidden="true">↗</span></a>
+    <partial name="_AppearanceToggle" />
 </nav>

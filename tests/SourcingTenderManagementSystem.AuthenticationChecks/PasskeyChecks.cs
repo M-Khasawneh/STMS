@@ -35,7 +35,7 @@ public sealed class PasskeyFixtureController(MemoryUsers users,PasskeyFixtureEli
 }
 internal static class PasskeyChecks {
  internal const string Password="Fixture-Only!9427";
- internal static async Task Run(bool browser){
+ internal static async Task Run(bool browser, bool faceChecks=false){
   var clock=TimeProvider.System;var tickets=new PasskeyCeremonies(clock);int count=0;void Check(bool ok,string why){if(!ok)throw new Exception(why);count++;}
   var token=tickets.Issue(new("login","challenge",null,null,null,clock.GetUtcNow().AddMinutes(1)));Check(tickets.Take(token)!=null&&tickets.Take(token)==null,"one-use ticket");
   Check(tickets.Take(tickets.Issue(new("login","challenge",null,null,null,clock.GetUtcNow().AddMinutes(-1))))==null,"expired ticket");
@@ -48,6 +48,11 @@ internal static class PasskeyChecks {
   builder.Services.AddControllersWithViews().AddApplicationPart(typeof(PasskeyFixtureController).Assembly);var memory=new MemoryUsers();builder.Services.AddSingleton(memory);builder.Services.AddSingleton<IUserStore<IdentityUser>>(memory);builder.Services.AddSingleton<IRoleStore<IdentityRole>,MemoryRoles>();
   builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders();builder.Services.AddAuthenticationFoundation();builder.Services.AddStmsPasskeys(new PasskeySite(url));builder.Services.AddSingleton<TimeProvider>(clock);
   builder.Services.RemoveAll<IEmployeeEligibility>();builder.Services.AddSingleton<PasskeyFixtureEligibility>();builder.Services.AddSingleton<IEmployeeEligibility>(sp=>sp.GetRequiredService<PasskeyFixtureEligibility>());
+  builder.Services.AddStmsFaceRecognition(builder.Configuration);
+  builder.Services.Configure<FaceOptions>(options=>options.Enabled=faceChecks);
+  builder.Services.RemoveAll<IFaceCredentialStore>();builder.Services.AddSingleton<MemoryFaceCredentials>();builder.Services.AddSingleton<IFaceCredentialStore>(sp=>sp.GetRequiredService<MemoryFaceCredentials>());
+  // This long deterministic flow tests application rules, not elapsed wall-clock throttling.
+  if(faceChecks){builder.Services.RemoveAll<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>>();builder.Services.AddRateLimiter(options=>{foreach(var policy in new[]{"passkey","face-settings","public-contact"})options.AddPolicy(policy,_=>System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("memory-fixture"));});}
   builder.Services.AddSingleton<IRoleDashboard,TestRoleDashboard>();builder.Services.AddSingleton<IAdminDashboard>(sp=>new TestAdminDashboard(sp.GetRequiredService<IHttpContextAccessor>(),clock));
 BrowserViewCoverage.Register(builder.Services);
   await using var app=builder.Build();app.Use(async(context,next)=>{context.Response.Headers["X-STMS-Passkey-Fixture"]="memory-only";await next();});app.UseStaticFiles();app.UseRouting();app.UseRateLimiter();app.UseAuthentication();app.UseAuthorization();app.MapControllerRoute("default","{controller=Home}/{action=Index}/{id?}");
@@ -61,6 +66,7 @@ BrowserViewCoverage.Register(builder.Services);
    var response=await client.PostAsync("/Passkeys/LoginOptions",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",anti}}));Check(response.StatusCode==HttpStatusCode.OK&&response.Headers.CacheControl?.NoStore==true,"anonymous options/no-store");
    var options=await response.Content.ReadAsStringAsync();Check(options.Contains("required")&&options.Contains("localhost")&&!options.Contains("passkey-user"),"verification required and no account enumeration");
    response=await client.PostAsync("/Account/Login",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",anti},{"UserName","passkey-user"},{"Password",Password}}));Check(response.StatusCode==HttpStatusCode.Redirect,"existing password login preserved");anti=await Token("/Passkeys/Index");
+   if(faceChecks){FaceSettingsChecks.Rules();await FaceSettingsChecks.Mvc(client,app.Services);return;}
    response=await client.PostAsync("/Passkeys/EnrollOptions",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",anti},{"Name","My test key"},{"CurrentPassword","wrong-password"}}));Check(response.StatusCode==HttpStatusCode.BadRequest&&!((await response.Content.ReadAsStringAsync()).Contains("wrong-password")),"enrollment reauthentication and password redaction");
    response=await client.PostAsync("/Passkeys/EnrollOptions",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",anti},{"Name","My test key"},{"CurrentPassword",Password}}));Check(response.StatusCode==HttpStatusCode.OK&&(await response.Content.ReadAsStringAsync()).Contains("pubKeyCredParams"),"native Identity creation options");
    Check((await client.PostAsync("/Passkeys/Enroll",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",anti},{"CredentialJson","{}"}}))).StatusCode==HttpStatusCode.BadRequest,"malformed credential JSON rejected safely");

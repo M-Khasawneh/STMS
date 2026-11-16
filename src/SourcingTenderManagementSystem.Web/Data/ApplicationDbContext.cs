@@ -39,6 +39,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<AiBidAnalysis> AiBidAnalyses => Set<AiBidAnalysis>();
     public DbSet<TenderAward> TenderAwards => Set<TenderAward>();
     public DbSet<TenderPurchaseRequisition> TenderPurchaseRequisitions => Set<TenderPurchaseRequisition>();
+    public DbSet<FaceCredential> FaceCredentials => Set<FaceCredential>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,5 +53,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.OwnsOne(p => p.Data).ToJson();
         });
         ProcurementModelConfiguration.Configure(builder);
+        builder.Entity<FaceCredential>(entity => {
+            entity.HasKey(x => x.UserId);
+            entity.Property(x => x.UserId).HasMaxLength(450);
+            entity.Property(x => x.ProtectedTemplate).HasMaxLength(8192).IsRequired();
+            entity.Property(x => x.Version).IsRowVersion();
+            entity.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
     }
 }

@@ -45,8 +45,11 @@ internal static class NotificationChecks
         Actor("admin");
         var html = await client.GetStringAsync("/Messages");
         Check(html.Contains("Fixture question") && !html.Contains("Competing supplier private text") && !html.Contains("Fixture system notice</th>"), "Admin message list excludes foreign accounts and system notices");
-        Check(html.Contains("notification-dropdown") && html.Contains("<summary") && html.Contains("Mark as read"), "Bell renders a native dropdown with stacked read actions");
-        Check(!html.Contains("<script>private contact</script>") && html.Contains("&lt;script&gt;private contact&lt;/script&gt;"), "Notification menu encodes message text");
+        Check(html.Contains("notification-dropdown") && html.Contains("<summary") && html.Contains("Loading your notifications"), "Bell renders a native dropdown without blocking page rendering");
+        var menuResponse = await client.GetAsync("/Notifications/Menu");
+        var menuHtml = await menuResponse.Content.ReadAsStringAsync();
+        Check(menuResponse.StatusCode == HttpStatusCode.OK && menuResponse.Headers.Contains("X-STMS-Notification-Menu") && menuHtml.Contains("Mark as read") && menuHtml.Contains("notification-menu-list"), "Authorized menu endpoint returns stacked read actions");
+        Check(!menuHtml.Contains("<script>private contact</script>") && menuHtml.Contains("&lt;script&gt;private contact&lt;/script&gt;"), "Notification menu encodes message text");
         Check((await client.GetAsync("/Messages/Details/" + MemoryNotifications.MessageId)).StatusCode == HttpStatusCode.OK && rows.Rows.Single(x => x.Id == MemoryNotifications.MessageId).ReadAt is null, "GET message details never changes read state");
         var token = WebUtility.HtmlDecode(Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
         foreach (var action in new[] { "/Notifications/Read/", "/Messages/Open/" }) {

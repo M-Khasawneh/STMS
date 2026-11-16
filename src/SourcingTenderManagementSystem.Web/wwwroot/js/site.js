@@ -52,8 +52,8 @@
     return animation;
   }
   function enter() {
-    const parts = document.querySelectorAll('.breadcrumb-line, .page-heading, .collection-heading, .form-panel > .eyebrow, .form-panel > h1, .form-panel > p, .form-panel form, .login-panel > *, .login-story h2, .hero-copy > *, .hero-art, .document-panel, .message-panel, .table-responsive');
-    parts.forEach((element, index) => animate(element, [{opacity: 0, transform: 'translateY(22px)', filter: 'blur(3px)'}, {opacity: 1, transform: 'translateY(0)', filter: 'blur(0)'}], {delay: Math.min(index * 65, 430)}));
+    const parts = document.querySelectorAll('.page-heading, .collection-heading, .login-panel, .hero-copy, .document-panel, .message-panel');
+    parts.forEach((element, index) => animate(element, [{opacity: .65, transform: 'translateY(8px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 240, delay: Math.min(index * 25, 75)}));
     animate(document.querySelector('.side-link.active'), [{clipPath:'inset(0 100% 0 0 round 9px)'},{clipPath:'inset(0 0 0 0 round 9px)'}], {duration: 650});
   }
   enter();
@@ -79,7 +79,8 @@
         } else animate(element, [{opacity: .25, transform:'translateY(12px)'},{opacity:1, transform:'translateY(0)'}], {duration:500, delay:Math.min((element.sectionRowIndex || 0) * 45, 300)});
       });
     }, {threshold: .12});
-    document.querySelectorAll('tbody tr, [data-count], .process-card, .public-section .section-heading, .about-section, .contact-section, .supplier-section').forEach(element => observer.observe(element));
+    // Tables remain immediately readable; do not attach an observer to every database row.
+    document.querySelectorAll('[data-count], .process-card, .public-section .section-heading, .about-section, .contact-section, .supplier-section').forEach(element => observer.observe(element));
   }
   const art = document.querySelector('.hero-art');
   let pointerFrame;
