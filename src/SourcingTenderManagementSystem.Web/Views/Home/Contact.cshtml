@@ -3,12 +3,12 @@
 <div class="contact-page">
     <nav class="contact-breadcrumb" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">/</span><span aria-current="page">Contact</span></nav>
     <div class="contact-page-grid">
-        <section class="contact-copy" aria-labelledby="contact-title"><span class="public-kicker">LET’S CONNECT</span><h1 id="contact-title">A conversation.<br /><span>A clearer next step.</span></h1><p>Have a question about STMS or getting started? Send a message directly to the system administrator.</p>
+        <section data-public-reveal class="contact-copy" aria-labelledby="contact-title"><span class="public-kicker">LET’S CONNECT</span><h1 id="contact-title">Good questions.<br /><span>Clearer possibilities.</span></h1><p>Have a question about STMS or getting started? Send a message directly to the system administrator.</p>
             <div class="contact-delivery-note"><span aria-hidden="true">↗</span><div><h2>Direct to administration</h2><p>Your message is delivered privately through the administrator’s in-app notifications.</p></div></div>
             <div class="contact-help-links"><span>Looking for account access?</span><a asp-controller="Account" asp-action="Login">Sign in to your workspace ↗</a><a asp-controller="Suppliers" asp-action="Register">Register your supplier company ↗</a></div>
         </section>
-        <section class="contact-form-panel" aria-labelledby="contact-form-title">
-            <div class="public-form-heading"><span class="public-kicker">CONTACT STMS</span><h2 id="contact-form-title">How can we help?</h2><p>All fields are required.</p></div>
+        <section data-public-reveal class="contact-form-panel" aria-labelledby="contact-form-title">
+            <div class="public-form-heading"><span class="public-kicker">CONTACT STMS</span><h2 id="contact-form-title">What’s on your mind?</h2><p>All fields are required.</p></div>
             @if (TempData["ContactSent"] is string sent) { <div class="alert alert-success" role="status">@sent</div> }
             <form asp-action="Contact" method="post" data-contact-form>
                 <div asp-validation-summary="All" class="text-danger" role="alert"></div>

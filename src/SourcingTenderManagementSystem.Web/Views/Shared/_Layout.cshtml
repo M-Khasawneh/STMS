@@ -39,8 +39,9 @@
     @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-polish.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/record-guidance.css" asp-append-version="true" /> }
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-shell.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/appearance.css" asp-append-version="true" />
+    @if (!authenticated) { <link rel="stylesheet" href="~/css/public-reference.css" asp-append-version="true" /> }
 </head>
-<body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
+<body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell stms-public-reference") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
     <a class="skip-link" href="#main-content">Skip to content</a>
     @if (authenticated)
     {
@@ -127,6 +128,7 @@
     <script src="~/js/workspace-refinements.js" asp-append-version="true"></script>
     @if (!authenticated) { <script src="~/js/home.js" asp-append-version="true"></script><script src="~/js/public-shell.js" asp-append-version="true"></script><script src="~/js/sticky-footer.js" asp-append-version="true"></script> }
     @await RenderSectionAsync("Scripts", required: false)
+    @if (!authenticated) { <script src="~/js/public-reference.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script><script src="~/js/notification-inbox.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/workspace-tables.js" asp-append-version="true"></script><script src="~/js/dashboard-search.js" asp-append-version="true"></script><script src="~/js/record-guidance.js" asp-append-version="true"></script> }

@@ -41,7 +41,7 @@ const fs=require('fs'),path=require('path');
   await toggle.click();check(await page.locator('html').getAttribute('data-theme')==='light','Switch back to light');
   await page.screenshot({path:path.join(out,'workspace-light.png'),fullPage:true});
   await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'anonymous'});await visit('/Account/Login');
-  check(await page.locator('nav [data-appearance-toggle]').isVisible()===false,'Mobile public appearance is inside collapsed navigation');
+  check(await page.locator('.public-topbar>[data-appearance-toggle]').isVisible(),'Mobile public appearance remains available outside navigation');
   await page.locator('.home-menu-toggle').click();await toggle.click();check(await page.locator('html').getAttribute('data-theme')==='dark','Public theme toggle');
   await page.locator('.home-menu-toggle').click();
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Mobile login no overflow');
