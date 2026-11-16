@@ -1,6 +1,6 @@
 @inject SourcingTenderManagementSystem.Web.Data.IInternalClarifications Clarifications
 @model SupplierBidDetails
-@{ ViewData["Title"] = "Submitted offer"; }
+@{ ViewData["RecordNavigation"] = true; ViewData["Title"] = "Submitted offer"; }
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
 <div class="bid-workspace">
     <header class="page-heading"><div><span class="eyebrow">READ-ONLY OFFER</span><h1>@Model.Tender.Title</h1><p>@Model.SupplierName · Offer @Model.Details.Snapshot.Bid.Id</p></div><span class="bid-status">@Model.Details.Snapshot.Bid.Status</span></header>

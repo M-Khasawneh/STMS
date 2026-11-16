@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/brand-identity.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/workspace-refinements.css" asp-append-version="true" />
-    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-polish.css" asp-append-version="true" /> }
+    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-polish.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/record-guidance.css" asp-append-version="true" /> }
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-shell.css" asp-append-version="true" /> }
 </head>
 <body class="@(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
@@ -104,7 +104,7 @@
                 <partial name="_PublicNavigation" />
             }
         </header>
-        <main id="main-content" class="content-area" tabindex="-1">
+        <main id="main-content" class="content-area" tabindex="-1" data-record-navigation="@(ViewData["RecordNavigation"] is true ? "true" : "false")">
             @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders" or "Messages" or "Clarifications" or "Reports")
             {
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
@@ -125,6 +125,6 @@
     @await RenderSectionAsync("Scripts", required: false)
     @if (authenticated) { <script src="~/js/workspace-ui.js" asp-append-version="true"></script> }
     @if (authenticated) { <script src="~/js/experience.js" asp-append-version="true"></script><script src="~/js/notification-inbox.js" asp-append-version="true"></script> }
-    @if (authenticated) { <script src="~/js/workspace-tables.js" asp-append-version="true"></script><script src="~/js/dashboard-search.js" asp-append-version="true"></script> }
+    @if (authenticated) { <script src="~/js/workspace-tables.js" asp-append-version="true"></script><script src="~/js/dashboard-search.js" asp-append-version="true"></script><script src="~/js/record-guidance.js" asp-append-version="true"></script> }
 </body>
 </html>

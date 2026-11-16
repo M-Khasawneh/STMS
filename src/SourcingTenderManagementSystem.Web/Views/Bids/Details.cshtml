@@ -1,5 +1,5 @@
 @model SupplierBidDetails
-@{ ViewData["Title"] = "Offer details"; var bid = Model.Details.Snapshot.Bid; }
+@{ ViewData["RecordNavigation"] = true; ViewData["Title"] = "Offer details"; var bid = Model.Details.Snapshot.Bid; }
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
 <div class="bid-workspace"><header class="page-heading"><div><span class="eyebrow">MY OFFERS / DETAILS</span><h1>@Model.Tender.Title</h1><p class="bid-reference">Offer @bid.Id</p></div><span class="bid-status @(bid.Status == BidStatus.Draft ? "is-draft" : "")">@bid.Status</span></header>
 @if (TempData["BidStatus"] is string message) { <div class="alert alert-success" role="status">@message</div> }

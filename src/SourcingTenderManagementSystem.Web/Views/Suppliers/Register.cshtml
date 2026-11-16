@@ -1,5 +1,6 @@
 @model SourcingTenderManagementSystem.Web.Models.Suppliers.SupplierRegistrationViewModel
-@{ ViewData["Title"] = "Supplier Registration"; }
+@{ ViewData["Title"] = "Supplier Registration"; var publicGuidanceAssets = User.Identity?.IsAuthenticated != true; }
+@section Styles { @if (publicGuidanceAssets) { <link rel="stylesheet" href="~/css/record-guidance.css" asp-append-version="true" /> } }
 <div class="row form-layout"><section class="form-panel supplier-registration-panel" aria-labelledby="supplier-title">
 <div class="eyebrow">SUPPLIER REGISTRATION</div><h1 id="supplier-title">Join the sourcing network.</h1>
 <p>Register one account for your company. Your application and three official documents must be approved by an administrator before you can sign in.</p>
@@ -22,4 +23,4 @@
 </fieldset>
 <div class="form-actions d-flex flex-wrap gap-2"><button type="submit" class="btn btn-primary">Submit registration</button><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
 </form></section></div>
-@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/suppliers.js" asp-append-version="true"></script> }
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/suppliers.js" asp-append-version="true"></script>@if (publicGuidanceAssets) { <script src="~/js/record-guidance.js" asp-append-version="true"></script> } }

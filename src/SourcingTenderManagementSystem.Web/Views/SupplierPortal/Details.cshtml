@@ -2,10 +2,11 @@
 @using SourcingTenderManagementSystem.Web.Models.Tenders
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Data
-@{ViewData["Title"]="Tender workspace";var tender=Model.Tender.Tender;var offer=Model.Offer;}
+@{ ViewData["RecordNavigation"] = true;ViewData["Title"]="Tender workspace";var tender=Model.Tender.Tender;var offer=Model.Offer;}
 <div class="work-hub"><header class="work-heading"><div><span class="eyebrow">YOUR COMPANY / TENDER WORKSPACE</span><h1>@tender.Title</h1><p>One place for your invitation, requested items and personal offer.</p></div><a class="btn btn-outline-secondary" asp-controller="Tenders" asp-action="Inbox">My invitations</a></header>
 <div class="portal-status"><div><span>Tender</span><strong>@AdminDashboardModel.Label(tender.Status)</strong></div><div><span>Your invitation</span><strong>@Model.Invitation.Invitation.Status</strong></div><div><span>Submission deadline</span><strong>@TenderTime.Display(tender.SubmissionDeadline)</strong></div><div><span>Your offer</span><strong>@(offer?.Details.Snapshot.Bid.Status.ToString()??"Not started")</strong></div></div>
 @if(Model.Notice is not null){<p class="alert alert-info" role="status">@Model.Notice</p>}
+<partial name="_TenderProgress" model="tender.Status" />
 <div class="portal-columns"><div><section class="work-section"><header><h2>Tender brief</h2></header><div class="portal-copy"><h3>Description</h3><p>@tender.Description</p><h3>Terms</h3><p>@tender.Terms</p><h3>Submission period</h3><p>@TenderTime.Display(tender.SubmissionStart) &#8212; @TenderTime.Display(tender.SubmissionDeadline)</p></div></section>
 <section class="work-section"><header><h2>Requested items <span>@Model.Tender.Items.Count</span></h2></header><div class="table-responsive" role="region" aria-label="Required tender items" tabindex="0"><table class="table"><caption>Every item and its exact requested quantity must be included in your offer.</caption><thead><tr><th scope="col">Item</th><th scope="col">Quantity</th><th scope="col">Specifications</th></tr></thead><tbody>@foreach(var item in Model.Tender.Items){<tr><th scope="row">@item.Description</th><td>@item.Quantity.ToString("0.######")</td><td class="portal-spec">@item.Specifications</td></tr>}</tbody></table></div></section></div>
 <aside><section class="work-section"><header><h2>Your next step</h2></header><div class="portal-copy">

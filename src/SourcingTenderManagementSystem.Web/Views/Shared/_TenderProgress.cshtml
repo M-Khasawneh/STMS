@@ -1,0 +1,23 @@
+@model SourcingTenderManagementSystem.Web.Models.Entities.TenderStatus
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@{
+    // Status position only. This is not an audit trail, approval count or completion percentage.
+    var stages = new[] {
+        (TenderStatus.Draft, "Draft"), (TenderStatus.Published, "Published"),
+        (TenderStatus.Open, "Open"), (TenderStatus.Closed, "Closed"),
+        (TenderStatus.UnderEvaluation, "Under evaluation"), (TenderStatus.AwaitingManagerReview, "Manager review"),
+        (TenderStatus.AwaitingCommitteeDecision, "Committee decision"), (TenderStatus.Awarded, "Awarded")
+    };
+}
+<section class="tender-progress" aria-labelledby="tender-progress-heading">
+    <header><div><span class="eyebrow">TENDER LIFECYCLE</span><h2 id="tender-progress-heading">Tender progress</h2></div><span class="status-pill">@System.Text.RegularExpressions.Regex.Replace(Model.ToString(), "(?<=[a-z])(?=[A-Z])", " ")</span></header>
+    <p>The highlighted stage is the saved tender status. Dates alone do not advance it.</p>
+    <div class="status-track-viewport" role="region" aria-label="Tender workflow stages" tabindex="0">
+        <ol class="tender-stage-list">
+        @foreach (var (state, label) in stages) {
+            <li class="@(Model == state ? "is-current" : null)" data-tender-state="@state" aria-current="@(Model == state ? "step" : null)"><span aria-hidden="true"></span><strong>@label</strong><small>@(Model == state ? "Current status" : "Workflow stage")</small></li>
+        }
+        </ol>
+    </div>
+    @if (Model == TenderStatus.Cancelled) { <p class="tender-cancelled" data-tender-state="Cancelled" aria-current="step"><strong>Cancelled</strong> · This tender is recorded as cancelled. No workflow action is provided by this progress display.</p> }
+</section>

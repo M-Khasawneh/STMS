@@ -2,8 +2,9 @@
 @model SourcingTenderManagementSystem.Web.Models.Tenders.TenderDetails
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Tenders
-@{ViewData["Title"]=Model.Tender.Title;var t=Model.Tender;}
+@{ ViewData["RecordNavigation"] = true;ViewData["Title"]=Model.Tender.Title;var t=Model.Tender;}
 <div class="page-heading"><div><div class="eyebrow">TENDER DETAILS</div><h1>@t.Title</h1><p>Submission window: @TenderTime.Display(t.SubmissionStart) &mdash; @TenderTime.Display(t.SubmissionDeadline)</p></div><span class="status-pill">@t.Status</span></div>
+<partial name="_TenderProgress" model="t.Status" />
 @if(TempData["TenderStatus"] is string message){<div class="alert alert-success" role="status">@message</div>}
 @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,t.Id,Context.RequestAborted)) { <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@t.Id" asp-route-requisition="false" class="btn btn-outline-secondary mb-3">Transaction clarifications</a> }
 

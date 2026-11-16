@@ -2,7 +2,7 @@
 @model SourcingTenderManagementSystem.Web.Models.Bids.UnifiedReportPage
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Tenders
-@{ ViewData["Title"] = "Unified evaluation report"; var submitted = Model.Report?.SubmittedAt.HasValue == true; }
+@{ ViewData["RecordNavigation"] = true; ViewData["Title"] = "Unified evaluation report"; var submitted = Model.Report?.SubmittedAt.HasValue == true; }
 @section Styles {
     <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/compliance.css" asp-append-version="true" />
