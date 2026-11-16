@@ -12,9 +12,8 @@ const{chromium}=require(process.env.STMS_PLAYWRIGHT||'playwright');const fs=requ
    check(await page.locator('.ref-roof-light').getAttribute('d')==='m270 348 730-248 400 223','Highlight follows actual roof path');
    const state=()=>page.locator('.ref-roof-light').evaluate(e=>({offset:getComputedStyle(e).strokeDashoffset,opacity:getComputedStyle(e).opacity,state:e.getAnimations()[0]?.playState}));
    const before=await state();await page.waitForFunction(offset=>{const e=document.querySelector('.ref-roof-light');return getComputedStyle(e).strokeDashoffset!==offset&&e.getAnimations()[0]?.playState==='running'},before.offset);const after=await state();check(before.offset!==after.offset&&after.state==='running','Roof highlight actually moves '+width);
-   const toggle=page.locator('[data-hero-light-toggle]');await toggle.click();await page.locator('.ref-roof-light').evaluate(e=>e.getAnimations()[0].ready);const paused=await state();await page.waitForTimeout(200);check((await state()).offset===paused.offset,'Pause freezes roof lighting');
-   await toggle.click();await page.waitForTimeout(80);check((await state()).state==='running','Lighting resumes');
-   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(80);const reduced=await state();check(reduced.state==='paused'&&reduced.opacity==='0'&&await toggle.isHidden(),'Reduced motion keeps the static artwork');
+   check(await page.locator('[data-hero-light-toggle]').count()===0,'Lighting control removed');
+   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(80);const reduced=await state();check(reduced.state==='paused'&&reduced.opacity==='0','Reduced motion keeps the static artwork');
    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Home fits '+width);
    await page.emulateMedia({reducedMotion:'no-preference'});await page.locator('footer').scrollIntoViewIfNeeded();await page.waitForTimeout(150);check((await state()).state==='paused','Offscreen hero stops animation');
   }
