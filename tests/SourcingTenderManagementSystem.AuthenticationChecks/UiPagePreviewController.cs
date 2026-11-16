@@ -16,7 +16,7 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public sealed class UiPagePreviewController:Controller
 {
     // Sample image only for visual fixtures; production QR authorization stays in its real controllers.
-    [HttpGet]public IActionResult Qr([FromServices] QrLinks codes)=>File(codes.Png("Requisitions",Guid.Parse("11111111-1000-4000-8000-000000000002")),"image/png");
+    [HttpGet]public IActionResult Qr([FromServices] QrLinks codes,string module="Requisitions",Guid? recordId=null)=>File(codes.Png(module,recordId??Guid.Parse("11111111-1000-4000-8000-000000000002")),"image/png");
     [HttpGet]public IActionResult Pdf()=>File(DocumentExtractionChecks.TextPdf(),"application/pdf","synthetic.pdf");
     [HttpGet]public async Task<IActionResult> Page(string name,string state="populated")
     {

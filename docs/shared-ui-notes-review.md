@@ -1,5 +1,12 @@
 # Shared UI notes review — 2026-11-16
 
+## Detail pages and QR enlargement
+
+- A shared detail-page stylesheet applies to authenticated Details, Status, Invitation and Outcome presentations. It refines panel hierarchy, metadata grids, headings, document rows and action spacing without rebuilding or changing any forms, permissions, routes or data. Mobile metadata stacks instead of becoming cramped. Empty history containers are hidden.
+- Existing requisition/tender QR thumbnails now open a native modal with a large black-on-white image, original protected download link, close control, Escape, native focus containment and focus restoration. Failures display a readable message; no third-party QR service or dependency is used. Without JavaScript/dialog support, the original endpoint link remains usable.
+- The generator already encodes the module and record ID in the canonical URL. New tests confirm different records and different modules produce different PNGs; the same record's QR remains stable. Production QR generation and authorization were preserved.
+- Verification: solution/Razor build, zero warnings/errors; 165 modal/detail browser checks at four widths and two themes (load, keyboard focus, Escape, reopening, download identity and error handling); 34-page / 152-case presentation regression; 395 role/theme consistency checks; 34 database-free QR/private-copy tests. No findings or JavaScript errors, no SQL writes or migrations. Synthetic presentation records use a fixture-only endpoint with the real generator and their exact module/ID; this does not bypass production authorization. A physical phone-camera scan against a deployed, reachable HTTPS origin was not performed.
+
 ## Latest document: all statuses, Admin metrics and sign-in welcome
 
 - Show all seven existing requisition statuses beside Change history, highlighting the persisted current status. This is explicitly a status reference; no synthetic audit events or dates are inserted. Existing real history is preserved.

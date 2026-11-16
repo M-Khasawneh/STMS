@@ -30,6 +30,10 @@ internal static class AccessCopyChecks
             using var data = generator.CreateQrCode(link, QRCoder.QRCodeGenerator.ECCLevel.Q);
             Check(png.Width == data.ModuleMatrix.Count * 8 && data.ModuleMatrix.Select((row, y) => Enumerable.Range(0, row.Count).All(x => row[x] == (png.GetPixel(x * 8 + 4, y * 8 + 4).Red < 128))).All(x => x), "PNG modules exactly encode canonical link with Q error correction");
         }
+        var anotherId = Guid.Parse("22345678-1234-1234-1234-123456789abc");
+        Check(links.Link("Tenders", id) != links.Link("Tenders", anotherId) && !links.Png("Tenders", id).SequenceEqual(links.Png("Tenders", anotherId)), "Different records have different canonical links and QR images");
+        Check(!links.Png("Tenders", id).SequenceEqual(links.Png("Requisitions", id)), "Same identifier in different modules produces different QR images");
+        Check(links.Png("Tenders", id).SequenceEqual(links.Png("Tenders", id)), "A record QR stays stable across repeated requests");
         foreach (var origin in new[] { "http://stms.example", "https://stms.example/folder", "https://user:password@stms.example", "https://stms.example/?x=1", "https://stms.example/#part", "bad" }) Deny(() => new QrLinks(origin).Png("Tenders", id));
         Deny(() => links.Link("../Account", id)); Deny(() => links.Link("Tenders", Guid.Empty));
         var renderer = new PrivateWatermarkedCopies();
