@@ -120,6 +120,7 @@ internal static class ProcurementModelConfiguration
 
         modelBuilder.Entity<Bid>(entity =>
         {
+            entity.HasIndex(x => x.TenderSupplierId).IsUnique();
             entity.HasOne<TenderSupplier>().WithMany()
                 .HasForeignKey(x => new { x.TenderSupplierId, x.TenderId })
                 .HasPrincipalKey(x => new { x.Id, x.TenderId }).OnDelete(DeleteBehavior.NoAction);

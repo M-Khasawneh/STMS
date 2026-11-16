@@ -31,12 +31,18 @@ public sealed class TenderManagement(ApplicationDbContext db, UserManager<Identi
         if (!actor.Internal && !actor.Requester) throw Error(403, "Tender access is not permitted.");
         return actor;
     }
-    public async Task<IReadOnlyList<Tender>> ListAsync(TenderActor actor)
+    public async Task<IReadOnlyList<Tender>> ListAsync(TenderActor actor, int? page = null, string? search = null, string? status = null)
     {
         var query = db.Tenders.AsNoTracking();
         if (actor.SupplierId.HasValue) query = query.Where(t => t.Status != TenderStatus.Draft && db.TenderSuppliers.Any(s => s.TenderId == t.Id && s.SupplierProfileId == actor.SupplierId && db.Invitations.Any(i => i.TenderSupplierId == s.Id)));
         else if (!actor.Internal) query = query.Where(t => db.TenderPurchaseRequisitions.Any(l => l.TenderId == t.Id && db.PurchaseRequisitions.Any(r => r.Id == l.PurchaseRequisitionId && r.CreatedByUserId == actor.Id)));
-        return await query.OrderByDescending(x => x.SubmissionDeadline).ThenBy(x => x.Id).ToListAsync();
+        if (!string.IsNullOrWhiteSpace(search)) query = query.Where(t => t.Title.Contains(search));
+        if (!string.IsNullOrWhiteSpace(status)) {
+            if (!Enum.TryParse<TenderStatus>(status, out var parsed) || !Enum.IsDefined(parsed)) throw Error(400, "Invalid tender status.");
+            query = query.Where(t => t.Status == parsed);
+        }
+        var ordered = query.OrderByDescending(x => x.SubmissionDeadline).ThenBy(x => x.Id);
+        return page.HasValue ? await Models.PageWindow<Tender>.ReadAsync(ordered, page.Value, search, status) : await ordered.ToListAsync();
     }
     public async Task<TenderDetails> DetailsAsync(Guid id, TenderActor actor)
     {

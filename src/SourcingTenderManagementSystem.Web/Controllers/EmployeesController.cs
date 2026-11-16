@@ -11,7 +11,12 @@ namespace SourcingTenderManagementSystem.Web.Controllers;
 public sealed class EmployeesController(EmployeeManagement employees) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index() => View(await employees.ListAsync());
+    public async Task<IActionResult> Index(int page = 1, string? q = null)
+    {
+        var rows = await employees.ListAsync(page, q, HttpContext.RequestAborted);
+        ViewData["Pagination"] = (rows as SourcingTenderManagementSystem.Web.Models.IPagedResults)?.Info;
+        return View(rows);
+    }
 
     [HttpGet]
     public async Task<IActionResult> Create() => View(new EmployeeCreateViewModel { Departments = await employees.DepartmentsAsync() });

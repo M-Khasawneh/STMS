@@ -31,12 +31,19 @@ public sealed class RequisitionManagement(ApplicationDbContext database, UserMan
         return actor;
     }
     public Task<string> DepartmentNameAsync(Guid id) => database.Departments.AsNoTracking().Where(x => x.Id == id).Select(x => x.Name).SingleAsync();
-    public async Task<RequisitionList> ListAsync(RequisitionActor actor)
+    public async Task<RequisitionList> ListAsync(RequisitionActor actor, int? page = null, string? search = null, string? status = null)
     {
         var query = database.PurchaseRequisitions.AsNoTracking();
         if (!actor.CanAccess) throw new RequisitionException(403, "Requisition access is not permitted.");
         if (!actor.Admin && !actor.Officer) query = query.Where(x => x.CreatedByUserId == actor.UserId);
-        return new(await query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).ToListAsync(), actor);
+        if (!string.IsNullOrWhiteSpace(search)) query = query.Where(x => x.Title.Contains(search));
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (!Enum.TryParse<PurchaseRequestStatus>(status, out var parsed) || !Enum.IsDefined(parsed)) throw new RequisitionException(400, "Invalid request status.");
+            query = query.Where(x => x.Status == parsed);
+        }
+        var ordered = query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id);
+        return new(page.HasValue ? await Models.PageWindow<PurchaseRequisition>.ReadAsync(ordered, page.Value, search, status) : await ordered.ToListAsync(), actor);
     }
     public async Task<RequisitionDetails> DetailsAsync(Guid id, RequisitionActor actor)
     {

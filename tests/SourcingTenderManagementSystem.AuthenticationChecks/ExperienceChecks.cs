@@ -61,7 +61,7 @@ public static class ExperienceChecks
         await Login(client, currentPassword); using var other = anotherClient(); await Login(other, currentPassword);
         var employee = memory.Users.Values.Single(x => x.UserName == "employee"); var admin = memory.Users.Values.Single(x => x.UserName == "admin");
         var adminHash = admin.PasswordHash; var adminEmail = admin.Email; var roles = memory.Roles[employee.Id].ToArray();
-        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==");
+        var png = DocumentExtractionChecks.Image();
         Check((await client.PostAsync("/Profile/Picture", new FormUrlEncodedContent([]))).StatusCode == HttpStatusCode.BadRequest, "picture upload requires antiforgery");
         using (var upload = new MultipartFormDataContent()) {
             upload.Add(new StringContent(await Token(client, "/Profile")), "__RequestVerificationToken");

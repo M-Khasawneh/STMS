@@ -47,6 +47,8 @@ internal static class AccessCopyChecks
             Check(parsed.NumberOfPages == 2, "Every source PDF page preserved");
             Check(parsed.GetPages().All(p => p.GetImages().Any() && string.IsNullOrWhiteSpace(p.Text)), "PDF contains rendered personal-copy images, no original text/active layer");
         }
+        var longCopy = await Copy(DocumentExtractionChecks.TextPdf(41), "long.pdf", stamp);
+        using (var longPdf = UglyToad.PdfPig.PdfDocument.Open(longCopy.Bytes)) Check(longPdf.NumberOfPages == 41, "PDFs over forty pages remain downloadable");
         Check(SHA256.HashData(original).SequenceEqual(hash), "Original PDF unchanged");
         var second = await Copy(original, "proposal.pdf", stamp with { UserId = "synthetic-viewer-2" });
         Check(!pdf.Bytes.SequenceEqual(second.Bytes), "Different authenticated viewers produce different copies");
@@ -57,7 +59,7 @@ internal static class AccessCopyChecks
             using var decoded = SKBitmap.Decode(copy.Bytes);
             Check(copy.ContentType == "image/png" && decoded.Width == 1400 && decoded.Height > 280, "Image derivative has visible identity band");
         }
-        foreach (var invalid in new[] { Encoding.ASCII.GetBytes("%PDF-1.4\nbroken\n%%EOF"), DocumentExtractionChecks.ScannedPdf(true), DocumentExtractionChecks.TextPdf(41) })
+        foreach (var invalid in new[] { Encoding.ASCII.GetBytes("%PDF-1.4\nbroken\n%%EOF"), DocumentExtractionChecks.ScannedPdf(true) })
         {
             try { await Copy(invalid, "invalid.pdf", stamp); throw new Exception("Invalid source leaked"); } catch (BidException e) { Check(e.Status is 409 or 503, "Unsafe/unrenderable source fails closed without returning original"); }
         }

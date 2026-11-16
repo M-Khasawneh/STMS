@@ -23,8 +23,9 @@ if (provisionFirstAdmin)
 }
 
 // Add services to the container.
-builder.Services.AddControllersWithViews(options=>options.Filters.AddService<DocumentWatermarkFilter>());
+builder.Services.AddControllersWithViews(options=>{ options.Filters.AddService<DocumentWatermarkFilter>(); options.Filters.AddService<DatabaseFailureFilter>(); });
 builder.Services.AddScoped<DocumentWatermarkFilter>();
+builder.Services.AddScoped<DatabaseFailureFilter>();
 builder.Services.AddScoped<PrivateWatermarkedCopies>();
 builder.Services.AddSingleton(new QrLinks(builder.Configuration["PublicSite:Origin"]??builder.Configuration["Passkeys:Origin"]??(builder.Environment.IsDevelopment()?"https://localhost:7162":null)));
 builder.Services.AddPublicContact();

@@ -23,7 +23,11 @@ public sealed class BidsController(SupplierBidPages pages, BidManagement bids, B
             executed.Result = Failure(error);
         }
     }
-    [HttpGet] public async Task<IActionResult> Index(CancellationToken ct) => View(await pages.ListAsync(User, ct));
+    [HttpGet] public async Task<IActionResult> Index(CancellationToken ct, int page = 1, string? q = null, string? status = null) {
+        var rows = await pages.ListAsync(User, ct, page, q, status);
+        ViewData["Pagination"] = (rows as Models.IPagedResults)?.Info;
+        return View(rows);
+    }
     [HttpGet] public async Task<IActionResult> Details([FromRoute] Guid id, CancellationToken ct) => View(await pages.DetailsAsync(User, id, ct));
     [HttpGet] public async Task<IActionResult> Create(Guid tenderId, CancellationToken ct) => View("Editor", await pages.CreateAsync(User, tenderId, null, ct));
     [HttpPost] public async Task<IActionResult> Create(Guid tenderId, [Bind(Prefix = "Form")] BidDraftForm form, string? command, int? removeCharge, CancellationToken ct)

@@ -11,8 +11,9 @@ public sealed class EmployeeManagement(UserManager<IdentityUser> users, RoleMana
     public static bool IsDisabled(IdentityUser user) =>
         user.LockoutEnabled && user.LockoutEnd == DateTimeOffset.MaxValue;
 
-    public async Task<IReadOnlyList<EmployeeDetails>> ListAsync()
+    public async Task<IReadOnlyList<EmployeeDetails>> ListAsync(int? page = null, string? search = null, CancellationToken ct = default)
     {
+        if (data is IEmployeeDirectory directory) return await directory.ListDetailsAsync(page, search, ct);
         var employees = new List<EmployeeDetails>();
         foreach (var user in await data.ListUsersAsync())
             if (await DescribeAsync(user) is { IsProtected: false } employee) employees.Add(employee);

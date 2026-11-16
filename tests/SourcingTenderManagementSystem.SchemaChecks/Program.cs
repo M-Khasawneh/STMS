@@ -73,8 +73,8 @@ Check(model.FindEntityType(typeof(ComplianceReview))!.GetCheckConstraints()
 Check(model.FindEntityType(typeof(ClarificationRequest))!.GetCheckConstraints()
     .Any(x => x.Name == "CK_ClarificationRequests_OneRelatedRecord"), "Clarification record integrity missing");
 foreach (var type in new[] { typeof(Bid) })
-    Check(model.FindEntityType(type)!.GetIndexes().All(x => !x.IsUnique),
-        $"Unspecified business uniqueness imposed on {type.Name}");
+    Check(model.FindEntityType(type)!.GetIndexes().Any(x => x.IsUnique && x.Properties.Select(p => p.Name).SequenceEqual(new[] { "TenderSupplierId" })),
+        $"One supplier bid per tender must be enforced for {type.Name}");
 
 var services = new ServiceCollection();
 services.AddLogging();

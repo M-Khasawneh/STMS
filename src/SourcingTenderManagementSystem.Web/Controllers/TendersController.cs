@@ -24,7 +24,11 @@ public sealed class TendersController(TenderManagement tenders) : Controller
             executed.Result = Failure(new TenderException(409,"A concurrent update prevented this action. Reload before trying again."));
         }
     }
-    [HttpGet] public async Task<IActionResult> Index() { ViewData["Actor"] = actor; return View(await tenders.ListAsync(actor)); }
+    [HttpGet] public async Task<IActionResult> Index(int page = 1, string? q = null, string? status = null) {
+        ViewData["Actor"] = actor;
+        try { var rows = await tenders.ListAsync(actor, page, q, status); ViewData["Pagination"] = (rows as SourcingTenderManagementSystem.Web.Models.IPagedResults)?.Info; return View(rows); }
+        catch (TenderException e) { return Failure(e); }
+    }
     [HttpGet] public async Task<IActionResult> Details([FromRoute] Guid id)
     { try { return View(await tenders.DetailsAsync(id,actor)); } catch (TenderException exception) { return Failure(exception); } }
     [HttpGet] public async Task<IActionResult> Qr(Guid id, [FromServices] QrLinks codes) {

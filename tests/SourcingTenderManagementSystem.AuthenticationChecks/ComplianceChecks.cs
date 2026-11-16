@@ -95,7 +95,7 @@ public static class ComplianceChecks
         var files = PrivateBidFiles.ForClarifications(new FilesEnvironment(root));
         try
         {
-            var bytes = Encoding.ASCII.GetBytes("%PDF-1.4\nclarification evidence\n%%EOF");
+            var bytes = DocumentExtractionChecks.TextPdf();
             var upload = await SupplierUploadValidation.ReadAsync(new FormFile(new MemoryStream(bytes), 0, bytes.Length, "Files", "../evidence.pdf"), default);
             var reference = PrivateBidFiles.NewReference(bidId, bytes);
             var intent = new BidFileIntent(Guid.NewGuid(), bidId, tenderId, reference, null);

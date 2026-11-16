@@ -8,6 +8,9 @@ public sealed record ValidatedSupplierFile(byte[] Bytes, string OriginalName, st
 
 public interface IPrivateSupplierFiles
 {
+    Task<IAsyncDisposable?> LockRegistrationAsync(CancellationToken ct) => Task.FromResult<IAsyncDisposable?>(null);
+    Task<IReadOnlyList<string>> PendingAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<string>>([]);
+    void Complete(string reference) { }
     Task<string> SaveAsync(ValidatedSupplierFile file, CancellationToken cancellationToken);
     Task<Stream> OpenAsync(string reference, CancellationToken cancellationToken);
     void Delete(string reference);
@@ -17,6 +20,24 @@ public sealed class PrivateSupplierFiles(IWebHostEnvironment environment) : IPri
 {
     // Deliberately outside wwwroot; no static file middleware points here.
     private readonly string root = Path.Combine(environment.ContentRootPath, "App_Data", "SupplierDocuments");
+    public async Task<IAsyncDisposable?> LockRegistrationAsync(CancellationToken ct)
+    {
+        Directory.CreateDirectory(root);
+        for (var attempt = 0; ; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+            try { return new FileStream(Path.Combine(root, ".registration.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.Asynchronous); }
+            catch (IOException) when (attempt < 50) { await Task.Delay(100, ct); }
+        }
+    }
+    public Task<IReadOnlyList<string>> PendingAsync(CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (!Directory.Exists(root)) return Task.FromResult<IReadOnlyList<string>>([]);
+        return Task.FromResult<IReadOnlyList<string>>(Directory.EnumerateFiles(root, "*.bin.pending")
+            .Select(p => Path.GetFileName(p)[..^8]).Where(r => Regex.IsMatch(r, "^[a-f0-9]{64}\\.bin$", RegexOptions.CultureInvariant)).ToArray());
+    }
+    public void Complete(string reference) => File.Delete(Resolve(reference) + ".pending");
     private string Resolve(string reference)
     {
         if (!Regex.IsMatch(reference, "^[a-f0-9]{64}\\.bin$", RegexOptions.CultureInvariant))
@@ -28,14 +49,19 @@ public sealed class PrivateSupplierFiles(IWebHostEnvironment environment) : IPri
         Directory.CreateDirectory(root);
         var reference = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant() + ".bin";
         var path = Resolve(reference);
+        // Journal precedes bytes. Registration recovery holds an exclusive filesystem lease
+        // across SQL commit and reconciliation, including between application processes.
+        await using (var intent = new FileStream(path + ".pending", FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough))
+        { intent.WriteByte(1); intent.Flush(true); }
         try
         {
-            await using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous);
+            await using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous | FileOptions.WriteThrough);
             await stream.WriteAsync(file.Bytes, cancellationToken);
             await stream.FlushAsync(cancellationToken);
+            stream.Flush(true);
             return reference;
         }
-        catch { File.Delete(path); throw; }
+        catch { try { File.Delete(path); } catch (IOException) { /* Durable journal permits recovery. */ } throw; }
     }
     public Task<Stream> OpenAsync(string reference, CancellationToken cancellationToken) =>
         Task.FromResult<Stream>(new FileStream(Resolve(reference), FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous));
@@ -72,6 +98,7 @@ public static class SupplierUploadValidation
         if (!valid || bytes.LongLength != file.Length) throw new InvalidDataException("Document contents do not match the selected file format.");
         var name = Path.GetFileName(file.FileName.Replace('\\', '/'));
         if (name.Length > 512 || name.Any(char.IsControl)) throw new InvalidDataException("Document filename is invalid.");
+        await PrivateWatermarkedCopies.ValidateUploadAsync(bytes, extension, cancellationToken);
         return new(bytes, name, extension == ".pdf" ? "application/pdf" : extension == ".png" ? "image/png" : "image/jpeg");
     }
 }

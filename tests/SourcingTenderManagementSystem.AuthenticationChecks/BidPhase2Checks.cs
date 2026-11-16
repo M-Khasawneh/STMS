@@ -14,8 +14,8 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 public static class BidPhase2Checks
 {
     private static int checks;
-    private static readonly byte[] Pdf = Encoding.ASCII.GetBytes("%PDF-1.4\nprivate bid evidence\n%%EOF");
-    private static readonly byte[] Png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==");
+    private static readonly byte[] Pdf = DocumentExtractionChecks.TextPdf();
+    private static readonly byte[] Png = DocumentExtractionChecks.Image();
     public static async Task RunAsync()
     {
         checks = 0;
@@ -65,7 +65,7 @@ public static class BidPhase2Checks
         var exact = new byte[5*1024*1024]; Pdf.CopyTo(exact,0); Encoding.ASCII.GetBytes("%%EOF").CopyTo(exact,exact.Length-5);
         var max=await h.Documents.UploadAsync(h.User,h.BidId,await h.Version(),"Technical Proposal",File(exact,"maximum.pdf"));
         Check(h.Document(max).Size==5*1024*1024,"exactly 5 MB accepted");
-        await h.Upload("Financial Proposal","photo.jpg",[255,216,255,0,255,217]);
+        await h.Upload("Financial Proposal","photo.jpg",DocumentExtractionChecks.Image(format: SkiaSharp.SKEncodedImageFormat.Jpeg));
         while(h.F.Store.Rows[h.BidId].Documents.Count<10) await h.Upload("Supporting Document");
         await Reject(()=>h.Upload("Supporting Document"),400,"eleventh attachment rejected");
         await h.Documents.ReplaceAsync(h.User,h.BidId,max,await h.Version(),"Technical Proposal",File(Pdf,"replacement.pdf"));

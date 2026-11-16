@@ -28,22 +28,10 @@
     <meta name="theme-color" content="#0B1220" />
     <title>@ViewData["Title"] &middot; Sourcing &amp; Tender</title>
     <script src="~/js/appearance-init.js" asp-append-version="true"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/work-hub.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/dashboard-search.css" asp-append-version="true" /> }
+    @{ ViewData["AuthenticatedShell"] = authenticated; }
+    <partial name="_FoundationStyles" />
     @await RenderSectionAsync("Styles", required: false)
-    @if (authenticated) { <link rel="stylesheet" href="~/css/admin-shell.css" asp-append-version="true" /> }
-    <link rel="stylesheet" href="~/css/experience.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/brand-identity.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/workspace-refinements.css" asp-append-version="true" />
-    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-polish.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/record-guidance.css" asp-append-version="true" /> }
-    @if (!authenticated) { <link rel="stylesheet" href="~/css/public-shell.css" asp-append-version="true" /> }
-    <link rel="stylesheet" href="~/css/appearance.css" asp-append-version="true" />
-    @if (!authenticated) { <link rel="stylesheet" href="~/css/public-reference.css" asp-append-version="true" /> }
-    <link rel="stylesheet" href="~/css/notes-consistency.css" asp-append-version="true" />
-    @if (authenticated) { <link rel="stylesheet" href="~/css/record-details.css" asp-append-version="true" /> }
-    <link rel="stylesheet" href="~/css/workspace-readability.css" asp-append-version="true" />
-    @if (authenticated && action == "Details") { <link rel="stylesheet" href="~/css/details-workspace.css" asp-append-version="true" /> }
+    <partial name="_ShellStyles" />
     @await RenderSectionAsync("PageStyles", required: false)
 </head>
 <body class="@(action is "Details" or "Status" or "Invitation" or "Outcome" ? "record-details-page" : "") @(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell stms-public-reference") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
@@ -123,6 +111,7 @@
             @if (authenticated && action == "Details") {
                 <div class="detail-workspace @(controller == "Requisitions" ? "detail-custom" : "detail-standard")" data-detail-page="@controller">@RenderBody()</div>
             } else { @RenderBody() }
+            @if (ViewData["Pagination"] is SourcingTenderManagementSystem.Web.Models.PageInfo pageInfo) { <partial name="_Pagination" model="pageInfo" /> }
         </main>
         @if (!authenticated) { <partial name="_PublicFooter" /> }
         else {

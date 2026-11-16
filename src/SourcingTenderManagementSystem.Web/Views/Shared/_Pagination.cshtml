@@ -1,0 +1,16 @@
+@model SourcingTenderManagementSystem.Web.Models.PageInfo
+@{
+    string PageUrl(int page) {
+        var values = new Microsoft.AspNetCore.Routing.RouteValueDictionary(ViewContext.RouteData.Values);
+        foreach (var pair in Context.Request.Query) values[pair.Key] = pair.Value.ToString();
+        values["page"] = page;
+        return Url.Action(null, values)!;
+    }
+}
+@if (Model.Pages > 1) {
+<nav class="report-actions my-3" aria-label="List pages">
+    @if (Model.Page > 1) { <a class="btn btn-outline-secondary" href="@PageUrl(Model.Page - 1)">Previous</a> }
+    <span>Page @Model.Page / @Model.Pages · @Model.Total records</span>
+    @if (Model.Page < Model.Pages) { <a class="btn btn-outline-secondary" href="@PageUrl(Model.Page + 1)">Next</a> }
+</nav>
+}

@@ -22,8 +22,11 @@ public sealed class ReviewBidsController(BidReviewPages pages, BidManagement bid
             executed.Result = Failure(error);
         }
     }
-    [HttpGet] public async Task<IActionResult> Index(Guid? tenderId, CancellationToken ct) =>
-        View(await pages.ListAsync(User, tenderId, ct));
+    [HttpGet] public async Task<IActionResult> Index(Guid? tenderId, CancellationToken ct, int page = 1, string? q = null, string? status = null) {
+        var rows = await pages.ListAsync(User, tenderId, ct, page, q, status);
+        ViewData["Pagination"] = (rows as Models.IPagedResults)?.Info;
+        return View(rows);
+    }
     [HttpGet] public async Task<IActionResult> Details(Guid id, CancellationToken ct) =>
         View(await pages.DetailsAsync(User, id, ct));
     [HttpGet] public async Task<IActionResult> Compare(Guid tenderId, CancellationToken ct) =>

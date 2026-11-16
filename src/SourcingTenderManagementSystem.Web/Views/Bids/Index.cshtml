@@ -1,9 +1,9 @@
 @model IReadOnlyList<SupplierOfferRow>
-@{ ViewData["Title"] = "My Offers"; }
+@{ ViewData["Title"] = "My Offers"; var totalCount = (ViewData["Pagination"] as SourcingTenderManagementSystem.Web.Models.PageInfo)?.Total ?? Model.Count; }
 @section Styles { <link rel="stylesheet" href="~/css/bids.css" asp-append-version="true" /> }
 <div class="bid-workspace">
     <header class="page-heading"><div><div class="eyebrow">SUPPLIER WORKSPACE / OFFERS</div><h1>My Offers</h1><p>Your proposals, from working draft to final submission.</p></div><a class="btn btn-primary" asp-controller="Tenders" asp-action="Inbox">Browse my invitations <span aria-hidden="true">↗</span></a></header>
-    <div class="bid-banner"><span class="bid-orbit" aria-hidden="true">↗</span><p><strong>Your offers stay private.</strong> Only your own offers appear here. Final submission locks the offer and all its documents.</p><span class="bid-count">@Model.Count <span>offers</span></span></div>
+    <div class="bid-banner"><span class="bid-orbit" aria-hidden="true">↗</span><p><strong>Your offers stay private.</strong> Only your own offers appear here. Final submission locks the offer and all its documents.</p><span class="bid-count">@totalCount <span>offers</span></span></div>
     @if (Model.Count == 0)
     {
         <section class="bid-panel bid-empty"><span class="eyebrow">READY WHEN YOU ARE</span><h2>Your next offer starts with an invitation.</h2><p>Accept an eligible tender invitation, then create your draft during its Open submission period.</p><a asp-controller="Tenders" asp-action="Inbox" class="quiet-link">View my invitations →</a></section>

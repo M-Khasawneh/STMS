@@ -231,7 +231,7 @@ public static class SupplierSqlChecks
                 Password = password, ConfirmPassword = password, CompanyCertificate = Form(), TradeLicense = Form(), TaxCertificate = Form() }, default);
         }
     }
-    private static byte[] Pdf => Encoding.ASCII.GetBytes("%PDF-1.4\n1 0 obj <<>> endobj\n%%EOF");
+    private static byte[] Pdf => DocumentExtractionChecks.TextPdf();
     private static Microsoft.AspNetCore.Http.IFormFile Form() => new Microsoft.AspNetCore.Http.FormFile(new MemoryStream(Pdf), 0, Pdf.Length, "file", "document.pdf");
     private static async Task<string> Token(HttpClient client, string path)
     {

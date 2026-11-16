@@ -98,9 +98,10 @@ internal static class ReportingReadOnlyChecks
         }
         Console.WriteLine($"PASS: {count} actual SQL {(workspaceOnly?"workspace":"read/report/export")} checks. SELECT-only interceptor active; no files or database rows written. Roles without eligible existing accounts: {string.Join(", ", skipped)}.");
     }
-    private sealed class SelectOnly : DbCommandInterceptor
+    internal sealed class SelectOnly : DbCommandInterceptor
     {
-        private static void Guard(DbCommand command) { if (!command.CommandText.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) || System.Text.RegularExpressions.Regex.IsMatch(command.CommandText, @"\b(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|EXEC|EXECUTE|BACKUP|RESTORE|DBCC)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase)) throw new InvalidOperationException("Read-only reporting guard rejected a non-SELECT command."); }
+        public int Commands { get; private set; }
+        private void Guard(DbCommand command) { Commands++; if (!command.CommandText.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) || System.Text.RegularExpressions.Regex.IsMatch(command.CommandText, @"\b(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|EXEC|EXECUTE|BACKUP|RESTORE|DBCC)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase)) throw new InvalidOperationException("Read-only reporting guard rejected a non-SELECT command."); }
         public override InterceptionResult<DbDataReader> ReaderExecuting(DbCommand command, CommandEventData data, InterceptionResult<DbDataReader> result) { Guard(command); return result; }
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData data, InterceptionResult<DbDataReader> result, CancellationToken ct = default) { Guard(command); return ValueTask.FromResult(result); }
         public override InterceptionResult<int> NonQueryExecuting(DbCommand command, CommandEventData data, InterceptionResult<int> result) => throw new InvalidOperationException("Read-only reporting guard rejected a non-query.");

@@ -19,7 +19,14 @@ public sealed class RequisitionsController(RequisitionManagement requisitions) :
         await next();
     }
     [HttpGet]
-    public async Task<IActionResult> Index() => View(await requisitions.ListAsync(actor));
+    public async Task<IActionResult> Index(int page = 1, string? q = null, string? status = null)
+    {
+        try {
+            var rows = await requisitions.ListAsync(actor, page, q, status);
+            ViewData["Pagination"] = (rows.Requests as SourcingTenderManagementSystem.Web.Models.IPagedResults)?.Info;
+            return View(rows);
+        } catch (RequisitionException e) { return StatusCode(e.Status, e.Message); }
+    }
     [HttpGet]
     public async Task<IActionResult> Details([FromRoute] Guid id)
     {

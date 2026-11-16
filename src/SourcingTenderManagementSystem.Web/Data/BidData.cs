@@ -30,8 +30,51 @@ public interface IBidDocumentData : IBidData
     Task SaveDocumentsAsync(Guid bidId, IReadOnlyList<BidDocument> documents, CancellationToken ct);
     Task<bool> ReferenceExistsAsync(string reference, CancellationToken ct);
 }
-public sealed class BidData(ApplicationDbContext db, UserManager<IdentityUser> users) : IBidDocumentData
+public interface ISupplierOfferListing
 {
+    Task<IReadOnlyList<SupplierOfferRow>> OffersAsync(BidAccount account, DateTimeOffset now, int? page, string? search, string? status, CancellationToken ct);
+}
+public interface IBidReviewListing
+{
+    Task<IReadOnlyList<BidReviewRow>> ReviewRowsAsync(BidAccount account, DateTimeOffset now, Guid? tenderId, int? page, string? search, string? status, CancellationToken ct);
+}
+public sealed class BidData(ApplicationDbContext db, UserManager<IdentityUser> users) : IBidDocumentData, ISupplierOfferListing, IBidReviewListing
+{
+    public async Task<IReadOnlyList<BidReviewRow>> ReviewRowsAsync(BidAccount account, DateTimeOffset now, Guid? tenderId, int? page, string? search, string? status, CancellationToken ct)
+    {
+        var query = from b in VisibleQuery(account, now) join t in db.Tenders.AsNoTracking() on b.TenderId equals t.Id
+                    join l in db.TenderSuppliers on b.TenderSupplierId equals l.Id join p in db.SupplierProfiles on l.SupplierProfileId equals p.Id
+                    select new { Bid = b, Tender = t, Supplier = p.CompanyName };
+        if (tenderId.HasValue) query = query.Where(x => x.Bid.TenderId == tenderId);
+        if (!string.IsNullOrWhiteSpace(search)) query = query.Where(x => x.Tender.Title.Contains(search) || x.Supplier.Contains(search));
+        if (!string.IsNullOrWhiteSpace(status)) {
+            BidRules.Require(Enum.TryParse<BidStatus>(status, out var parsed) && Enum.IsDefined(parsed), 400, "Invalid bid status.");
+            query = query.Where(x => x.Bid.Status == parsed);
+        }
+        var rows = query.OrderByDescending(x => x.Bid.SubmittedAt).ThenBy(x => x.Bid.Id).Select(x => new BidReviewRow(
+            new Bid { Id = x.Bid.Id, TenderId = x.Bid.TenderId, TenderSupplierId = x.Bid.TenderSupplierId, Status = x.Bid.Status, SubmittedAt = x.Bid.SubmittedAt },
+            new Tender { Id = x.Tender.Id, Title = x.Tender.Title, Status = x.Tender.Status, SubmissionDeadline = x.Tender.SubmissionDeadline }, x.Supplier));
+        return page.HasValue ? await Models.PageWindow<BidReviewRow>.ReadAsync(rows, page.Value, search, status, ct) : await rows.ToListAsync(ct);
+    }
+    public async Task<IReadOnlyList<SupplierOfferRow>> OffersAsync(BidAccount account, DateTimeOffset now, int? page, string? search, string? status, CancellationToken ct)
+    {
+        BidRules.Require(account.Supplier, 403, "An approved supplier account is required.");
+        var query = from b in VisibleQuery(account, now) join t in db.Tenders.AsNoTracking() on b.TenderId equals t.Id select new { Bid = b, Tender = t };
+        if (!string.IsNullOrWhiteSpace(search)) query = query.Where(x => x.Tender.Title.Contains(search));
+        if (!string.IsNullOrWhiteSpace(status)) {
+            BidRules.Require(Enum.TryParse<BidStatus>(status, out var parsed) && Enum.IsDefined(parsed), 400, "Invalid bid status.");
+            query = query.Where(x => x.Bid.Status == parsed);
+        }
+        var rows = query.OrderByDescending(x => x.Bid.SubmittedAt).ThenBy(x => x.Tender.Title).ThenBy(x => x.Bid.Id)
+            .Select(x => new SupplierOfferRow(new Bid { Id = x.Bid.Id, TenderId = x.Bid.TenderId, TenderSupplierId = x.Bid.TenderSupplierId, Status = x.Bid.Status, SubmittedAt = x.Bid.SubmittedAt }, new Tender { Id = x.Tender.Id, Title = x.Tender.Title, Status = x.Tender.Status, SubmissionStart = x.Tender.SubmissionStart, SubmissionDeadline = x.Tender.SubmissionDeadline },
+                x.Bid.Status == BidStatus.Draft && x.Bid.SubmittedAt == null && x.Tender.Status == TenderStatus.Open && x.Tender.SubmissionStart <= now && now < x.Tender.SubmissionDeadline &&
+                db.Invitations.Any(i => i.TenderSupplierId == x.Bid.TenderSupplierId && i.Status == InvitationStatus.Accepted) &&
+                db.EvaluationCriteria.Any(c => c.TenderId == x.Tender.Id) &&
+                !db.EvaluationCriteria.Any(c => c.TenderId == x.Tender.Id && (c.ApprovedAt == null || c.ApprovedByUserId == null || c.ApprovedByUserId == "")) &&
+                db.EvaluationCriteria.Where(c => c.TenderId == x.Tender.Id).Sum(c => c.Weight) == 100m &&
+                !db.Bids.Any(other => other.TenderSupplierId == x.Bid.TenderSupplierId && other.Id != x.Bid.Id)));
+        return page.HasValue ? await Models.PageWindow<SupplierOfferRow>.ReadAsync(rows, page.Value, search, status, ct) : await rows.ToListAsync(ct);
+    }
     public async Task<BidAccount?> AccountAsync(ClaimsPrincipal principal, DateTimeOffset now, CancellationToken ct)
     {
         if (principal.Identity?.IsAuthenticated != true) return null;

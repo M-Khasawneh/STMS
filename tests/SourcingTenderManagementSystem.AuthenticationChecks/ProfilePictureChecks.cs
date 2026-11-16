@@ -22,7 +22,7 @@ internal static class ProfilePictureChecks
     {
         var root = Path.Combine(Path.GetTempPath(), "stms-picture-check-" + Guid.NewGuid().ToString("N"));
         var pictures = new ProfilePictures(new Environment(root));
-        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==");
+        var png = DocumentExtractionChecks.Image();
         var checks = 0;
         void Check(bool valid) { if (!valid) throw new Exception("Profile picture check failed"); checks++; }
         FormFile File(byte[] bytes, string name) => new(new MemoryStream(bytes), 0, bytes.Length, "picture", name);

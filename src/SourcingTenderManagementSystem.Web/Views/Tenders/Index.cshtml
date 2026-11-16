@@ -1,7 +1,7 @@
 @model IReadOnlyList<SourcingTenderManagementSystem.Web.Models.Entities.Tender>
 @using SourcingTenderManagementSystem.Web.Models.Tenders
-@{ ViewData["Title"]="Tenders"; var actor=(TenderActor)ViewData["Actor"]!; }
-<div class="page-heading"><div><div class="eyebrow">SOURCING</div><h1>Tenders</h1><p>Manage the sourcing process with clear availability and approved evaluation rules.</p></div><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>tenders</small></div></div>
+@{ ViewData["Title"]="Tenders"; var totalCount = (ViewData["Pagination"] as SourcingTenderManagementSystem.Web.Models.PageInfo)?.Total ?? Model.Count; var actor=(TenderActor)ViewData["Actor"]!; }
+<div class="page-heading"><div><div class="eyebrow">SOURCING</div><h1>Tenders</h1><p>Manage the sourcing process with clear availability and approved evaluation rules.</p></div><div class="record-count"><span data-count="@totalCount">@totalCount</span><small>tenders</small></div></div>
 @if(actor.Manage){<a asp-action="Create" class="btn btn-primary">Create from approved requisition</a>}
 @if(Model.Count==0){<section class="workspace-empty-state"><h2>No tenders to display</h2><p>No accessible tenders found.</p></section>}else{
 <div class="table-responsive" role="region" aria-label="Tenders" tabindex="0"><table class="table align-middle"><caption>Accessible tenders</caption><thead><tr><th scope="col">Tender</th><th scope="col">Status</th><th scope="col">Submission deadline</th><th scope="col">Actions</th></tr></thead><tbody>@foreach(var t in Model){<tr><th scope="row" class="text-break">@t.Title</th><td><span class="status-pill">@t.Status</span></td><td>@TenderTime.Display(t.SubmissionDeadline)</td><td><a asp-action="Details" asp-route-id="@t.Id" class="table-action">Details</a></td></tr>}</tbody></table></div>}

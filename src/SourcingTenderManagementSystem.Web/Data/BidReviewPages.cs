@@ -13,9 +13,20 @@ public sealed class BidReviewPages(IBidData data, BidManagement bids, TimeProvid
             ApplicationRoles.SourcingOfficer or ApplicationRoles.SourcingManager or
             ApplicationRoles.EvaluationCommittee or ApplicationRoles.TopCommittee), 403, "Authorized bid review access is required.");
     }
-    public async Task<IReadOnlyList<BidReviewRow>> ListAsync(ClaimsPrincipal user, Guid? tenderId, CancellationToken ct)
+    public async Task<IReadOnlyList<BidReviewRow>> ListAsync(ClaimsPrincipal user, Guid? tenderId, CancellationToken ct, int? page = null, string? search = null, string? status = null)
     {
         await RequireReviewerAsync(user, ct);
+        if (data is BidData listing)
+        {
+            var account = (await data.AccountAsync(user, clock.GetUtcNow(), ct))!;
+            var rows = await listing.ReviewRowsAsync(account, clock.GetUtcNow(), tenderId, page, search, status, ct);
+            await RequireReviewerAsync(user, ct);
+            var fresh = (await data.AccountAsync(user, clock.GetUtcNow(), ct))!;
+            var visible = listing;
+            var ids = rows.Select(x => x.Bid.Id).ToArray();
+            BidRules.Require(await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(visible.VisibleQuery(fresh, clock.GetUtcNow()).Where(b => ids.Contains(b.Id)), ct) == ids.Length, 403, "Offer access changed. Reload the list.");
+            return rows;
+        }
         var result = new List<BidReviewRow>();
         foreach (var bid in await bids.ListAsync(user, ct))
         {

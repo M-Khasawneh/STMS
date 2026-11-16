@@ -28,9 +28,12 @@ public sealed class SupplierRegistration(ApplicationDbContext database, UserMana
         var registration = model.RegistrationNumber.Trim().ToUpperInvariant();
         var tax = model.TaxNumber.Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(registration) || string.IsNullOrWhiteSpace(tax)) return Failure("Registration and tax numbers are required.");
+        await using var storageLease = await files.LockRegistrationAsync(cancellationToken);
+        // No writer can own these intents while the registration lease is held.
+        await ReconcileAsync(cancellationToken);
         var saved = new List<string>();
         var committed = false;
-        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             if (await database.SupplierProfiles.AnyAsync(x => x.RegistrationNumber == registration || x.TaxNumber == tax, cancellationToken))
@@ -59,22 +62,29 @@ public sealed class SupplierRegistration(ApplicationDbContext database, UserMana
         }
         catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
         { return Failure("The username, company registration or tax number is already registered."); }
-        catch (IOException) { return Failure("Documents could not be stored. No registration was saved. Please try again."); }
-        catch (UnauthorizedAccessException) { return Failure("Document storage is unavailable. No registration was saved."); }
+        catch (IOException) { return Failure("Document storage could not be confirmed. Check with the administrator before retrying registration."); }
+        catch (UnauthorizedAccessException) { return Failure("Document storage is unavailable. Please try again when the service is restored."); }
         finally
         {
             if (!committed)
             {
-                foreach (var reference in saved)
-                {
-                    try { files.Delete(reference); }
-                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-                    { logger.LogError("A private supplier upload requires cleanup: {Reference}", reference); }
-                }
-                // Also remove rolled-back tracked entities before another operation in this scope.
+                // Dispose/rollback first, then resolve uncertain commit outcomes from committed rows.
+                await transaction.DisposeAsync();
                 database.ChangeTracker.Clear();
+                try { await ReconcileAsync(CancellationToken.None, saved); }
+                catch (Exception exception) { logger.LogError(exception, "Supplier document recovery remains pending; no uncertain files were deleted."); }
+            }
+            else {
+                await transaction.DisposeAsync();
+                foreach (var reference in saved) {
+                    try { files.Complete(reference); }
+                    catch (Exception e) when (e is IOException or UnauthorizedAccessException) { logger.LogWarning(e, "Supplier document journal completion pending."); }
+                }
             }
         }
     }
+    private Task ReconcileAsync(CancellationToken ct, IEnumerable<string>? known = null) =>
+        SupplierDocumentRecovery.ReconcileAsync(files,
+            (reference, token) => database.SupplierDocuments.AsNoTracking().AnyAsync(x => x.StorageReference == reference, token), ct, known);
     private static IdentityResult Failure(string message) => IdentityResult.Failed(new IdentityError { Code = "SupplierRegistration", Description = message });
 }

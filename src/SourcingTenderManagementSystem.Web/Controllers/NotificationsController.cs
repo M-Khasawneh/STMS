@@ -13,7 +13,7 @@ public sealed class NotificationsController(NotificationInbox inbox) : Controlle
         if (result.Exception is UnauthorizedAccessException) { result.ExceptionHandled = true; result.Result = Forbid(); }
     }
     [HttpGet] public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default) => View(await inbox.PageAsync(User, page, false, ct));
-    private async Task<bool> LiveAccess(IBidData accounts,TimeProvider clock,CancellationToken ct) => WorkspaceDiscovery.Eligible(await accounts.AccountAsync(User,clock.GetUtcNow(),ct));
+    private async Task<bool> LiveAccess(IBidData accounts,TimeProvider clock,CancellationToken ct) => await inbox.LiveEligibleAsync(User, ct) ?? WorkspaceDiscovery.Eligible(await accounts.AccountAsync(User,clock.GetUtcNow(),ct));
     [HttpGet] public async Task<IActionResult> Menu([FromServices] IBidData accounts,[FromServices] TimeProvider clock,string? returnUrl,CancellationToken ct)
     {
         if(!await LiveAccess(accounts,clock,ct))return Forbid();

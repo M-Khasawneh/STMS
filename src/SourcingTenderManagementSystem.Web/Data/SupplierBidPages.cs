@@ -15,9 +15,16 @@ public sealed class SupplierBidPages(IBidData data, BidManagement bids, TimeProv
         var account = await data.AccountAsync(user, clock.GetUtcNow(), ct);
         BidRules.Require(account?.Supplier == true, 403, "An approved supplier account is required.");
     }
-    public async Task<IReadOnlyList<SupplierOfferRow>> ListAsync(ClaimsPrincipal user, CancellationToken ct)
+    public async Task<IReadOnlyList<SupplierOfferRow>> ListAsync(ClaimsPrincipal user, CancellationToken ct, int? page = null, string? search = null, string? status = null)
     {
         await RequireSupplierAsync(user, ct);
+        if (data is ISupplierOfferListing listing)
+        {
+            var account = (await data.AccountAsync(user, clock.GetUtcNow(), ct))!;
+            var rows = await listing.OffersAsync(account, clock.GetUtcNow(), page, search, status, ct);
+            await RequireSupplierAsync(user, ct);
+            return rows;
+        }
         var result = new List<SupplierOfferRow>();
         foreach (var bid in await bids.ListAsync(user, ct))
         {

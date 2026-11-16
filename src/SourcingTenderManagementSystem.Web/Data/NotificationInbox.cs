@@ -8,6 +8,7 @@ namespace SourcingTenderManagementSystem.Web.Data;
 
 public interface INotificationStore
 {
+    Task<bool?> LiveEligibleAsync(string userId, DateTimeOffset now, CancellationToken ct) => Task.FromResult<bool?>(null);
     Task<IReadOnlyList<Notification>> ListAsync(string userId, bool messagesOnly, int skip, int take, CancellationToken ct);
     Task<long> CountAsync(string userId, bool messagesOnly, bool unreadOnly, CancellationToken ct);
     Task<Notification?> FindAsync(string userId, Guid id, bool messagesOnly, CancellationToken ct);
@@ -16,6 +17,8 @@ public interface INotificationStore
 }
 public sealed class NotificationStore(ApplicationDbContext db) : INotificationStore
 {
+    public async Task<bool?> LiveEligibleAsync(string userId, DateTimeOffset now, CancellationToken ct) =>
+        await EmployeeEligibility.Eligible(db, now).AnyAsync(u => u.Id == userId, ct);
     public IQueryable<Notification> Own(string userId, bool messagesOnly) => db.Notifications.AsNoTracking().Where(x => x.RecipientUserId == userId &&
         (!messagesOnly || x.Subject.StartsWith("Website message: ") && x.TenderId == null && x.BidId == null && x.PurchaseRequisitionId == null));
     public async Task<IReadOnlyList<Notification>> ListAsync(string userId, bool messagesOnly, int skip, int take, CancellationToken ct) =>
@@ -33,6 +36,7 @@ public sealed class NotificationStore(ApplicationDbContext db) : INotificationSt
 }
 public sealed class NotificationInbox(INotificationStore store, TimeProvider clock, ILogger<NotificationInbox> logger)
 {
+    public Task<bool?> LiveEligibleAsync(ClaimsPrincipal user, CancellationToken ct) => store.LiveEligibleAsync(UserId(user), clock.GetUtcNow(), ct);
     private static string UserId(ClaimsPrincipal user) => user.Identity?.IsAuthenticated == true && user.FindFirstValue(ClaimTypes.NameIdentifier) is { Length: > 0 } id
         ? id : throw new UnauthorizedAccessException();
     private async Task<string> MessageAdmin(ClaimsPrincipal user, CancellationToken ct)

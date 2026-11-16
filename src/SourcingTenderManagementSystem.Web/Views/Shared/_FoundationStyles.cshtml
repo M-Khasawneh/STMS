@@ -1,0 +1,4 @@
+@{ var authenticated = ViewData["AuthenticatedShell"] is true; }
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (authenticated) { <link rel="stylesheet" href="~/css/workspace-ui.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/work-hub.css" asp-append-version="true" /><link rel="stylesheet" href="~/css/dashboard-search.css" asp-append-version="true" /> }

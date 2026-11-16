@@ -366,6 +366,9 @@ namespace SourcingTenderManagementSystem.Web.Data.Migrations
 
                     b.HasIndex("TenderId");
 
+                    b.HasIndex("TenderSupplierId")
+                        .IsUnique();
+
                     b.HasIndex("TenderSupplierId", "TenderId");
 
                     b.ToTable("Bids", null, t =>

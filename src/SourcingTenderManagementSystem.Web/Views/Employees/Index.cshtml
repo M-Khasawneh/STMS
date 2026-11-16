@@ -1,6 +1,6 @@
 @model IReadOnlyList<SourcingTenderManagementSystem.Web.Models.Employees.EmployeeDetails>
-@{ ViewData["Title"] = "Employees"; }
-<header class="page-heading"><div><div class="eyebrow">PEOPLE &amp; ACCESS</div><h1>Employees</h1><p>Each employee belongs to one department. Supplier accounts are managed separately.</p></div><div class="page-heading-actions"><div class="record-count"><span data-count="@Model.Count">@Model.Count</span><small>employees</small></div><a asp-action="Create" class="btn btn-primary">Create employee</a></div></header>
+@{ ViewData["Title"] = "Employees"; var totalCount = (ViewData["Pagination"] as SourcingTenderManagementSystem.Web.Models.PageInfo)?.Total ?? Model.Count; }
+<header class="page-heading"><div><div class="eyebrow">PEOPLE &amp; ACCESS</div><h1>Employees</h1><p>Each employee belongs to one department. Supplier accounts are managed separately.</p></div><div class="page-heading-actions"><div class="record-count"><span data-count="@totalCount">@totalCount</span><small>employees</small></div><a asp-action="Create" class="btn btn-primary">Create employee</a></div></header>
 @if (TempData["EmployeeStatus"] is string status)
 {
     <div class="alert alert-success" role="status">@status</div>

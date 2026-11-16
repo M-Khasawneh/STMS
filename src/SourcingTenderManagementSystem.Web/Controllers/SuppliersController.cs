@@ -16,16 +16,22 @@ public sealed class SuppliersController(ApplicationDbContext database, SupplierR
     [AllowAnonymous, HttpGet]
     public IActionResult Register() => View(new SupplierRegistrationViewModel());
 
-    [AllowAnonymous, HttpPost, RequestSizeLimit(17 * 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = 5 * 1024 * 1024)]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("supplier-registration"), AllowAnonymous, HttpPost, RequestSizeLimit(17 * 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = 5 * 1024 * 1024)]
     public async Task<IActionResult> Register(SupplierRegistrationViewModel model, CancellationToken cancellationToken)
     {
         if (User.Identity?.IsAuthenticated == true)
             ModelState.AddModelError("", "Log out before registering a separate supplier account.");
         if (ModelState.IsValid)
         {
-            var result = await registration.RegisterAsync(model, cancellationToken);
-            if (result.Succeeded) { TempData["SupplierRegistered"] = true; TempData["UiFeedback"] = "Supplier registration received. Your account is pending approval."; return RedirectToAction(nameof(Confirmation)); }
-            foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+            try {
+                var result = await registration.RegisterAsync(model, cancellationToken);
+                if (result.Succeeded) { TempData["SupplierRegistered"] = true; TempData["UiFeedback"] = "Supplier registration received. Your account is pending approval."; return RedirectToAction(nameof(Confirmation)); }
+                foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException || e is BidException { Status: 429 or 503 }) {
+                Response.StatusCode = e is BidException busy ? busy.Status : 503;
+                ModelState.AddModelError("", "Private document processing is temporarily unavailable. Please try again shortly.");
+            }
         }
         model.Password = model.ConfirmPassword = "";
         ModelState.Remove(nameof(model.Password));
@@ -45,8 +51,18 @@ public sealed class SuppliersController(ApplicationDbContext database, SupplierR
     }
 
     [Authorize(Policy = ApplicationRoles.Admin), HttpGet]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken) =>
-        View(await database.SupplierProfiles.AsNoTracking().OrderBy(x => x.Status).ThenBy(x => x.CompanyName).ToListAsync(cancellationToken));
+    public async Task<IActionResult> Index(CancellationToken cancellationToken, int page = 1, string? q = null, string? status = null)
+    {
+        var query = database.SupplierProfiles.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(q)) query = query.Where(x => x.CompanyName.Contains(q) || x.RegistrationNumber.Contains(q));
+        if (!string.IsNullOrWhiteSpace(status)) {
+            if (!Enum.TryParse<SupplierStatus>(status, out var parsed) || !Enum.IsDefined(parsed)) return BadRequest("Invalid supplier status.");
+            query = query.Where(x => x.Status == parsed);
+        }
+        var rows = await Models.PageWindow<SupplierProfile>.ReadAsync(query.OrderBy(x => x.Status).ThenBy(x => x.CompanyName).ThenBy(x => x.Id), page, q, status, cancellationToken);
+        ViewData["Pagination"] = rows.Info;
+        return View(rows);
+    }
 
     [Authorize(Policy = ApplicationRoles.Admin), HttpGet]
     public async Task<IActionResult> Details([FromRoute] Guid id, CancellationToken cancellationToken)

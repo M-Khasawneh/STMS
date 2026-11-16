@@ -144,7 +144,7 @@ public static class ComplianceSqlChecks
             page = await Page(1);
             Check(page.Threads.Single().Request.RecipientUserId == userIds[1] && page.Reviews.Single().Outcome == ComplianceStatus.PendingClarification, "Request recipient and pending review persist");
             var clarification = page.Threads.Single().Request.Id;
-            var pdf = Encoding.ASCII.GetBytes("%PDF-1.4\nclarification evidence\n%%EOF");
+            var pdf = DocumentExtractionChecks.TextPdf();
             ClarificationReplyForm Reply(string version) => new() { Version = version, Response = "Explanation of original contents", Files = [new FormFile(new MemoryStream(pdf), 0, pdf.Length, "Files", "evidence.pdf")] };
             failure.Enabled = true;
             try { await Mutate(s => s.ReplyAsync(Actor(1), bidId, clarification, Reply(page.Version))); throw new Exception("Expected audit failure"); }
