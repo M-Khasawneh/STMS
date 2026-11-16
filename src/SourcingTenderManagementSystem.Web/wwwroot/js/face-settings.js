@@ -42,15 +42,21 @@
         if (ticket !== generation) { camera.getTracks().forEach(track => track.stop()); return null; }
         stream = camera; video.srcObject = camera; preview.hidden = false; await video.play();
         const api = window.faceapi, samples = [], start = performance.now();
-        const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 480;
+        // Laptop cameras may return widescreen frames even when 640x480 is requested.
+        // Preserve their aspect ratio; stretching changes face landmark geometry.
+        const sourceWidth = video.videoWidth || 640, sourceHeight = video.videoHeight || 480;
+        const scale = Math.min(1, 640 / Math.max(sourceWidth, sourceHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
         const context = canvas.getContext('2d',{willReadFrequently:true});
         let lastTime = -1, lastSample = 0;
         while (ticket === generation && performance.now() - start < 30000 && samples.length < 5) {
             if (video.readyState < 2 || video.currentTime === lastTime) { await delay(80); continue; }
-            lastTime = video.currentTime; context.drawImage(video,0,0,640,480);
+            lastTime = video.currentTime; context.drawImage(video,0,0,canvas.width,canvas.height);
             const faces = await api.detectAllFaces(canvas,new api.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptors();
             if (ticket !== generation) return null;
-            if (faces.length !== 1 || faces[0].detection.box.width < 80) {
+            if (faces.length !== 1 || faces[0].detection.box.width < canvas.width / 8) {
                 status.textContent = faces.length > 1 ? 'Only one person should be in the frame.' : 'Move into the frame and improve the lighting.';
                 samples.length = 0;
             } else if (performance.now() - lastSample >= 900) {

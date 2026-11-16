@@ -8,9 +8,9 @@ const fs=require('fs'),path=require('path');
  try{
   const context=await browser.newContext({ignoreHTTPSErrors:true,colorScheme:'dark',reducedMotion:'reduce'});
   await context.addInitScript(()=>{
-   window.faceFixture={denied:false,delay:false,tracks:[]};
+   window.faceFixture={denied:false,delay:false,tracks:[],frames:[]};
    const loaded=()=>Promise.resolve();
-   window.faceapi={nets:{tinyFaceDetector:{loadFromUri:loaded},faceLandmark68Net:{loadFromUri:loaded},faceRecognitionNet:{loadFromUri:loaded}},TinyFaceDetectorOptions:class{},detectAllFaces(){return{withFaceLandmarks(){return{withFaceDescriptors:async()=>[{descriptor:Float32Array.from({length:128},(_,i)=>i===0?1:0),detection:{box:{width:160}}}]}}}}};
+   window.faceapi={nets:{tinyFaceDetector:{loadFromUri:loaded},faceLandmark68Net:{loadFromUri:loaded},faceRecognitionNet:{loadFromUri:loaded}},TinyFaceDetectorOptions:class{},detectAllFaces(canvas){faceFixture.frames.push({width:canvas.width,height:canvas.height});return{withFaceLandmarks(){return{withFaceDescriptors:async()=>[{descriptor:Float32Array.from({length:128},(_,i)=>i===0?1:0),detection:{box:{width:160}}}]}}}}};
    Object.defineProperty(navigator.mediaDevices,'getUserMedia',{configurable:true,value:async options=>{
     if(options.audio!==false)throw Error('Audio requested');
     if(faceFixture.denied)throw new DOMException('Denied','NotAllowedError');
@@ -20,6 +20,8 @@ const fs=require('fs'),path=require('path');
     return stream;
    }});
    HTMLMediaElement.prototype.play=async()=>{};
+   Object.defineProperty(HTMLVideoElement.prototype,'videoWidth',{get(){return 1280}});
+   Object.defineProperty(HTMLVideoElement.prototype,'videoHeight',{get(){return 720}});
    Object.defineProperty(HTMLMediaElement.prototype,'readyState',{get(){return 4}});
    Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{get(){return performance.now()/1000}});
   });
@@ -42,6 +44,7 @@ const fs=require('fs'),path=require('path');
   await page.evaluate(()=>faceFixture.delay=false);await password().fill('Fixture-Only!9427');
   const completed=page.waitForRequest(request=>request.url().endsWith('/FaceSettings/Complete'));
   await enroll().click();const payload=JSON.parse((await completed).postData());
+  check(await page.evaluate(()=>faceFixture.frames.length>0&&faceFixture.frames.every(f=>f.width===640&&f.height===360)),'Widescreen laptop frames retain their aspect ratio');
   check(payload.samples.length===5&&payload.samples.every(s=>s.length===128)&&!('image' in payload)&&!('password' in payload),'Only numeric descriptors and one-use token submitted');
   await page.waitForFunction(()=>document.querySelector('[data-face-settings]')?.dataset.registered==='true');
   check(await page.locator('[data-face-action=verify]').isVisible(),'Encrypted enrollment persisted in memory fixture');

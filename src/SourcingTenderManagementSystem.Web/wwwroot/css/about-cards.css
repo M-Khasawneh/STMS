@@ -22,7 +22,7 @@ body.public-shell.stms-public-reference .about-page .public-lifecycle-list h3 {
 body.public-shell.stms-public-reference .about-page .public-lifecycle-list p {
     font-size:1rem; line-height:1.85; margin:0; color:var(--st-muted); max-width:60ch;
 }
-body.public-shell.stms-public-reference .about-page .public-benefit-grid { gap:20px; }
+body.public-shell.stms-public-reference .about-page .public-benefit-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
 body.public-shell.stms-public-reference .about-page .public-benefit-grid>article {
     display:block; padding:28px; border:1px solid var(--st-line); border-radius:20px;
     background:var(--st-panel); min-width:0; box-shadow:var(--st-shadow);
