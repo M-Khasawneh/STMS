@@ -3,10 +3,11 @@
 @using SourcingTenderManagementSystem.Web.Models.Entities
 @using SourcingTenderManagementSystem.Web.Models.Tenders
 @{ ViewData["RecordNavigation"] = true;ViewData["Title"]=Model.Tender.Title;var t=Model.Tender;}
-<div class="page-heading"><div><div class="eyebrow">TENDER DETAILS</div><h1>@t.Title</h1><p>Submission window: @TenderTime.Display(t.SubmissionStart) &mdash; @TenderTime.Display(t.SubmissionDeadline)</p></div><span class="status-pill">@t.Status</span></div>
-<partial name="_TenderProgress" model="t.Status" />
-<aside class="record-quick-access" aria-label="Quick access QR code"><a class="record-qr-trigger" href="@Url.Action("Qr",new{id=t.Id})" data-qr-preview aria-label="Enlarge QR code"><img src="@Url.Action("Qr",new{id=t.Id})" alt="QR code opening these protected details" width="112" height="112" /></a><div><h2>Quick access QR code</h2><span class="qr-enlarge-hint">Select the code to enlarge it for scanning.</span><p>Scan to open this record. Sign-in and your existing permissions are still required.</p><a asp-action="Qr" asp-route-id="@t.Id" download>Download QR code</a></div></aside>
+<div class="page-heading"><div><div class="eyebrow">TENDER DETAILS</div><h1>@t.Title</h1><p>Submission window: @TenderTime.Display(t.SubmissionStart) &mdash; @TenderTime.Display(t.SubmissionDeadline)</p></div><div class="detail-header-actions"><span class="status-pill">@t.Status</span><a class="btn btn-outline-secondary" href="@Url.Action("Qr",new{id=t.Id})" data-qr-preview aria-label="Enlarge QR code">QR code</a></div></div>
 
+
+
+<div class="detail-columns"><div class="detail-main">
 @if(TempData["TenderStatus"] is string message){<div class="alert alert-success" role="status">@message</div>}
 @if (!User.IsInRole("Admin") && !User.IsInRole("Supplier") && await Clarifications.AvailableAsync(User,false,t.Id,Context.RequestAborted)) { <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@t.Id" asp-route-requisition="false" class="btn btn-outline-secondary mb-3">Transaction clarifications</a> }
 
@@ -26,4 +27,5 @@
 </section>
 <h2 class="requisition-section-title">Requested items</h2><div class="table-responsive" tabindex="0" role="region" aria-label="Tender items"><table class="table align-middle requisition-items-table"><thead><tr><th scope="col">Description</th><th scope="col">Quantity</th><th scope="col">Specifications</th></tr></thead><tbody>@foreach(var item in Model.Items){<tr><td class="text-break">@item.Description</td><td>@item.Quantity.ToString("0.######")</td><td class="text-break">@item.Specifications</td></tr>}</tbody></table></div>
 @if(TenderManagementApproved(Model.Criteria)){<h2 class="requisition-section-title">Approved evaluation criteria</h2><ul>@foreach(var c in Model.Criteria){<li>@c.Name &middot; @c.Kind &middot; @c.Weight.ToString("0.######")%</li>}</ul>}
+</div><aside class="detail-context" aria-label="Tender status"><partial name="_TenderProgress" model="t.Status" /></aside></div>
 @functions {bool TenderManagementApproved(IReadOnlyList<EvaluationCriterion> criteria)=>SourcingTenderManagementSystem.Web.Data.TenderManagement.Approved(criteria);}

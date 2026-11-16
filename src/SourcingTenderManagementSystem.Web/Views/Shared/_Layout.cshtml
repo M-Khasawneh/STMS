@@ -42,6 +42,7 @@
     @if (!authenticated) { <link rel="stylesheet" href="~/css/public-reference.css" asp-append-version="true" /> }
     <link rel="stylesheet" href="~/css/notes-consistency.css" asp-append-version="true" />
     @if (authenticated) { <link rel="stylesheet" href="~/css/record-details.css" asp-append-version="true" /> }
+    @if (authenticated && action == "Details") { <link rel="stylesheet" href="~/css/details-workspace.css" asp-append-version="true" /> }
     @await RenderSectionAsync("PageStyles", required: false)
 </head>
 <body class="@(action is "Details" or "Status" or "Invitation" or "Outcome" ? "record-details-page" : "") @(ViewData["PremiumLanding"] is true ? "premium-landing" : "") @(authenticated ? "workspace workspace-theme" : "public-shell stms-public-reference") @(publicWebsite ? "stms-home" : "") @(controller == "Account" && action == "Login" ? "account-login-page" : "") @(adminWorkspace ? "admin-workspace" : "") @(adminDashboard ? "admin-dashboard-page" : "")" data-workspace-controller="@controller" data-workspace-action="@action">
@@ -111,14 +112,16 @@
                 <partial name="_PublicNavigation" />
             }
         </header>
-        <main id="main-content" class="content-area" tabindex="-1" data-record-navigation="@(ViewData["RecordNavigation"] is true ? "true" : "false")">
+        <main id="main-content" class="content-area" tabindex="-1" data-record-navigation="@(ViewData["RecordNavigation"] is true || authenticated && action == "Details" && controller != "Requisitions" ? "true" : "false")">
             @if (controller is "Departments" or "Employees" or "Requisitions" or "Tenders" or "Messages" or "Clarifications" or "Reports")
             {
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
             }
             @if (TempData["UiFeedback"] is string feedback) { <div class="alert alert-success" role="status">@feedback</div> }
             @if (authenticated && TempData["SignedInWelcome"] is true) { <div class="signin-welcome" role="status" data-signin-welcome><span aria-hidden="true">&#10003;</span><div><strong>Welcome, @User.Identity?.Name.</strong><p>You are signed in. Your workspace is ready.</p></div></div> }
-            @RenderBody()
+            @if (authenticated && action == "Details") {
+                <div class="detail-workspace @(controller == "Requisitions" ? "detail-custom" : "detail-standard")" data-detail-page="@controller">@RenderBody()</div>
+            } else { @RenderBody() }
         </main>
         @if (!authenticated) { <partial name="_PublicFooter" /> }
         else {

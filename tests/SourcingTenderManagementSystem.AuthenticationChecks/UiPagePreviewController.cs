@@ -38,7 +38,7 @@ public sealed class UiPagePreviewController:Controller
         var invitation=new InvitationRow(new Invitation{Id=Guid.NewGuid(),Status=InvitationStatus.Pending,SentAt=now},t,supplier);
         var requestActor=new RequisitionActor(user,dept,User.IsInRole(ApplicationRoles.RequestingDepartment),User.IsInRole(ApplicationRoles.SourcingOfficer),User.IsInRole(ApplicationRoles.Admin),User.IsInRole(ApplicationRoles.Supplier));
         object? model=null;
-        var known=new HashSet<string>{"Requisitions/Index","Requisitions/Create","Requisitions/Edit","Requisitions/Details","Tenders/Index","Tenders/Create","Tenders/Edit","Tenders/Details","Tenders/Criteria","Tenders/Inbox","Tenders/Invitation","Tenders/Invitations","Suppliers/Index","Suppliers/Details","Suppliers/Status","Profile/Index","Passkeys/Index","Committees/Edit","Shared/Error","Shared/WorkspaceProblem","Account/AccessDenied","UnifiedReports/Review"};
+        var known=new HashSet<string>{"Requisitions/Index","Requisitions/Create","Requisitions/Edit","Requisitions/Details","Tenders/Index","Tenders/Create","Tenders/Edit","Tenders/Details","Tenders/Criteria","Tenders/Inbox","Tenders/Invitation","Tenders/Invitations","Suppliers/Index","Suppliers/Details","Suppliers/Status","Profile/Index","Passkeys/Index","Committees/Edit","Shared/Error","Shared/WorkspaceProblem","Account/AccessDenied","UnifiedReports/Review","Bids/Details","ReviewBids/Details","Compliance/Details","Evaluations/Details","UnifiedReports/Details","TopCommittee/Details","AiAnalysis/Details","Clarifications/Details","Messages/Details","SupplierPortal/Details"};
         if(name.EndsWith("/Problem",StringComparison.Ordinal)){
             var segments=name.Split('/');var c=segments[0];if(segments.Length!=2||!new[]{"AiAnalysis","Bids","Clarifications","Committees","Compliance","Evaluations","Passkeys","Reports","ReviewBids","Tenders","TopCommittee","UnifiedReports"}.Contains(c))return NotFound();
             model="This action is unavailable in the current workflow state. Reopen the record to review its current status.";
@@ -63,6 +63,19 @@ public sealed class UiPagePreviewController:Controller
         if(name=="Committees/Edit")model=new CommitteePage(t,dept,new(){Version="synthetic-version"},false,empty?[]:[new("manager","Sourcing manager",dept,[ApplicationRoles.SourcingManager]),new("department","Department representative",dept,[ApplicationRoles.EvaluationCommittee]),new("financial","Financial representative",dept,[ApplicationRoles.EvaluationCommittee]),new("technical","Technical representative",dept,[ApplicationRoles.EvaluationCommittee])],[],[]);
         if(name=="Shared/Error")model=new ErrorViewModel{RequestId="synthetic-request"};
         if(name=="Shared/WorkspaceProblem")model="The requested view could not be loaded. Review your filters and try again.";
+        if(name is "Bids/Details" or "ReviewBids/Details") {
+            var bid=new Bid {Id=id,TenderId=t.Id,Status=BidStatus.Submitted,PaymentTerms="Within 30 days",DeliveryTimeframe="Within 14 business days",OfferValidUntil=DateOnly.FromDateTime(now.AddDays(60).DateTime),TechnicalDetails="Installation and warranty included.",SubmittedAt=now};
+            var snapshot=new BidSnapshot(bid,empty?[]:[new BidItem{Description=item.Description,Specifications=item.Specifications,OfferedQuantity=item.Quantity,UnitPrice=80m}],[],[]);
+            model=new SupplierBidDetails(new BidDetails(snapshot,"synthetic-version",1000m),t,false,"Submitted offers are read-only.",supplier.CompanyName);
+        }
+        if(name=="Compliance/Details")model=await new ComplianceMvcFixture().PageAsync(User,id);
+        if(name=="Evaluations/Details")model=await new EvaluationPresentationFixture().PageAsync(User,id);
+        if(name=="UnifiedReports/Details")model=await new UnifiedReportPresentationFixture().PageAsync(User,Guid.Parse(UnifiedReportPresentationFixture.SubmittedId));
+        if(name=="TopCommittee/Details")model=new SourcingTenderManagementSystem.Web.Models.TopCommittee.TopPage(t,"synthetic-version",false,false,false,false,null,null,null,[],[],[],null,[]);
+        if(name=="AiAnalysis/Details")model=new SourcingTenderManagementSystem.Web.Models.Analysis.AiPage(new(t.Id,t.Title,TenderStatus.UnderEvaluation,[],"synthetic-version"),null);
+        if(name=="Clarifications/Details")model=await new InternalClarificationFixture().PageAsync(User,false,Guid.Parse(InternalClarificationFixture.Id),HttpContext.RequestAborted);
+        if(name=="Messages/Details")model=new Notification{Id=id,Subject="Website message: Procurement enquiry",Message="Synthetic message for layout verification.",CreatedAt=now};
+        if(name=="SupplierPortal/Details")model=new SourcingTenderManagementSystem.Web.Models.Work.SupplierPortalPage(details,invitation,null,false,false,"Read-only synthetic presentation.");
         return View("~/Views/"+name+".cshtml",model);
     }
 }
