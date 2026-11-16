@@ -115,6 +115,7 @@
                 <nav class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Workspace" asp-action="Index">Workspace</a><span aria-hidden="true">/</span>@if (action != "Index") { <a asp-controller="@controller" asp-action="Index">@controller</a><span aria-hidden="true">/</span> }<span aria-current="page">@(action == "Index" ? controller : ViewData["Title"])</span></nav>
             }
             @if (TempData["UiFeedback"] is string feedback) { <div class="alert alert-success" role="status">@feedback</div> }
+            @if (authenticated && TempData["SignedInWelcome"] is true) { <div class="signin-welcome" role="status" data-signin-welcome><span aria-hidden="true">&#10003;</span><div><strong>Welcome, @User.Identity?.Name.</strong><p>You are signed in. Your workspace is ready.</p></div></div> }
             @RenderBody()
         </main>
         @if (!authenticated) { <partial name="_PublicFooter" /> }

@@ -9,7 +9,7 @@
 .admin-refresh { display:inline-flex; gap:8px; align-items:center; padding:10px 14px; border:1px solid #d5dfed; border-radius:9px; background:#fff; color:#334155; font-size:.75rem; text-decoration:none; font-weight:600; transition:background .18s,border-color .18s; }
 .admin-refresh svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.5; }.admin-refresh:hover { background:#f8f1e2; color:#24465f; border-color:#c8ac75; }
 .admin-unavailable { display:flex; flex-direction:column; gap:6px; padding:18px 22px; background:#fff7e8; color:#754b09; border:1px solid #f0d7a1; border-radius:12px; font-size:.85rem; margin-bottom:22px; }
-.admin-metrics { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:13px; margin-bottom:24px; }
+.admin-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; margin-bottom:24px; }
 .admin-metric { display:block; padding:20px 18px 16px; background:#fff; border:1px solid #e4ded2; border-radius:14px; color:#152b40; text-decoration:none; box-shadow:0 3px 7px #152b4003; transition:transform .2s,border-color .2s,box-shadow .2s; animation:admin-rise .5s both; }
 .admin-metric:nth-child(2){animation-delay:40ms}.admin-metric:nth-child(3){animation-delay:80ms}.admin-metric:nth-child(4){animation-delay:120ms}.admin-metric:nth-child(5){animation-delay:160ms}
 .admin-metric:hover { transform:translateY(-3px); border-color:#b4cff8; color:#152b40; box-shadow:0 10px 25px -15px #152b4030; }

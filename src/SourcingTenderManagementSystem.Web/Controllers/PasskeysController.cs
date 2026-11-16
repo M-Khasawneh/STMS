@@ -18,7 +18,7 @@ public sealed class PasskeysController(PasskeyManagement passkeys,PasskeySite si
  [HttpPost]public async Task<IActionResult> Enroll(PasskeyCredentialForm form){if(!ModelState.IsValid)return Invalid();await passkeys.FinishEnroll(User,form.CredentialJson);TempData["PasskeyStatus"]="Passkey registered. Your device may use face, fingerprint or PIN.";return Json(new{redirectUrl=Url.Action(nameof(Index))});}
  [HttpPost]public async Task<IActionResult> Remove(PasskeyRemoveForm form){if(!ModelState.IsValid)return Invalid();await passkeys.Remove(User,form);TempData["PasskeyStatus"]="Passkey removed from STMS. You may also remove its saved copy in your device settings.";return RedirectToAction(nameof(Index));}
  [AllowAnonymous,HttpPost]public async Task<IActionResult> LoginOptions()=>Content(await passkeys.BeginLogin(),"application/json");
- [AllowAnonymous,HttpPost]public async Task<IActionResult> Login(PasskeyCredentialForm form){if(!ModelState.IsValid)return Invalid();await passkeys.FinishLogin(form.CredentialJson);return Json(new{redirectUrl=Url.Action("Index","Workspace")});}
+ [AllowAnonymous,HttpPost]public async Task<IActionResult> Login(PasskeyCredentialForm form){if(!ModelState.IsValid)return Invalid();await passkeys.FinishLogin(form.CredentialJson);TempData["SignedInWelcome"]=true;return Json(new{redirectUrl=Url.Action("Index","Workspace")});}
  [AllowAnonymous,HttpPost]public async Task<IActionResult> Cancel(){await passkeys.Cancel();return NoContent();}
  private IActionResult Invalid(){Response.StatusCode=400;return View("Problem","Required passkey information is missing or invalid. Start again. Passwords and credentials are never redisplayed.");}
 }

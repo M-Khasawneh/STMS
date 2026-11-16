@@ -35,6 +35,7 @@ public sealed class NotesPreviewController : Controller
         var history = new[] { "Created", "Submitted", "Reviewed", "Approved" }.Select((action, i) => new AuditLog { Id = Guid.NewGuid(), Action = action, PreviousStatus = new[] { "Draft", "Draft", "Submitted", "UnderReview" }[i], NewStatus = new[] { "Draft", "Submitted", "UnderReview", "Approved" }[i], OccurredAt = now.AddDays(i - 3) }).ToArray();
         return View("~/Views/Requisitions/Details.cshtml", new RequisitionDetails(request, [new PurchaseRequisitionItem { Description = "Managed network switch", Specifications = "24 ports, warranty included", Quantity = 12m }], reviews, history, "Fixture IT department", "Fixture requester", "fixture-version", new RequisitionActor("requester", department, true, false, false, false)));
     }
+    [HttpGet] public IActionResult Welcome() { TempData["SignedInWelcome"] = true; return RedirectToAction("Index", "Workspace"); }
     [HttpGet] public IActionResult Success()
     {
         TempData["UiFeedback"] = "Fixture item saved successfully.";

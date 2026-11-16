@@ -19,7 +19,10 @@ public sealed class AccountController(SignInManager<IdentityUser> signIn) : Cont
         var result = await signIn.PasswordSignInAsync(model.UserName, model.Password,
             isPersistent: false, lockoutOnFailure: true);
         if (result.Succeeded)
+        {
+            TempData["SignedInWelcome"] = true;
             return Url.IsLocalUrl(model.ReturnUrl) ? LocalRedirect(model.ReturnUrl!) : RedirectToAction("Index", "Workspace");
+        }
 
         ModelState.AddModelError(string.Empty, "Unable to sign in. Check your credentials or contact your administrator.");
         // Do not re-render the submitted password.

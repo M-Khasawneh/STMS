@@ -1,4 +1,16 @@
 /* Shared corrections from the visual notes: preserve each module's layout and bindings. */
+.signin-welcome { display:flex; align-items:center; gap:14px; margin-bottom:24px; padding:18px 20px; border:1px solid var(--st-line); border-radius:var(--st-radius-card); background:var(--st-panel); color:var(--st-ink); }
+.signin-welcome>span { display:grid; place-items:center; flex:0 0 36px; height:36px; border-radius:50%; background:var(--st-gold-soft); color:var(--st-gold); }
+.signin-welcome strong { font-size:.95rem; }.signin-welcome p { margin:4px 0 0; font-size:.82rem; color:var(--st-muted); }
+.request-state-reference { padding:20px; border:1px solid var(--st-line); border-radius:var(--st-radius-card); background:var(--st-panel); margin-block:16px; }
+.request-state-reference h3 { margin:0 0 8px; font-size:.95rem; }
+.request-state-reference>p { margin:0 0 18px; color:var(--st-muted); font-size:.8rem; line-height:1.7; }
+.request-state-reference ul { display:flex; flex-wrap:wrap; gap:10px; list-style:none; padding:0; margin:0; }
+.request-state-reference li { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 12px; border:1px solid var(--st-line); border-radius:12px; color:var(--st-muted); font-size:.8rem; }
+.request-state-reference li>span { width:8px; height:8px; border-radius:50%; background:var(--st-muted); flex:0 0 8px; }
+.request-state-reference li[aria-current=step] { color:var(--st-ink); border-color:var(--st-gold); background:var(--st-gold-soft); }
+.request-state-reference li[aria-current=step]>span { background:var(--st-gold); }
+.request-state-reference small { font-size:.65rem; color:var(--st-gold); }
 .public-shell .passkey-login {
     padding:20px; margin-top:24px; border:1px solid var(--st-line);
     border-radius:var(--st-radius-card,18px); background:var(--st-panel);

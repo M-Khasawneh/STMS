@@ -1,0 +1,10 @@
+@model SourcingTenderManagementSystem.Web.Models.Entities.PurchaseRequestStatus
+@using SourcingTenderManagementSystem.Web.Models.Entities
+@using SourcingTenderManagementSystem.Web.Models.Requisitions
+<section class="request-state-reference" aria-label="All requisition statuses">
+    <h3>All requisition statuses</h3>
+    <p>The current status is highlighted. The history below shows recorded changes only.</p>
+    <ul>@foreach (var state in Enum.GetValues<PurchaseRequestStatus>()) {
+        <li aria-current="@(state == Model ? "step" : null)" data-reference-state="@state"><span aria-hidden="true"></span>@RequisitionDisplay.Status(state)@if (state == Model) { <small>Current status</small> }</li>
+    }</ul>
+</section>

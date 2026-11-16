@@ -1,5 +1,12 @@
 # Shared UI notes review — 2026-11-16
 
+## Latest document: all statuses, Admin metrics and sign-in welcome
+
+- Show all seven existing requisition statuses beside Change history, highlighting the persisted current status. This is explicitly a status reference; no synthetic audit events or dates are inserted. Existing real history is preserved.
+- Admin totals now use three columns on desktop/tablet, with two on narrow mobile screens. All six bound totals and their existing routes remain unchanged.
+- A one-time welcome is set only after successful password/passkey authentication and rendered using the authenticated account name. It works after local return redirects as well as the default workspace redirect, and does not recur on every navigation. Authentication rules and eligibility checks are unchanged.
+- Verification: zero-error/warning solution build; 499 focused browser checks across states, themes, screen widths and seven role greetings; 44 Admin dashboard regression checks; 147 existing notes checks; and 18 memory-only Identity/passkey checks including successful password welcome and one-time consumption. No SQL writes or migrations.
+
 Source: the user's `New Microsoft Word Document (2).docx`, including its five screenshots.
 
 ## Corrections
