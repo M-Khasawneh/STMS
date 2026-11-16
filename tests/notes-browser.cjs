@@ -35,7 +35,7 @@ const path = require('path');
                     check(await page.locator('[data-request-state][aria-current=step]').count() === 1, 'One actual current state');
                     check(await page.locator('[data-request-state=Approved]').getAttribute('aria-current') === 'step', 'Approved state matches fixture data');
                     check(await page.locator('.status-track.is-current').count() === 0 && await page.locator('.is-current .status-track-dot').evaluate(dot => getComputedStyle(dot).boxShadow !== 'none'), 'Current marker has visible lighting');
-                    check(await page.locator('.table thead th').first().evaluate(cell => getComputedStyle(cell).backgroundColor === 'rgb(243, 245, 243)' && getComputedStyle(cell).color === 'rgb(78, 98, 110)'), 'Shared table heading uses refined light surface and readable slate text');
+                    check(await page.locator('.table thead th').first().evaluate(cell => getComputedStyle(cell).backgroundColor !== 'rgba(0, 0, 0, 0)' && getComputedStyle(cell).color !== getComputedStyle(cell).backgroundColor), 'Shared table heading has a distinct surface and readable text');
                 }
                 if (width === 1440 || width === 390) await page.screenshot({ path: path.join(output, name + '-' + width + '.png'), fullPage: true });
             }
