@@ -1,6 +1,7 @@
 const { chromium } = require(process.env.STMS_PLAYWRIGHT || 'playwright');
 const fs = require('fs');
 const path = require('path');
+const {settled,notificationCount} = require('./browser-waits.cjs');
 (async () => {
     const [base, output] = process.argv.slice(2);
     const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -17,7 +18,8 @@ const path = require('path');
             for (const name of ['ComposeRequest', 'Record']) {
                 const response = await page.goto(base + '/NotesPreview/' + name);
                 if (response.headers()['x-stms-bid-fixture'] !== 'memory-only') throw Error('Refusing non-fixture host');
-                await page.waitForTimeout(300);
+                await notificationCount(page,3);
+                await settled(page);
                 check(response.status() === 200, 'Razor preview renders');
                 check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), name + ' fits ' + width);
                 check(await page.locator('.notification-count').innerText() === '3', 'Badge matches fixture recipient notifications');

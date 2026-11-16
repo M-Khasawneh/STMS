@@ -1,6 +1,7 @@
 // Marked in-memory fixture only; no SQL writes or real user inboxes.
 const { chromium } = require(process.env.STMS_PLAYWRIGHT || 'playwright');
 const fs = require('fs'), path = require('path');
+const {notificationCount,notificationItems} = require('./browser-waits.cjs');
 (async () => {
     const [base, output] = process.argv.slice(2);
     const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -14,7 +15,7 @@ const fs = require('fs'), path = require('path');
             await page.setViewportSize({ width, height: 1000 });
             const response = await page.goto(base + '/Workspace');
             if (response.headers()['x-stms-bid-fixture'] !== 'memory-only') throw Error('Refusing non-fixture host');
-            await page.waitForTimeout(700);
+            await notificationCount(page,3);
             check(response.status() === 200, 'Admin dashboard renders');
             check((await page.locator('[data-metric=message] [data-metric-value]').innerText()).trim() === '2', 'Dashboard message count reflects fixture data');
             check(await page.locator('[data-metric=message]').getAttribute('href') === '/Messages', 'Message KPI links to inbox');
@@ -22,6 +23,7 @@ const fs = require('fs'), path = require('path');
             const original = page.url();
             await page.locator('.notification-dropdown > summary').click();
             check(page.url() === original, 'Bell opens in place without navigation');
+            await notificationItems(page,3);
             check(await page.locator('.notification-menu-list > li').count() === 3, 'Own notifications are stacked');
             const cards = await page.locator('.notification-menu-list > li').all();
             const a = await cards[0].boundingBox(), b = await cards[1].boundingBox();
@@ -49,6 +51,7 @@ const fs = require('fs'), path = require('path');
         await page.goto(base + '/Workspace');
         check(await page.locator('.sidebar a[href="/Messages"]').count() === 0, 'Supplier has no Admin messages navigation');
         await page.locator('.notification-dropdown > summary').click();
+        await notificationItems(page,1);
         check((await page.locator('.notification-menu-list').innerText()).includes('Private supplier notice') && !(await page.locator('.notification-menu-list').innerText()).includes('Fixture question'), 'Supplier sees only their own notifications');
         await page.locator('[data-notification-read] button').click();
         await page.waitForFunction(() => document.querySelector('.notification-count').hidden);

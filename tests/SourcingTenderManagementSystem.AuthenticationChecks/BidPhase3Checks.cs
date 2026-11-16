@@ -64,7 +64,7 @@ public static class BidPhase3Checks
         builder.Services.AddSingleton<INotificationStore, MemoryNotifications>();
         builder.Services.AddScoped<NotificationInbox>();
         builder.Services.AddSingleton<NotificationWatchGate>();
-        if (workHubChecks || voiceChecks || inboxChecks) {
+        if (workHubChecks || voiceChecks || inboxChecks || notesPreview) {
             foreach(var pair in new[]{("admin",ApplicationRoles.Admin),("requester",ApplicationRoles.RequestingDepartment),("officer",ApplicationRoles.SourcingOfficer),("manager",ApplicationRoles.SourcingManager),("evaluator",ApplicationRoles.EvaluationCommittee),("top",ApplicationRoles.TopCommittee)})
                 f.Store.Accounts[pair.Item1]=new(pair.Item1,[pair.Item2],null,false,true,true,[],[]);
             builder.Services.AddSingleton<IWorkspaceDiscovery>(new WorkDiscoveryFixture(f));

@@ -20,11 +20,12 @@ public static class DocumentWatermarkWorker
         }
         catch { return 1; }
     }
-    private static SKBitmap RenderPage(byte[] bytes, int page, PDFtoImage.RenderOptions options)
+    private static IEnumerable<SKBitmap> RenderPages(byte[] bytes, IEnumerable<int> pages, PDFtoImage.RenderOptions options)
     {
-        if (OperatingSystem.IsWindows()) return PDFtoImage.Conversion.ToImage(bytes, page, options: options);
-        if (OperatingSystem.IsLinux()) return PDFtoImage.Conversion.ToImage(bytes, page, options: options);
-        if (OperatingSystem.IsMacOS()) return PDFtoImage.Conversion.ToImage(bytes, page, options: options);
+        // ToImages keeps one native PDF session for this lazy page sequence.
+        if (OperatingSystem.IsWindows()) return PDFtoImage.Conversion.ToImages(bytes, pages, options: options);
+        if (OperatingSystem.IsLinux()) return PDFtoImage.Conversion.ToImages(bytes, pages, options: options);
+        if (OperatingSystem.IsMacOS()) return PDFtoImage.Conversion.ToImages(bytes, pages, options: options);
         throw new PlatformNotSupportedException();
     }
     private static byte[] Validate(byte[] bytes, string type)
@@ -37,11 +38,15 @@ public static class DocumentWatermarkWorker
             foreach (var page in pdf.GetPages())
             {
                 if (page.Width <= 0 || page.Height <= 0 || page.Width > 20000 || page.Height > 20000) throw new InvalidDataException();
-                // Use the same native renderer as protected downloads, with a tiny bounded surface.
-                using var decoded = RenderPage(bytes, page.Number - 1,
-                    options: new PDFtoImage.RenderOptions(Width: 64, Height: 64, WithAnnotations: true, WithFormFill: true));
-                if (decoded.Width <= 0 || decoded.Height <= 0) throw new InvalidDataException();
             }
+            var decodedPages = 0;
+            foreach (var decoded in RenderPages(bytes, Enumerable.Range(0, pdf.NumberOfPages),
+                new PDFtoImage.RenderOptions(Width: 64, Height: 64, WithAnnotations: true, WithFormFill: true)))
+            {
+                using (decoded) { if (decoded.Width <= 0 || decoded.Height <= 0) throw new InvalidDataException(); }
+                decodedPages++;
+            }
+            if (decodedPages != pdf.NumberOfPages) throw new InvalidDataException();
         }
         else
         {
@@ -60,17 +65,56 @@ public static class DocumentWatermarkWorker
         if (!(OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())) throw new PlatformNotSupportedException();
         using var source = UglyToad.PdfPig.PdfDocument.Open(bytes); if (source.NumberOfPages <= 0) throw new InvalidDataException();
         using var doc = new PdfDocument(); doc.Info.Title = "STMS personal watermarked copy";
-        for (int i = 1; i <= source.NumberOfPages; i++)
+        doc.Options.FlateEncodeMode = PdfFlateEncodeMode.BestSpeed; // Lossless; no resolution/quality change.
+        var pages = source.GetPages().Select(original => {
+            if (original.Width <= 0 || original.Height <= 0 || original.Width > 20000 || original.Height > 20000) throw new InvalidDataException();
+            var scale = Math.Min(150d / 72, Math.Min(2000d / original.Width, 2600d / original.Height));
+            return (Width: original.Width, PixelsX: Math.Max(1, (int)(original.Width * scale)), PixelsY: Math.Max(1, (int)(original.Height * scale)));
+        }).ToArray();
+        if (pages.Length != source.NumberOfPages) throw new InvalidDataException();
+        // Preserve mixed page sizes while reusing a decoder for contiguous equal-resolution pages.
+        for (var start = 0; start < pages.Length;)
         {
-            var original = source.GetPage(i); if (original.Width <= 0 || original.Height <= 0 || original.Width > 20000 || original.Height > 20000) throw new InvalidDataException(); var scale = Math.Min(150d / 72, Math.Min(2000d / original.Width, 2600d / original.Height));
-            using var bitmap = RenderPage(bytes, i - 1, options: new PDFtoImage.RenderOptions(Width: Math.Max(1, (int)(original.Width * scale)), Height: Math.Max(1, (int)(original.Height * scale)), WithAnnotations: true, WithFormFill: true));
-            using var sourceImage = SKImage.FromBitmap(bitmap); using var png = sourceImage.Encode(SKEncodedImageFormat.Png, 100); var marked = Image(png.ToArray(), stamp); using var stream = new MemoryStream(marked); using var image = XImage.FromStream(stream); var page = doc.AddPage(); page.Width = XUnit.FromPoint(original.Width); page.Height = XUnit.FromPoint(original.Width * image.PixelHeight / image.PixelWidth); using var graphics = XGraphics.FromPdfPage(page); graphics.DrawImage(image, 0, 0, page.Width.Point, page.Height.Point);
+            var end = start + 1;
+            while (end < pages.Length && pages[end].PixelsX == pages[start].PixelsX && pages[end].PixelsY == pages[start].PixelsY) end++;
+            var index = start;
+            foreach (var bitmap in RenderPages(bytes, Enumerable.Range(start, end - start),
+                new PDFtoImage.RenderOptions(Width: pages[start].PixelsX, Height: pages[start].PixelsY, WithAnnotations: true, WithFormFill: true)))
+            {
+                using (bitmap)
+                using (var marked = Mark(bitmap, stamp))
+                using (var png = Encode(marked))
+                using (var stream = new MemoryStream(png.ToArray()))
+                using (var image = XImage.FromStream(stream))
+                {
+                    if (index >= end) throw new InvalidDataException();
+                    var page = doc.AddPage(); page.Width = XUnit.FromPoint(pages[index].Width);
+                    page.Height = XUnit.FromPoint(pages[index].Width * image.PixelHeight / image.PixelWidth);
+                    using var graphics = XGraphics.FromPdfPage(page);
+                    graphics.DrawImage(image, 0, 0, page.Width.Point, page.Height.Point);
+                }
+                index++;
+            }
+            if (index != end) throw new InvalidDataException();
+            start = end;
         }
         using var output = new MemoryStream(); doc.Save(output, false); if (output.Length > 40 * 1024 * 1024) throw new InvalidDataException(); return output.ToArray();
     }
     private static byte[] Image(byte[] bytes, AccessStamp stamp)
     {
         using var encoded = SKData.CreateCopy(bytes); using var codec = SKCodec.Create(encoded); if (codec is null || codec.Info.Width <= 0 || codec.Info.Height <= 0 || codec.Info.Width > 6000 || codec.Info.Height > 6000 || (long)codec.Info.Width * codec.Info.Height > 12000000) throw new InvalidDataException(); using var original = SKBitmap.Decode(bytes);
+        using var marked = Mark(original, stamp);
+        using var data = Encode(marked);
+        return data.ToArray();
+    }
+    private static SKData Encode(SKBitmap bitmap)
+    {
+        using var pixels = bitmap.PeekPixels();
+        // PNG compression level controls CPU/size only: the decoded pixels remain identical.
+        return pixels.Encode(new SKPngEncoderOptions(SKPngEncoderFilterFlags.AllFilters, 1)) ?? throw new InvalidDataException("PNG encoding failed.");
+    }
+    private static SKBitmap Mark(SKBitmap original, AccessStamp stamp)
+    {
         var width = Math.Max(original.Width, 800); var scale = (double)width / original.Width; var height = (int)(original.Height * scale); if ((long)width * height > 16000000) throw new InvalidDataException();
         using var typeface = SKTypeface.FromFamilyName("Arial");
         using var footerFont = new SKFont(typeface, Math.Clamp(width / 70f, 11, 22));
@@ -84,10 +128,11 @@ public static class DocumentWatermarkWorker
         lines.Add(current);
         var lineHeight = (int)Math.Ceiling(footerFont.Size * 1.4);
         var band = Math.Max(90, lines.Count * lineHeight + 30);
-        using var canvasImage = new SKBitmap(width, height + band); using var canvas = new SKCanvas(canvasImage); canvas.Clear(SKColors.White); canvas.DrawBitmap(original, new SKRect(0, 0, width, height), new SKSamplingOptions(SKFilterMode.Linear));
+        var canvasImage = new SKBitmap(width, height + band); using var canvas = new SKCanvas(canvasImage); canvas.Clear(SKColors.White); canvas.DrawBitmap(original, new SKRect(0, 0, width, height), new SKSamplingOptions(SKFilterMode.Linear));
         using var font = new SKFont(typeface, Math.Clamp(width / 38f, 18, 42)); using var paint = new SKPaint { Color = new SKColor(21, 43, 64, 65), IsAntialias = true };
         for (int y = 160; y < height; y += 360) { canvas.Save(); canvas.Translate(width / 2f, y); canvas.RotateDegrees(-22); var text = stamp.Mark; var size = font.MeasureText(text); canvas.DrawText(text, -size / 2, 0, SKTextAlign.Left, font, paint); canvas.Restore(); }
         paint.Color = new SKColor(21, 43, 64); int line = 0; foreach (var text in lines) { canvas.DrawText(text, 20, height + 25 + line++ * lineHeight, SKTextAlign.Left, footerFont, paint); }
-        using var final = SKImage.FromBitmap(canvasImage); using var data = final.Encode(SKEncodedImageFormat.Png, 100); return data.ToArray();
+        canvas.Flush();
+        return canvasImage;
     }
 }

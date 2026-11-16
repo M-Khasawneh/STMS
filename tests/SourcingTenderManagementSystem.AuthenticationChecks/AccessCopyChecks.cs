@@ -47,8 +47,29 @@ internal static class AccessCopyChecks
             Check(parsed.NumberOfPages == 2, "Every source PDF page preserved");
             Check(parsed.GetPages().All(p => p.GetImages().Any() && string.IsNullOrWhiteSpace(p.Text)), "PDF contains rendered personal-copy images, no original text/active layer");
         }
-        var longCopy = await Copy(DocumentExtractionChecks.TextPdf(41), "long.pdf", stamp);
+        var longSource = DocumentExtractionChecks.TextPdf(41);
+        var renderWatch = System.Diagnostics.Stopwatch.StartNew();
+        var longCopy = await Copy(longSource, "long.pdf", stamp);
+        Console.WriteLine($"TIMING: 41-page protected PDF {renderWatch.Elapsed.TotalSeconds:0.00}s; {longCopy.Bytes.Length} bytes; unchanged 45-second worker deadline.");
         using (var longPdf = UglyToad.PdfPig.PdfDocument.Open(longCopy.Bytes)) Check(longPdf.NumberOfPages == 41, "PDFs over forty pages remain downloadable");
+        renderWatch.Restart();
+        var concurrent = await Task.WhenAll(Copy(longSource,"parallel.pdf",stamp),Copy(longSource,"parallel.pdf",stamp with { UserId="parallel-viewer" }));
+        foreach (var copy in concurrent) {
+            using var parsed = UglyToad.PdfPig.PdfDocument.Open(copy.Bytes);
+            Check(parsed.NumberOfPages==41 && parsed.GetPages().All(p=>p.GetImages().Count()==1 && string.IsNullOrWhiteSpace(p.Text)), "Concurrent copies preserve every flattened page and never release active/source text layers");
+        }
+        Check(!concurrent[0].Bytes.SequenceEqual(concurrent[1].Bytes), "Concurrent users retain distinct personal copies");
+        Console.WriteLine($"TIMING: two concurrent 41-page protected PDFs {renderWatch.Elapsed.TotalSeconds:0.00}s.");
+        using (var bitmap = SKBitmap.Decode(DocumentExtractionChecks.Image())) {
+            var encode = typeof(DocumentWatermarkWorker).GetMethod("Encode",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)!;
+            using var encoded = (SKData)encode.Invoke(null,[bitmap])!;
+            using var decoded = SKBitmap.Decode(encoded);
+            Check(bitmap.Width==decoded.Width && bitmap.Height==decoded.Height && bitmap.Pixels.SequenceEqual(decoded.Pixels), "Fast PNG compression preserves every decoded pixel");
+        }
+        var mixedBuilder = new UglyToad.PdfPig.Writer.PdfDocumentBuilder();
+        mixedBuilder.AddPage(UglyToad.PdfPig.Content.PageSize.A4); mixedBuilder.AddPage(UglyToad.PdfPig.Content.PageSize.A5);
+        var mixed = await Copy(mixedBuilder.Build(),"mixed.pdf",stamp);
+        using (var parsed = UglyToad.PdfPig.PdfDocument.Open(mixed.Bytes)) Check(parsed.NumberOfPages==2 && parsed.GetPage(1).Width!=parsed.GetPage(2).Width, "Mixed source page sizes remain distinct");
         Check(SHA256.HashData(original).SequenceEqual(hash), "Original PDF unchanged");
         var second = await Copy(original, "proposal.pdf", stamp with { UserId = "synthetic-viewer-2" });
         Check(!pdf.Bytes.SequenceEqual(second.Bytes), "Different authenticated viewers produce different copies");
