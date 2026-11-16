@@ -41,7 +41,7 @@
         const arrived = Math.min(steps.length-1,Math.floor(phase/legMs));
         if (arrived!==index) select(arrived);
         if (!total) return;
-        const start = distances[arrived], end = distances[Math.min(arrived+1,steps.length-1)];
+        const start = distances[arrived], end = distances[Math.min(arrived+1,steps.length)];
         const distance = start+(end-start)*((phase%legMs)/legMs);
         trace.style.strokeDashoffset = String(total-distance);
         const point = base.getPointAtLength(distance);
@@ -88,6 +88,9 @@
             }
             probe.setAttribute('d',d); distances.push(probe.getTotalLength());
         }
+        const last=points.at(-1), remaining=origin.width-last.x;
+        d+=` C${last.x+remaining*.4} ${last.y} ${origin.width-remaining*.2} ${last.y+10} ${origin.width} ${last.y}`;
+        probe.setAttribute('d',d); distances.push(probe.getTotalLength());
         total=distances.at(-1);
         if (!Number.isFinite(total) || total<=0) { total=0; sync(); return; }
         const height=Math.ceil(Math.max(...points.map(point=>point.y))+24);

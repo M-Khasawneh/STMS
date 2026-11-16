@@ -41,7 +41,8 @@ const fs=require('fs'),path=require('path');
                 await page.clock.runFor(i===1?3632:3600);s=await state();
                 check(s.index===i&&errorAt(s,i)<12,'Stage activates as the line reaches its dot '+width+'/'+i);
             }
-            await page.clock.runFor(3600);s=await state();check(s.index===0&&s.visited===0,'Loop restarts line and markers together '+width);
+            await page.clock.runFor(1800);s=await state();check(s.index===5&&s.point.x>s.dots[5].x,'Final stage remains active while trace continues toward right edge '+width);
+            await page.clock.runFor(1800);s=await state();check(s.index===0&&s.visited===0,'Loop restarts line and markers together '+width);
             await click('[data-journey-pause]');await click('[data-journey-step="4"]');
             await page.setViewportSize({width:width>800?390:1440,height:1000});await page.clock.runFor(64);s=await state();
             check(s.index===4&&errorAt(s,4)<1.1,'Responsive reflow keeps dot alignment '+width);
