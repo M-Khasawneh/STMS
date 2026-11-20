@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using SourcingTenderManagementSystem.Web.Data;
 using SourcingTenderManagementSystem.Web.Models.Bids;
@@ -91,7 +92,30 @@ internal static partial class IsolatedSqlAcceptance
         Check((await Tender()).Tender.Status == TenderStatus.Open, "Configured/approved criteria, publication, invitation and opening complete");
         var item = (await Tender()).Items.Single();
         bidId = await Call<BidManagement, Guid>(s => s.CreateDraftAsync(Actor("supplier0"), tenderId, new() { DeliveryTimeframe = "14 days", TechnicalDetails = "Synthetic specification response", PaymentTerms = "30 days", OfferValidUntil = DateOnly.FromDateTime(clock.Utc.AddDays(7).Date), Items = [new() { ItemId = item.Id, UnitPrice = 100 }], Charges = [new() { CostType = "Synthetic fee", Amount = 5 }] }));
+        // Exercise upgrade and duplicate-data refusal only in this owned, synthetic database.
+        using (var scope = provider.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var migrator = db.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+            await migrator.MigrateAsync("20261116032101_CameraFaceSettings");
+            var originalBid = await db.Bids.AsNoTracking().SingleAsync(b => b.Id == bidId);
+            var duplicate = new Bid { Id = Guid.NewGuid(), TenderSupplierId = originalBid.TenderSupplierId, TenderId = originalBid.TenderId, Status = BidStatus.Draft, Currency = "JOD", DeliveryTimeframe = "Synthetic duplicate probe", PaymentTerms = "Synthetic" };
+            db.Bids.Add(duplicate); await db.SaveChangesAsync();
+            try { await migrator.MigrateAsync(); throw new Exception("Duplicate migration unexpectedly succeeded"); }
+            catch (Microsoft.Data.SqlClient.SqlException e) when (e.Number == 51000)
+            { Check(await db.Bids.CountAsync(b => b.TenderSupplierId == originalBid.TenderSupplierId) == 2 && !(await db.Database.GetAppliedMigrationsAsync()).Contains("20261116152333_BidParticipationUniqueness"), "Duplicate-data migration refuses safely without changing bids or history"); }
+            db.Bids.Remove(duplicate); await db.SaveChangesAsync();
+            await migrator.MigrateAsync();
+            Check((await db.Database.GetAppliedMigrationsAsync()).SequenceEqual(db.Database.GetMigrations()), "Clean isolated upgrade restores all migrations in order");
+            db.Bids.Add(duplicate);
+            try { await db.SaveChangesAsync(); throw new Exception("Unique index accepted duplicate bid"); }
+            catch (DbUpdateException e) when (e.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 })
+            { db.ChangeTracker.Clear(); Check(await db.Bids.CountAsync(b => b.TenderSupplierId == originalBid.TenderSupplierId) == 1, "SQL unique participation index rejects duplicate bid and retains original"); }
+        }
         Task<BidDetails> Bid() => Call<BidManagement, BidDetails>(s => s.DetailsAsync(Actor("supplier0"), bidId));
+        var draft = await Bid();
+        await Run<BidManagement>(s => s.SaveDraftAsync(Actor("supplier0"), bidId, new() { Version = draft.Version, DeliveryTimeframe = "14 days", TechnicalDetails = "Corrected synthetic specification response", PaymentTerms = "30 days", OfferValidUntil = DateOnly.FromDateTime(clock.Utc.AddDays(7).Date), Items = [new() { ItemId = item.Id, UnitPrice = 100 }], Charges = [new() { CostType = "Synthetic fee", Amount = 5 }] }));
+        Check((await Bid()).Snapshot.Bid.TechnicalDetails == "Corrected synthetic specification response", "Eligible draft edit persists before explicit submission");
         Check((await Bid()).Total == 255m && (await Bid()).Snapshot.Items.Single().OfferedQuantity == 2.5m, "Authoritative fractional quantity and decimal totals persist");
         await Deny(async () => { await Call<BidManagement, BidDetails>(s => s.DetailsAsync(Actor("supplier1"), bidId)); }, 404);
         var bid = await Bid(); await Run<BidDocumentManagement>(async s => { await s.UploadAsync(Actor("supplier0"), bidId, bid.Version, "Technical Proposal", File()); });

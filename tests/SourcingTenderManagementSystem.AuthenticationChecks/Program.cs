@@ -21,6 +21,7 @@ using SourcingTenderManagementSystem.Web.Controllers;
 using SourcingTenderManagementSystem.Web.Security;
 using SourcingTenderManagementSystem.Web.Data;
 
+if(args.Length == 2 && args[0] == "--published-worker-checks") { await PublishedWorkerChecks.Run(args[1]); return; }
 if(args.Contains("--supplier-upload-checks-only", StringComparer.Ordinal)){await SupplierUploadChecks.RunAsync();return;}
 if(args.Contains("--audit-repair-checks-only", StringComparer.Ordinal)){await AuditRepairChecks.Run();return;}
 if(args.Contains("--audit-read-only-checks", StringComparer.Ordinal)){await AuditReadOnlyChecks.Run();return;}

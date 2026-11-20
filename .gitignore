@@ -42,3 +42,11 @@ Sourcing_Tender_Management_System_English_Brief_V5*.docx
 artifacts/
 .DS_Store
 Thumbs.db
+
+# Local tooling dependencies and browser-test output
+**/node_modules/
+**/playwright-report/
+**/test-results/
+**/.cache/
+*.tmp
+*.temp

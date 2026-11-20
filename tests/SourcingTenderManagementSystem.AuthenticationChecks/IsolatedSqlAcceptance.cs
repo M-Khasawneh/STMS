@@ -76,7 +76,7 @@ internal static partial class IsolatedSqlAcceptance
                     Check((await users.CreateAsync(firstAdmin, "Aa1!" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)))).Succeeded &&
                         (await users.AddToRoleAsync(firstAdmin, ApplicationRoles.Admin)).Succeeded, "Historical first-Admin prerequisite prepared in isolated schema only");
                     await db.Database.MigrateAsync();
-                    Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 8, "Eight unchanged existing migrations applied to isolated database only");
+                    Check((await db.Database.GetAppliedMigrationsAsync()).SequenceEqual(db.Database.GetMigrations()), "All existing migrations applied in exact assembly order to isolated database only");
                     await RoleInitializer.InitializeAsync(scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>());
                 }
                 await Journey(provider, clock, failure);

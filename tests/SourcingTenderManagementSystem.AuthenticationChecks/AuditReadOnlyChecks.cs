@@ -46,6 +46,11 @@ internal static class AuditReadOnlyChecks
                 Check(rows.Count <= 25 && rows.All(r => r.Bid.SubmittedAt.HasValue));
             }
         }
+        var duplicateParticipations = await db.Bids.AsNoTracking().GroupBy(b => b.TenderSupplierId).Where(g => g.Count() > 1).CountAsync();
+        Check(duplicateParticipations == 0);
+        var applied = (await db.Database.SqlQueryRaw<string>("SELECT MigrationId AS Value FROM dbo.__EFMigrationsHistory").ToListAsync()).ToHashSet();
+        var uniqueIndex = await db.Database.SqlQueryRaw<int>("SELECT CAST(COUNT(*) AS int) AS Value FROM sys.indexes WHERE object_id = OBJECT_ID(N'dbo.Bids') AND name = N'IX_Bids_TenderSupplierId' AND is_unique = 1 AND is_disabled = 0").SingleAsync();
+        Console.WriteLine($"SELECT-only bid preflight: duplicate participation groups={duplicateParticipations}; unique participation index present={uniqueIndex == 1}; uniqueness migration applied={applied.Contains("20261116152333_BidParticipationUniqueness")}; camera migration applied={applied.Contains("20261116032101_CameraFaceSettings")}. No schema changes performed.");
         Console.WriteLine($"PASS: {checks} SELECT-only paging, listing and eligibility checks; no database writes.");
     }
 }

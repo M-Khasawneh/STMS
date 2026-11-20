@@ -25,9 +25,14 @@ const {notificationCount,notificationItems} = require('./browser-waits.cjs');
             check(page.url() === original, 'Bell opens in place without navigation');
             await notificationItems(page,3);
             check(await page.locator('.notification-menu-list > li').count() === 3, 'Own notifications are stacked');
-            const cards = await page.locator('.notification-menu-list > li').all();
-            const a = await cards[0].boundingBox(), b = await cards[1].boundingBox();
-            check(b.y > a.y, 'Notifications form a vertical list');
+            // A live inbox refresh may replace rows between separate locator reads.
+            // Observe the visible list and measure its rows atomically, without stale handles.
+            await page.waitForFunction(() => document.querySelector('.notification-dropdown')?.open &&
+                [...document.querySelectorAll('.notification-menu-list > li')].filter(row => row.getClientRects().length).length === 3);
+            const rows = await page.locator('.notification-menu-list').evaluate(list => [...list.children].map(row => {
+                const r = row.getBoundingClientRect(); return { y:r.y, height:r.height };
+            }));
+            check(rows.length === 3 && rows.every(row => row.height > 0) && rows[1].y > rows[0].y, 'Notifications form a vertical list');
             check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Dropdown fits ' + width);
             const popover = await page.locator('.notification-popover').boundingBox();
             check(popover.x >= 0 && popover.x + popover.width <= width, 'Popover remains inside viewport');

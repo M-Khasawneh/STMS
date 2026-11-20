@@ -49,11 +49,17 @@ const { settled } = require('./browser-waits.cjs');
         await page.keyboard.press('Tab');
         await page.waitForFunction(() => {
             const r = document.activeElement.getBoundingClientRect();
-            return r.top >= 0 && r.bottom <= innerHeight;
+            // Native scroll offsets round to pixels; DOM rectangles retain subpixel coordinates.
+            return r.top >= -1 && r.bottom <= innerHeight + 1;
         });
         await settled(page);
         check(await page.locator('.public-footer').evaluate(footer => footer.contains(document.activeElement) && footer.classList.contains('footer-keyboard-flow')), 'Keyboard can enter clipped footer safely');
-        check(await page.evaluate(() => { const r = document.activeElement.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }), 'Focused footer link is brought into view');
+        const focusedState = await page.evaluate(() => { const r = document.activeElement.getBoundingClientRect(); return { top:r.top, bottom:r.bottom, height:innerHeight, scrollY, footerHeight:document.querySelector('.public-footer').getBoundingClientRect().height, fonts:document.fonts.status }; });
+        if (focusedState.top < -1 || focusedState.bottom > focusedState.height + 1) {
+            fs.writeFileSync(path.join(output,'footer-focus-failure.json'),JSON.stringify(focusedState,null,2));
+            await page.screenshot({path:path.join(output,'footer-focus-failure.png')});
+        }
+        check(focusedState.top >= -1 && focusedState.bottom <= focusedState.height + 1, 'Focused footer link is brought into view');
         await page.emulateMedia({ reducedMotion: 'reduce' }); await settled(page);
         check(await page.locator('.sticky-footer-surface').evaluate(element => getComputedStyle(element).position === 'relative'), 'Reduced motion restores natural flow');
         check(await page.locator('.public-footer').evaluate(element => element.getAnimations({ subtree: true }).every(animation => animation.playState !== 'running')), 'Reduced motion cancels footer animation');

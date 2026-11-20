@@ -143,6 +143,9 @@ if (migrations.Migrations.Count > 0)
     Check(passkeyModel.FindPrimaryKey()!.Properties.Single().Name == "CredentialId", "Passkey credential must be globally unique");
     Check(passkeyModel.GetForeignKeys().Single().DeleteBehavior == DeleteBehavior.NoAction, "Passkey credentials must not be silently cascade-deleted");
     if (args.Contains("--write-passkey-script")) File.WriteAllText("docs/identity-passkey-migration.sql", context.GetService<IMigrator>().GenerateScript("20261114220000_TopCommitteeVotingRounds", "20261115034155_IdentityPasskeyStorage"));
+    var bidUniqueness = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key == "20261116152333_BidParticipationUniqueness").Value, context.Database.ProviderName!);
+    Check(bidUniqueness.UpOperations.Count == 2 && bidUniqueness.UpOperations[0] is SqlOperation guard && guard.Sql.Contains("HAVING COUNT_BIG(*) > 1") && guard.Sql.Contains("THROW 51000"), "Bid migration must stop before index creation on duplicate participation");
+    Check(bidUniqueness.UpOperations[1] is CreateIndexOperation index && index.IsUnique && index.Table == "Bids" && index.Columns.SequenceEqual(new[] { "TenderSupplierId" }), "Bid migration must add only the approved unique participation index");
     Check(!context.Database.HasPendingModelChanges(), "Model differs from migration snapshot");
     var clarification = migrations.CreateMigration(migrations.Migrations.Single(x => x.Key.EndsWith("_ClarificationAttachments")).Value, context.Database.ProviderName!);
     Check(clarification.UpOperations.All(x => x is CreateTableOperation or CreateIndexOperation), "Clarification migration alters existing schema");

@@ -6,6 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Deployment uses explicit environment/secret-store configuration, never local credentials or runtime uploads. -->
+  <ItemGroup>
+    <Content Update="appsettings*.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Example.json" CopyToPublishDirectory="PreserveNewest" />
+    <Content Remove="App_Data/**;uploads/**" />
+    <None Remove="App_Data/**;uploads/**" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
