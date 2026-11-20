@@ -245,18 +245,6 @@ scripts/               Explicit local setup utilities
 
 ## Verification
 
-Run representative database-free checks from the repository root:
-
-```powershell
-dotnet run --project tests/SourcingTenderManagementSystem.SchemaChecks
-
-dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --bid-phase3-checks-only
-dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --bid-phase4-checks-only
-dotnet run --project tests/SourcingTenderManagementSystem.AuthenticationChecks -- --passkey-checks-only
-```
-
-`tests/Run-SafeAcceptance.ps1` runs a fixed safe allowlist and writes evidence outside the repository. `tests/Run-BrowserExperience.cjs` uses marked memory-only hosts. Review their arguments before running them. Historical SQL test modes can write to their configured databases; do not treat every test command as database-free.
-
 The latest readiness verification completed 27 safe service/MVC groups, 28 browser groups after two targeted test corrections, offline checks for 10 migrations, and a connected SQL workflow with 58 checkpoints. The SQL run used a separately created synthetic database, removed it afterward, and verified that the existing database's content fingerprints were unchanged. This is not a claim that one SQL-backed browser session exercised every form or every deployment scenario.
 
 ## Deployment readiness
