@@ -21,6 +21,10 @@
   <a href="#documentation">Documentation</a>
 </p>
 
+[![STMS public landing page with the sourcing workflow](docs/images/screenshots/public-home.png)](docs/images/screenshots/public-home.png)
+
+<p align="center"><sub>The STMS public landing page, captured directly from the running application.</sub></p>
+
 ## Overview
 
 STMS brings procurement records, documents, reviews, and decisions into one server-rendered application. Departments raise purchase requisitions; sourcing teams prepare tenders and invite approved suppliers; assigned committees evaluate submissions and record their decisions.
@@ -28,6 +32,72 @@ STMS brings procurement records, documents, reviews, and decisions into one serv
 The application uses MVC controllers, Razor Views, application services, and EF Core persistence. Its interface is built with HTML, CSS, Bootstrap 5, and vanilla JavaScript, with responsive layouts, light/dark appearance, and reduced-motion support. There is no React, Vue, Next.js, or Web API frontend.
 
 **Project status:** the implemented procurement journey has passed isolated SQL, service/MVC, and browser verification. Production rollout still requires environment configuration, approved database migrations, and acceptance on the intended devices and infrastructure. See [deployment readiness](#deployment-readiness).
+
+## Product tour
+
+These are unaltered screenshots of the **actual Razor interfaces**, captured in Microsoft Edge in an isolated verification environment. Visible accounts, metrics, dates, and procurement records are test data. The Tender Details template is rendered with sample data. Click any image to open its full resolution. [Capture details](docs/images/screenshots/capture-info.json).
+
+### Administration workspace
+
+An operational overview brings administrative counts, pending supplier applications, requisition status, and tender deadlines into a shared navigation shell.
+
+[![STMS administrator dashboard with KPI cards and operational queues](docs/images/screenshots/admin-overview.png)](docs/images/screenshots/admin-overview.png)
+
+<details>
+<summary><strong>Tender details and lifecycle tracking</strong></summary>
+
+Tender context, source requisition, requested items, permitted actions, and the saved workflow stage remain together in the detail view.
+
+[![Tender detail view with terms, requested items, and workflow stages](docs/images/screenshots/tender-details.png)](docs/images/screenshots/tender-details.png)
+
+</details>
+
+<details>
+<summary><strong>Supplier bid preparation</strong></summary>
+
+The supplier-facing form presents authoritative quantities, JOD unit prices, calculated line totals, and the commercial/document/submission preparation sequence. Example unit prices were entered without saving or submitting the form.
+
+[![Supplier bid form showing required quantities and calculated JOD prices](docs/images/screenshots/supplier-bid.png)](docs/images/screenshots/supplier-bid.png)
+
+</details>
+
+<details>
+<summary><strong>Reports and insights</strong></summary>
+
+A role-scoped report library organizes filters, matching-record metrics, and Excel/PDF export actions.
+
+[![Reporting workspace with category navigation, filters, metrics, and export actions](docs/images/screenshots/reports-workspace.png)](docs/images/screenshots/reports-workspace.png)
+
+</details>
+
+<details>
+<summary><strong>Account access</strong></summary>
+
+A shared public identity connects password sign-in, previously registered device passkeys, and supplier registration. Available device verification methods depend on the user's hardware and OS.
+
+[![STMS sign-in page with password, passkey, and supplier registration options](docs/images/screenshots/account-login.png)](docs/images/screenshots/account-login.png)
+
+</details>
+
+<details>
+<summary><strong>Dark appearance</strong></summary>
+
+The same administrative workspace supports a persistent light/dark preference without changing permissions or workflow actions.
+
+[![STMS administrator dashboard in dark mode](docs/images/screenshots/admin-dark.png)](docs/images/screenshots/admin-dark.png)
+
+</details>
+
+<details>
+<summary><strong>Mobile layout</strong></summary>
+
+The public page adapts its navigation, typography, calls to action, and workflow presentation to a narrow viewport. This capture uses a 390 × 844 viewport; it is a browser viewport check, not a claim of physical-device certification.
+
+<p align="center">
+  <a href="docs/images/screenshots/mobile-home.png"><img src="docs/images/screenshots/mobile-home.png" alt="STMS mobile homepage with responsive navigation and six workflow stages" width="320" /></a>
+</p>
+
+</details>
 
 ## Capabilities
 
@@ -62,6 +132,20 @@ flowchart LR
 
 Each stage has its own role, ownership, assignment, status, and deadline checks. A supplier must be approved and accept an invitation before creating a bid. Submitted bids and attachments are immutable to the supplier. Internal bid visibility is restricted by tender stage and committee assignment; the Admin role does not automatically grant confidential bid access.
 
+## Roles and responsibilities
+
+| Role | Primary responsibility |
+| --- | --- |
+| Admin | Accounts, departments, supplier applications, messages, and authorized administrative oversight. |
+| Requesting Department | Create, correct, submit, and track the user's own purchase requisitions. |
+| Sourcing Officer | Review eligible requisitions across departments, manage tenders/invitations, and perform authorized procurement actions. |
+| Supplier | Maintain the company's participation, invitations, own offers, and private bid documents. |
+| Evaluation Committee | Evaluate only assigned tenders at the permitted stage and confirm individual results. |
+| Sourcing Manager | Approve criteria configured by another user, manage committee assignments, and review evaluation reports. |
+| Top Committee | Participate in assigned final-decision rounds under the approved voting rules. |
+
+Role membership alone is insufficient where ownership, department exclusions, tender assignment, account eligibility, or process stage also applies. Module documentation records those restrictions.
+
 ## Security and document handling
 
 - ASP.NET Core Identity handles user accounts, password hashing, authentication cookies, and role membership.
@@ -85,6 +169,22 @@ These controls describe the implementation; they are not an independent security
 | Documents | PDFsharp, PdfPig, PDFtoImage, TesseractOCR, and QRCoder |
 | Optional AI | Locally hosted Ollama with the configured model |
 | Verification | Executable .NET check projects and Playwright scripts using Edge |
+
+## Architecture
+
+STMS keeps the browser experience within the existing MVC application. Razor Views render HTML, application services enforce workflow rules, and EF Core persists relational data. Private document storage is separate from public assets.
+
+```mermaid
+flowchart TB
+    Browser[Browser: HTML, CSS, JavaScript] --> MVC[ASP.NET Core MVC and Razor Views]
+    MVC --> Services[Application services and workflow rules]
+    MVC --> Identity[ASP.NET Core Identity]
+    Services --> EF[Entity Framework Core 10]
+    Identity --> EF
+    EF --> SQL[(SQL Server)]
+    Services --> Files[Private document storage]
+    Services -. Optional assistance .-> AI[Local Ollama]
+```
 
 ## Getting started
 

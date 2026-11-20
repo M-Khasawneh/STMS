@@ -1,0 +1,97 @@
+{
+  "capturedOn": "2026-11-21",
+  "method": "Unmodified browser screenshots of actual MVC/Razor interfaces using existing isolated verification hosts. Render-only fixture used for Tender Details. All displayed accounts, metrics and records are synthetic test data. No production database, user documents, DOM rewriting, generated mockups or image compositing.",
+  "browser": "Microsoft Edge (Chromium)",
+  "screenshots": [
+    {
+      "file": "public-home.png",
+      "route": "/",
+      "actor": "anonymous",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "mobile-home.png",
+      "route": "/",
+      "actor": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "account-login.png",
+      "route": "/Account/Login",
+      "actor": "anonymous",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "admin-overview.png",
+      "route": "/Workspace",
+      "actor": "admin",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "admin-dark.png",
+      "route": "/Workspace",
+      "actor": "admin",
+      "viewport": {
+        "width": 1440,
+        "height": 1080
+      },
+      "theme": "dark",
+      "syntheticData": true
+    },
+    {
+      "file": "supplier-bid.png",
+      "route": "/Bids/Create",
+      "actor": "supplier",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "reports-workspace.png",
+      "route": "/Reports",
+      "actor": "officer",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "syntheticData": true
+    },
+    {
+      "file": "tender-details.png",
+      "route": "Tenders/Details via render-only verification route",
+      "actor": "officer",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "theme": "light",
+      "syntheticData": true
+    }
+  ],
+  "javascriptErrors": [],
+  "failedAssets": []
+}
