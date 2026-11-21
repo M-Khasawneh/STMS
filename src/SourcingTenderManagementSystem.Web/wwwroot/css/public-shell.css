@@ -140,5 +140,8 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
 
 /* Keyboard focus must reveal a sticky-footer link immediately, without the global smooth-scroll delay. */
 html:has(.footer-keyboard-flow){scroll-behavior:auto!important}
-.public-shell.account-login-page .login-home-link { display:inline-flex; width:fit-content; min-height:44px; margin-bottom:24px; padding:10px 14px; gap:8px; font-size:.8rem; }
+.public-shell.account-login-page .login-panel-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; }
+.public-shell.account-login-page .login-home-link { display:inline-flex; align-items:center; min-height:44px; padding:8px 0; gap:6px; color:var(--st-muted); font-size:.76rem; font-weight:500; text-decoration:none; }
+.public-shell.account-login-page .login-home-link:hover { color:var(--st-ink); text-decoration:underline; text-underline-offset:4px; }
+.public-shell.account-login-page .login-home-link:focus-visible { outline:2px solid var(--st-gold); outline-offset:4px; border-radius:4px; }
 .public-shell.account-login-page .login-home-link:is(:hover,:active) { transform:none; }
