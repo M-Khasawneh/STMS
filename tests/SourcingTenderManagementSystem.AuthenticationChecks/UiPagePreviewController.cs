@@ -38,7 +38,7 @@ public sealed class UiPagePreviewController:Controller
         var invitation=new InvitationRow(new Invitation{Id=Guid.NewGuid(),Status=InvitationStatus.Pending,SentAt=now},t,supplier);
         var requestActor=new RequisitionActor(user,dept,User.IsInRole(ApplicationRoles.RequestingDepartment),User.IsInRole(ApplicationRoles.SourcingOfficer),User.IsInRole(ApplicationRoles.Admin),User.IsInRole(ApplicationRoles.Supplier));
         object? model=null;
-        var known=new HashSet<string>{"Requisitions/Index","Requisitions/Create","Requisitions/Edit","Requisitions/Details","Tenders/Index","Tenders/Create","Tenders/Edit","Tenders/Details","Tenders/Criteria","Tenders/Inbox","Tenders/Invitation","Tenders/Invitations","Suppliers/Index","Suppliers/Details","Suppliers/Status","Profile/Index","Passkeys/Index","Committees/Edit","Shared/Error","Shared/WorkspaceProblem","Account/AccessDenied","UnifiedReports/Review","Bids/Details","ReviewBids/Details","Compliance/Details","Evaluations/Details","UnifiedReports/Details","TopCommittee/Details","AiAnalysis/Details","Clarifications/Details","Messages/Details","SupplierPortal/Details"};
+        var known=new HashSet<string>{"Employees/Create","Employees/Edit","Departments/Create","Departments/Edit","Suppliers/Register","Requisitions/Index","Requisitions/Create","Requisitions/Edit","Requisitions/Details","Tenders/Index","Tenders/Create","Tenders/Edit","Tenders/Details","Tenders/Criteria","Tenders/Inbox","Tenders/Invitation","Tenders/Invitations","Suppliers/Index","Suppliers/Details","Suppliers/Status","Profile/Index","Passkeys/Index","Committees/Edit","Shared/Error","Shared/WorkspaceProblem","Account/AccessDenied","UnifiedReports/Review","Bids/Details","ReviewBids/Details","Compliance/Details","Evaluations/Details","UnifiedReports/Details","TopCommittee/Details","AiAnalysis/Details","Clarifications/Details","Messages/Details","SupplierPortal/Details"};
         if(name.EndsWith("/Problem",StringComparison.Ordinal)){
             var segments=name.Split('/');var c=segments[0];if(segments.Length!=2||!new[]{"AiAnalysis","Bids","Clarifications","Committees","Compliance","Evaluations","Passkeys","Reports","ReviewBids","Tenders","TopCommittee","UnifiedReports"}.Contains(c))return NotFound();
             model="This action is unavailable in the current workflow state. Reopen the record to review its current status.";
@@ -76,6 +76,10 @@ public sealed class UiPagePreviewController:Controller
         if(name=="Clarifications/Details")model=await new InternalClarificationFixture().PageAsync(User,false,Guid.Parse(InternalClarificationFixture.Id),HttpContext.RequestAborted);
         if(name=="Messages/Details")model=new Notification{Id=id,Subject="Website message: Procurement enquiry",Message="Synthetic message for layout verification.",CreatedAt=now};
         if(name=="SupplierPortal/Details")model=new SourcingTenderManagementSystem.Web.Models.Work.SupplierPortalPage(details,invitation,null,false,false,"Read-only synthetic presentation.");
+        if(name is "Departments/Create" or "Departments/Edit")model=new SourcingTenderManagementSystem.Web.Models.Departments.DepartmentFormViewModel{Name="Synthetic department"};
+        if(name=="Employees/Create")model=new SourcingTenderManagementSystem.Web.Models.Employees.EmployeeCreateViewModel{Departments=[new Department{Id=dept,Name="Synthetic department"}]};
+        if(name=="Employees/Edit")model=new SourcingTenderManagementSystem.Web.Models.Employees.EmployeeEditViewModel{Departments=[new Department{Id=dept,Name="Synthetic department"}],DepartmentId=dept,Employee=new("synthetic-employee","Synthetic employee","employee@example.test",null,[ApplicationRoles.RequestingDepartment],false,false,false,dept,"Synthetic department")};
+        if(name=="Suppliers/Register")model=new SupplierRegistrationViewModel();
         return View("~/Views/"+name+".cshtml",model);
     }
 }

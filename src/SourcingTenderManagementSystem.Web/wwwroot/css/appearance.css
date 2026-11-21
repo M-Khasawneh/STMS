@@ -309,3 +309,8 @@ body.public-shell.account-login-page .login-form-wrap { width:auto; max-width:no
 /* Full product name in the existing compact workspace brand. */
 .workspace-theme .sidebar .brand>span:last-child { min-width:0; font-size:.9rem; line-height:1.3; }
 .workspace-theme .sidebar .brand .brand-sub { font-size:.65rem; line-height:1.4; }
+:root[data-theme="dark"] .workspace .requisition-item[data-requisition-item] > .mb-3:nth-of-type(3) { background:var(--st-raised); }
+:root[data-theme="dark"] .workspace-theme .role-picker summary { color:var(--st-ink); }
+:root[data-theme="dark"] .workspace-theme .role-picker summary::after { color:var(--st-muted); }
+:root[data-theme="dark"] .workspace-theme .role-picker fieldset { border-color:var(--st-line); }
+:root[data-theme="dark"] .workspace-theme .role-picker[open] { border-color:var(--st-gold); box-shadow:0 0 0 3px var(--st-focus-ring); }

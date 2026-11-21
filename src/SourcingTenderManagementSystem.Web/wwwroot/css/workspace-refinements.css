@@ -97,9 +97,9 @@
 .workspace .form-panel > .eyebrow { margin-bottom: 12px; }
 .workspace .form-panel > h1 { margin-bottom: 14px; }
 .workspace .form-panel > p { max-width: 76ch; line-height: 1.75; color: var(--brand-muted, #626e77); }
-.workspace .form-section, .supplier-registration-panel .form-section { min-width: 0; margin: 24px 0; padding: 24px; border: 1px solid var(--brand-border); border-radius: 16px; background: #fff; }
+.workspace .form-section, .supplier-registration-panel .form-section { min-width: 0; margin: 24px 0; padding: 24px; border: 1px solid var(--brand-border); border-radius: 16px; background: var(--st-panel, #fff); }
 .workspace .form-section > legend, .supplier-registration-panel .form-section > legend { float: none; width: auto; max-width: 100%; padding-inline: 8px; margin: 0 0 12px -8px; font-size: 1rem; font-weight: 650; color: var(--brand-ink); }
-.workspace .form-section > legend > span, .form-section-number { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 8px; border-radius: 8px; background: #f4ecdd; color: #79561c; font-size: .7rem; font-weight: 700; vertical-align: middle; }
+.workspace .form-section > legend > span, .form-section-number { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 8px; border-radius: 8px; background: var(--st-gold-soft, #f4ecdd); color: var(--st-gold, #79561c); font-size: .7rem; font-weight: 700; vertical-align: middle; }
 .workspace .form-grid, .supplier-registration-panel .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; }
 .workspace .form-grid > *, .supplier-registration-panel .form-grid > * { min-width: 0; margin-bottom: 0 !important; }
 .workspace .form-grid > .field-wide, .supplier-registration-panel .form-grid > .field-wide { grid-column: 1 / -1; }
@@ -119,8 +119,8 @@
 .workspace .role-picker { border-radius: 11px; background: #fff; border-color: #d8d0c2; }
 .workspace .role-picker summary { min-height: 48px; padding: 13px 16px; }
 .workspace .role-picker fieldset label { padding: 11px 14px; margin: 0; border-radius: 8px; }
-.workspace .role-picker fieldset label:has(input:checked) { background: #f4ecdd; color: var(--brand-ink); }
-.workspace .request-form-section { padding: 24px; border: 1px solid var(--brand-border); border-radius: 16px; background: #fff; }
+.workspace .role-picker fieldset label:has(input:checked) { background: var(--st-gold-soft, #f4ecdd); color: var(--brand-ink); }
+.workspace .request-form-section { padding: 24px; border: 1px solid var(--brand-border); border-radius: 16px; background: var(--st-panel, #fff); }
 .workspace .request-form-section h2 { margin: 0 0 24px; }
 .workspace .requisition-item { box-shadow: 0 3px 12px #152b4005; background: #fff; }
 .workspace .requisition-item legend { border: 0; font-size: 1rem; padding: 0 6px; width: auto; margin: 0 0 14px; }
@@ -131,7 +131,7 @@
 .workspace .bid-fields, .workspace .supplier-field-grid { gap: 22px 26px; }
 .workspace .bid-fields > div, .workspace .supplier-field-grid > div { min-width: 0; }
 .workspace .bid-panel:has(> form), .workspace .requisition-detail-panel:has(> form) { border-top: 3px solid var(--brand-ink); }
-.workspace .bid-panel form > fieldset.mb-4 { border: 1px solid var(--brand-border); border-radius: 14px; padding: 24px; background: #fff; }
+.workspace .bid-panel form > fieldset.mb-4 { border: 1px solid var(--brand-border); border-radius: 14px; padding: 24px; background: var(--st-panel, #fff); }
 .workspace .bid-panel form > fieldset.mb-4 > legend { float: none; width: auto; font-size: 1rem; padding-inline: 8px; }
 .workspace .table-responsive { box-shadow: 0 4px 18px #152b4006; margin-block: 16px; }
 .workspace .table { --bs-table-bg: transparent; --bs-table-hover-bg: #f3eddf; color: var(--brand-ink); font-size: .85rem; }

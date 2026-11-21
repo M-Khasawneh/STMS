@@ -26,14 +26,25 @@ const fs=require('fs'),path=require('path');
     if(width===1440||width===390)await page.screenshot({path:path.join(out,actor+'-dark-'+width+'.png'),fullPage:true});
    }
   }
-  for(const [actor,name] of [['officer','Tenders/Index'],['requester','Requisitions/Create'],['requester','Profile/Index'],['requester','Passkeys/Index'],['admin','Suppliers/Details']]) {
+  const pages=[['requester','Requisitions/Index'],['requester','Requisitions/Create'],['requester','Requisitions/Edit'],['requester','Requisitions/Details'],['officer','Tenders/Index'],['officer','Tenders/Create'],['officer','Tenders/Edit'],['officer','Tenders/Details'],['officer','Tenders/Criteria'],['supplier','Tenders/Inbox'],['supplier','Tenders/Invitation'],['officer','Tenders/Invitations'],['admin','Suppliers/Index'],['admin','Suppliers/Details'],['supplier','Suppliers/Status'],['requester','Profile/Index'],['requester','Passkeys/Index'],['manager','Committees/Edit'],['manager','UnifiedReports/Review'],['requester','Shared/Error'],['requester','Shared/WorkspaceProblem'],['requester','Account/AccessDenied'],...['AiAnalysis','Bids','Clarifications','Committees','Compliance','Evaluations','Passkeys','Reports','ReviewBids','Tenders','TopCommittee','UnifiedReports'].map(c=>[c==='Bids'?'supplier':'officer',c+'/Problem'])];
+  pages.push(['admin','Employees/Create'],['admin','Employees/Edit'],['admin','Departments/Create'],['admin','Departments/Edit'],['admin','Suppliers/Register']);
+  for(const [actor,name] of pages) {
    await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':actor});await visit('/UiPagePreview/Page?name='+encodeURIComponent(name));
    check(await toggle.count()===1,'One appearance control '+name);
    check(!await page.locator('script[src*="face-api"]').count(),'Face library is not globally loaded '+name);
+   check(await page.locator('main .form-section').evaluateAll(es=>es.every(e=>getComputedStyle(e).backgroundColor===getComputedStyle(document.documentElement).getPropertyValue('--st-panel').trim()||getComputedStyle(e).backgroundColor==='rgb(24, 34, 45)')),'Fieldsets use the dark surface '+name);
+   check(await page.locator('main .role-picker summary').evaluateAll(es=>es.every(e=>getComputedStyle(e).color==='rgb(231, 237, 243)')),'Role selection text stays readable '+name);
    panels.push(...await page.evaluate(()=>[...document.querySelectorAll('main *')].filter(e=>{const r=e.getBoundingClientRect();return r.width>150&&r.height>80&&['rgb(255, 255, 255)','rgb(255, 254, 250)','rgb(246, 243, 237)'].includes(getComputedStyle(e).backgroundColor)}).map(e=>e.className)));
    await page.screenshot({path:path.join(out,name.replace('/','-')+'-dark.png'),fullPage:true});
   }
   check(panels.length===0,'No untokenized bright panels in dark workspace: '+panels.join(','));
+  await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'admin'});
+  await visit('/UiPagePreview/Page?name=Departments%2FCreate');
+  await page.evaluate(()=>{const frame=document.createElement('iframe');frame.dataset.workspacePopup='true';frame.id='dark-form-fixture';frame.src='/UiPagePreview/Page?name=Employees%2FCreate';document.body.append(frame);});
+  const popup=page.frameLocator('#dark-form-fixture');
+  await popup.locator('html.workspace-popup-embed').waitFor();
+  check(await popup.locator('.form-section').first().evaluate(e=>getComputedStyle(e).backgroundColor==='rgb(24, 34, 45)'),'Popup iframe retains dark fieldsets');
+  await page.locator('#dark-form-fixture').evaluate(e=>e.remove());
   await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'admin'});
   for(const name of ['Suppliers/Index','Requisitions/Index','Tenders/Index']) {
    await visit('/UiPagePreview/Page?name='+encodeURIComponent(name)+'&state=empty');
@@ -49,6 +60,8 @@ const fs=require('fs'),path=require('path');
   check(await menu.getAttribute('aria-expanded')==='true','Mobile drawer opens');
   await page.keyboard.press('Escape');check(await menu.getAttribute('aria-expanded')==='false','Mobile drawer Escape');
   await toggle.click();check(await page.locator('html').getAttribute('data-theme')==='light','Switch back to light');
+  await visit('/UiPagePreview/Page?name=Departments%2FCreate');
+  check(await page.locator('.form-section').first().evaluate(e=>getComputedStyle(e).backgroundColor==='rgb(255, 255, 255)'),'Light fieldsets retain their white surface');
   await page.screenshot({path:path.join(out,'workspace-light.png'),fullPage:true});
   await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'anonymous'});await visit('/Account/Login');
   check(await page.locator('.public-topbar>[data-appearance-toggle]').isVisible(),'Mobile public appearance remains available outside navigation');
