@@ -15,6 +15,7 @@ public sealed class FaceOptions { public bool Enabled { get; set; } }
 public sealed record FaceTicket(string UserId, string Stamp, string Operation, DateTimeOffset Expires);
 public sealed class FaceChallenges(TimeProvider clock)
 {
+    public SemaphoreSlim Writes { get; } = new(1, 1);
     private readonly Dictionary<string, FaceTicket> tickets = [];
     private readonly object sync = new();
     public string Issue(string userId, string stamp, string operation)
@@ -68,27 +69,31 @@ public sealed class FaceCredentialStore(ApplicationDbContext db) : IFaceCredenti
     }
 }
 
-public sealed record ProtectedFace(string Stamp, float[][] Samples);
+public sealed record ProtectedFace(string Stamp, float[][] Samples, bool LoginEnabled = false);
 public static class FaceTemplateCodec
 {
     public static byte[] Encode(ProtectedFace face)
     {
         FaceSamples.Validate(face.Samples);
         using var bytes = new MemoryStream(); using var writer = new BinaryWriter(bytes);
-        writer.Write((byte)1); writer.Write(face.Stamp); writer.Write(face.Samples.Length);
+        writer.Write((byte)2); writer.Write(face.Stamp); writer.Write(face.Samples.Length);
         foreach (var sample in face.Samples) foreach (var value in sample) writer.Write(value);
+        writer.Write(face.LoginEnabled);
         writer.Flush(); return bytes.ToArray();
     }
     public static ProtectedFace Decode(byte[] bytes)
     {
         if (bytes.Length > 4096) throw new InvalidDataException();
         using var stream = new MemoryStream(bytes); using var reader = new BinaryReader(stream);
-        if (reader.ReadByte() != 1) throw new InvalidDataException();
+        var format = reader.ReadByte();
+        if (format is not (1 or 2)) throw new InvalidDataException();
         var stamp = reader.ReadString(); var count = reader.ReadInt32();
         if (stamp.Length > 256 || count is < 3 or > 5) throw new InvalidDataException();
         var samples = Enumerable.Range(0,count).Select(_ => Enumerable.Range(0,128).Select(_ => reader.ReadSingle()).ToArray()).ToArray();
+        // Existing v1 templates remain verification-only until their owner explicitly opts in.
+        var loginEnabled = format == 2 && reader.ReadBoolean();
         if (stream.Position != stream.Length) throw new InvalidDataException();
-        FaceSamples.Validate(samples); return new(stamp,samples);
+        FaceSamples.Validate(samples); return new(stamp,samples,loginEnabled);
     }
 }
 public static class FaceSamples
@@ -126,12 +131,19 @@ public sealed class FaceRecognition(
     {
         if (!options.Value.Enabled) return new(false, false, "", null);
         var user = await Actor(principal); var row = await store.Read(user.Id, ct);
-        return new(true, row is not null, row is null ? "" : Convert.ToBase64String(row.Version), row?.UpdatedAt);
+        var enabled = false;
+        if (row is not null) {
+            try {
+                var template = FaceTemplateCodec.Decode(protector.CreateProtector(user.Id).Unprotect(row.ProtectedTemplate));
+                enabled = template.LoginEnabled && template.Stamp == await users.GetSecurityStampAsync(user);
+            } catch (Exception e) when (e is CryptographicException or IOException or BidException) { /* Unusable templates never enable login. */ }
+        }
+        return new(true, row is not null, row is null ? "" : Convert.ToBase64String(row.Version), row?.UpdatedAt, enabled);
     }
     public async Task<string> Begin(ClaimsPrincipal principal, FaceOperation request)
     {
         var user = await Actor(principal);
-        if (request.Operation is not ("enroll" or "verify" or "remove")) throw new BidException(400, "Choose a valid face operation.");
+        if (request.Operation is not ("enroll" or "verify" or "remove" or "enable-login" or "disable-login")) throw new BidException(400, "Choose a valid face operation.");
         if (request.Operation != "verify") {
             if (string.IsNullOrEmpty(request.CurrentPassword) || request.CurrentPassword.Length > 256 || !(await signIn.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true)).Succeeded)
                 throw new BidException(400, "Unable to verify your current password.");
@@ -140,10 +152,27 @@ public sealed class FaceRecognition(
     }
     public async Task<bool> Complete(ClaimsPrincipal principal, FaceCapture capture, CancellationToken ct)
     {
+        await challenges.Writes.WaitAsync(ct);
+        try { return await CompleteCore(principal, capture, ct); }
+        finally { challenges.Writes.Release(); }
+    }
+    private async Task<bool> CompleteCore(ClaimsPrincipal principal, FaceCapture capture, CancellationToken ct)
+    {
         var user = await Actor(principal);
         var ticket = challenges.Consume(capture.Token);
         if (ticket is null || ticket.UserId != user.Id || ticket.Stamp != await users.GetSecurityStampAsync(user)) throw new BidException(400, "Face capture expired. Start again.");
         if (ticket.Operation == "remove") { await store.Remove(user.Id, capture.Version, ct); return true; }
+        if (ticket.Operation is "enable-login" or "disable-login") {
+            var current = await store.Read(user.Id, ct);
+            if (current is null) throw new BidException(400, "Register your face before enabling camera sign-in.");
+            try {
+                var template = FaceTemplateCodec.Decode(protector.CreateProtector(user.Id).Unprotect(current.ProtectedTemplate));
+                if (template.Stamp != ticket.Stamp) throw new BidException(400, "Register your face again after changing your password.");
+                var encrypted = protector.CreateProtector(user.Id).Protect(FaceTemplateCodec.Encode(template with { LoginEnabled = ticket.Operation == "enable-login" }));
+                await store.Save(new() { UserId = user.Id, ProtectedTemplate = encrypted, CreatedAt = current.CreatedAt, UpdatedAt = clock.GetUtcNow() }, capture.Version, ct);
+                return true;
+            } catch (Exception e) when (e is CryptographicException or IOException) { throw new BidException(400, "Register your face again before changing camera sign-in."); }
+        }
         FaceSamples.Validate(capture.Samples);
         if (ticket.Operation == "enroll") {
             var payload = FaceTemplateCodec.Encode(new ProtectedFace(ticket.Stamp, capture.Samples));
@@ -166,6 +195,8 @@ public static class FaceConfiguration
     {
         services.Configure<FaceOptions>(configuration.GetSection("FaceRecognition"));
         services.AddSingleton<FaceChallenges>(); services.AddScoped<IFaceCredentialStore, FaceCredentialStore>(); services.AddScoped<FaceRecognition>();
+        services.AddScoped<CameraLogin>();
+        services.AddRateLimiter(options => options.AddPolicy("face-login", context => RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true })));
         services.AddRateLimiter(options => options.AddPolicy("face-settings", context => RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions { PermitLimit = 12, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true })));
         return services;
     }

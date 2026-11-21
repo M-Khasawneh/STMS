@@ -1,6 +1,6 @@
 namespace SourcingTenderManagementSystem.Web.Models.Entities;
 
-// A camera template is not an authentication credential. Device sign-in remains WebAuthn.
+// The encrypted payload includes the owner's explicit camera-login opt-in (legacy templates default off).
 public sealed class FaceCredential
 {
     public string UserId { get; set; } = string.Empty;

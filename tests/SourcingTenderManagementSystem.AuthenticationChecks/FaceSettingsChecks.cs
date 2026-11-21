@@ -32,7 +32,7 @@ internal static class FaceSettingsChecks
 {
     private static int checks;
     private static void Check(bool ok,string label){if(!ok)throw new Exception(label);checks++;}
-    private static float[][] Samples(int axis=0)=>Enumerable.Range(0,5).Select(_=>{var row=new float[128];row[axis]=1;return row;}).ToArray();
+    internal static float[][] Samples(int axis=0)=>Enumerable.Range(0,5).Select(_=>{var row=new float[128];row[axis]=1;return row;}).ToArray();
     internal static void Rules()
     {
         checks=0;var samples=Samples();FaceSamples.Validate(samples);
@@ -49,6 +49,9 @@ internal static class FaceSettingsChecks
         var clock=new BidPhase1Checks.Fixture().Clock;var challenges=new FaceChallenges(clock);
         var token=challenges.Issue("a","stamp","enroll");Check(challenges.Consume(token)?.UserId=="a"&&challenges.Consume(token) is null,"Face token one-use");
         Check(challenges.Consume("unknown") is null,"Unknown token rejected");
+        var expired = challenges.Issue("a", "stamp", "camera-login:");
+        clock.Utc = clock.GetUtcNow().AddMinutes(3);
+        Check(challenges.Consume(expired) is null, "Expired camera challenges cannot be used");
     }
     internal static async Task Mvc(HttpClient client,IServiceProvider services)
     {
@@ -73,6 +76,8 @@ internal static class FaceSettingsChecks
         var otherAnti=await Anti(other,"/Account/Login");response=await other.PostAsync("/Account/Login",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",otherAnti},{"UserName","other-passkey-user"},{"Password",PasskeyChecks.Password}}));Check(response.StatusCode==HttpStatusCode.Redirect,"Second memory-only account login");
         otherAnti=await Anti(other,"/FaceSettings");token=await Begin("verify");Check((await Post("Complete",new{token,version,samples=Samples()},otherAnti,other)).StatusCode==HttpStatusCode.BadRequest,"Another user cannot use capture token");
         Check(store.Rows.Count==1,"Isolation does not change original template");
+        await CameraLoginChecks.Run(client, services);
+        version = Convert.ToBase64String(store.Rows.Values.Single().Version);
         // Rate limiting is exercised separately after the functional flow to avoid masking authorization.
         services.GetRequiredService<IOptions<FaceOptions>>().Value.Enabled=false;
         var disabled=await client.GetAsync("/FaceSettings");Check(disabled.StatusCode==HttpStatusCode.OK&&(await disabled.Content.ReadAsStringAsync()).Contains("Awaiting activation"),"Disabled feature renders without schema");

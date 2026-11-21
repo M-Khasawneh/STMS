@@ -14,7 +14,8 @@ public static class AuthenticationConfiguration
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
         services.AddScoped<IEmployeeEligibility, EmployeeEligibility>();
-        services.AddScoped<SignInManager<IdentityUser>, EmployeeSignInManager>();
+        services.AddScoped<EmployeeSignInManager>();
+        services.AddScoped<SignInManager<IdentityUser>>(provider => provider.GetRequiredService<EmployeeSignInManager>());
         services.ConfigureApplicationCookie(options =>
         {
             options.LoginPath = "/Account/Login";

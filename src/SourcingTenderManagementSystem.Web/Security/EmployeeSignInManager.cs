@@ -13,4 +13,15 @@ public sealed class EmployeeSignInManager(
 {
     public override async Task<bool> CanSignInAsync(IdentityUser user) =>
         await base.CanSignInAsync(user) && await eligibility.IsEligibleAsync(user);
+
+    public async Task<SignInResult> CameraSignInAsync(IdentityUser user)
+    {
+        var rejected = await PreSignInCheck(user);
+        if (rejected is not null) return rejected;
+        if (await IsTwoFactorEnabledAsync(user) && !await IsTwoFactorClientRememberedAsync(user))
+            return await SignInOrTwoFactorAsync(user, isPersistent: false, loginProvider: "Camera");
+        if (!(await UserManager.ResetAccessFailedCountAsync(user)).Succeeded) return SignInResult.Failed;
+        // Preserve Identity's two-factor requirements instead of issuing a cookie directly.
+        return await SignInOrTwoFactorAsync(user, isPersistent: false, loginProvider: "Camera");
+    }
 }

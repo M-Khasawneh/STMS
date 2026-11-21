@@ -52,6 +52,19 @@ const fs=require('fs'),path=require('path');
   check(await page.evaluate(()=>faceFixture.tracks.every(track=>track.readyState==='ended')),'Camera tracks stop after verification');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1000});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Camera settings responsive '+width)}
   await page.screenshot({path:path.join(out,'face-settings-mobile.png'),fullPage:true});
+  check(await page.locator('[data-face-action=enable-login]').isVisible(),'Registering a face leaves camera login disabled');
+  await password().fill('Fixture-Only!9427');await page.locator('[data-face-action=enable-login]').click();
+  await page.locator('[data-face-action=disable-login]').waitFor({state:'visible'});
+  const logout=async()=>{const token=await page.locator('[name=__RequestVerificationToken]').first().inputValue();await page.request.post(base+'/Account/Logout',{form:{__RequestVerificationToken:token}});await page.goto(base+'/Account/Login');};
+  await logout();await page.locator('#UserName').fill('passkey-user');
+  await page.locator('[data-face-action=login]').click();await page.waitForURL('**/Workspace*');
+  check(page.url().includes('/Workspace'),'Opted-in camera grants a real Identity session without a password');
+  await page.goto(base+'/FaceSettings');await password().fill('Fixture-Only!9427');await page.locator('[data-face-action=disable-login]').click();
+  await page.locator('[data-face-action=enable-login]').waitFor({state:'visible'});
+  await logout();await page.locator('#UserName').fill('passkey-user');await page.locator('[data-face-action=login]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-face-status]').textContent.includes('Unable to sign in'));
+  check(page.url().includes('/Account/Login'),'Matching face cannot log in after opt-out');
+  check(await page.evaluate(()=>faceFixture.tracks.every(track=>track.readyState==='ended')),'Camera sign-in releases media tracks after refusal');
   // Verify the real vendored models load independently, without using a physical camera.
   await page.addScriptTag({url:base+'/lib/face-api/face-api.js'});
   const models=await page.evaluate(async()=>{await faceapi.tf.setBackend('cpu');await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri('/lib/face-api/model'),faceapi.nets.faceLandmark68Net.loadFromUri('/lib/face-api/model'),faceapi.nets.faceRecognitionNet.loadFromUri('/lib/face-api/model')]);const canvas=document.createElement('canvas');canvas.width=160;canvas.height=160;const face=await faceapi.detectSingleFace(canvas,new faceapi.TinyFaceDetectorOptions({inputSize:160}));return{loaded:faceapi.nets.tinyFaceDetector.isLoaded&&faceapi.nets.faceLandmark68Net.isLoaded&&faceapi.nets.faceRecognitionNet.isLoaded,noFace:!face}});

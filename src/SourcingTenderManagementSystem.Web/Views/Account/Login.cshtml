@@ -1,4 +1,5 @@
 @model SourcingTenderManagementSystem.Web.Models.Account.LoginViewModel
+@inject Microsoft.Extensions.Options.IOptions<SourcingTenderManagementSystem.Web.Security.FaceOptions> CameraOptions
 @{ ViewData["Title"] = "Account login"; }
 <div class="login-composition"><aside class="login-brand-panel" aria-labelledby="login-brand-title"><span class="login-brand-wordmark">Sourcing &amp; Tender<span>MANAGEMENT SYSTEM</span></span><div><span class="eyebrow">ONE CONNECTED WORKSPACE</span><h2 id="login-brand-title">Clear decisions.<br /><span>Confident sourcing.</span></h2><p>From purchase requests to tender decisions, bring your work into one structured process.</p><ul><li><span aria-hidden="true">01</span>Workspaces tailored to your role</li><li><span aria-hidden="true">02</span>Private supplier offers and documents</li><li><span aria-hidden="true">03</span>Traceable reviews and decisions</li></ul></div><span class="login-brand-footnote">Sourcing &amp; Tender Management System</span></aside><div class="login-form-wrap">
     <section class="login-panel" aria-labelledby="login-title">
@@ -20,8 +21,17 @@
             <button type="submit" class="btn btn-primary">Log in to your workspace <span aria-hidden="true"><partial name="_LinkArrow" /></span></button>
         </form>
         <div class="passkey-login"><span class="eyebrow">OR USE YOUR DEVICE</span><form asp-controller="Passkeys" asp-action="LoginOptions" method="post" data-passkey-login data-finish="@Url.Action("Login","Passkeys")" data-cancel="@Url.Action("Cancel","Passkeys")"><button class="btn btn-outline-secondary" type="submit" data-passkey-button disabled>Sign in with face, fingerprint or PIN</button><button type="button" class="btn btn-outline-secondary" data-passkey-cancel hidden>Cancel</button><p role="status" aria-live="polite" data-passkey-status>Use a previously registered passkey. Device support determines the available verification methods.</p></form><noscript><p>Passkeys require JavaScript. Use the password form above.</p></noscript></div>
+        @if (CameraOptions.Value.Enabled) {
+            <section class="passkey-login face-settings" data-face-login data-begin="@Url.Action("Begin", "CameraLogin")" data-complete="@Url.Action("Complete", "CameraLogin")" data-library="@Url.Content("~/lib/face-api/face-api.js")" data-models="@Url.Content("~/lib/face-api/model")" aria-label="Camera face sign-in">
+                @Html.AntiForgeryToken()
+                <span class="eyebrow">OR USE YOUR CAMERA</span><p>Enter your username above. Camera sign-in is available only if you previously enabled it in your account settings.</p>
+                <button type="button" class="btn btn-outline-secondary" data-face-action="login">Sign in with camera</button><button type="button" class="btn btn-outline-secondary" data-face-cancel hidden>Cancel camera</button>
+                <div class="face-capture" data-face-preview hidden><video muted autoplay playsinline aria-label="Live camera preview"></video><span>Keep one face in the frame.</span></div>
+                <p role="status" aria-live="polite" data-face-status>Camera is off. Your browser will ask for permission.</p>
+            </section>
+        }
         <div class="login-supplier-callout"><span>NEW HERE?</span><h2>Register your company.</h2><p>Suppliers can apply for an account and submit official company documents.</p><a asp-controller="Suppliers" asp-action="Register" class="login-registration-button">Supplier Registration <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div>
     </section>
 </div></div>
-@section Styles {<link rel="stylesheet" href="~/css/passkeys.css" asp-append-version="true"/>}
-@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/passkeys.js" asp-append-version="true"></script> }
+@section Styles {<link rel="stylesheet" href="~/css/passkeys.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/face-settings.css" asp-append-version="true"/>}
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/passkeys.js" asp-append-version="true"></script><script src="~/js/face-settings.js" asp-append-version="true"></script> }

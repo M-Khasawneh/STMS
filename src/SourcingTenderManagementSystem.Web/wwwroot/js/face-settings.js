@@ -1,7 +1,7 @@
-/* Independent camera settings. No authentication assertions or permission bypasses. */
+/* Shared camera capture; authorization and optional sign-in stay on the server. */
 (() => {
     'use strict';
-    const root = document.querySelector('[data-face-settings]');
+    const root = document.querySelector('[data-face-settings], [data-face-login]');
     if (!root) return;
     const status = root.querySelector('[data-face-status]');
     const preview = root.querySelector('[data-face-preview]');
@@ -72,24 +72,33 @@
     buttons.forEach(button => button.addEventListener('click',async () => {
         if (busy) return;
         const operation = button.dataset.faceAction;
-        if (operation !== 'verify' && !password.value) { status.textContent = 'Enter your current password first.'; password.focus(); return; }
+        const login = operation === 'login';
+        const username = document.getElementById('UserName');
+        if (login && !username?.value.trim()) { status.textContent = 'Enter your username above first.'; username?.focus(); return; }
+        if (!login && operation !== 'verify' && !password.value) { status.textContent = 'Enter your current password first.'; password.focus(); return; }
         if (operation === 'remove' && !confirm('Remove your encrypted face template? Device passkeys are unaffected.')) return;
         busy = true; const ticket = ++generation;
         buttons.forEach(item => item.disabled = true); button.setAttribute('aria-busy','true'); cancel.hidden = false;
         status.textContent = operation === 'remove' ? 'Removing your template…' : 'Preparing camera capture. Models load locally on first use…';
         try {
-            const begin = await post(root.dataset.begin,{operation,currentPassword:password.value}); password.value = '';
+            const begin = await post(root.dataset.begin,login ? {userName:username.value.trim()} : {operation,currentPassword:password.value});
+            if (password) password.value = '';
             if (ticket !== generation) return;
             let samples = [];
-            if (operation !== 'remove') {
+            if (['login','enroll','verify'].includes(operation)) {
                 await loadModels(); if (ticket !== generation) return;
                 samples = await capture(ticket); if (!samples || ticket !== generation) return;
                 stopCamera();
             }
             status.textContent = 'Checking your account-linked template…';
-            const result = await post(root.dataset.complete,{token:begin.token,version:root.dataset.version,samples});
+            const result = await post(root.dataset.complete,{token:begin.token,version:root.dataset.version,samples,returnUrl:login ? document.querySelector('[name="ReturnUrl"]')?.value : undefined});
             if (ticket !== generation) return;
-            if (operation === 'verify') finish(result.matched ? 'Your face matches the registered template. Your sign-in session is unchanged.' : 'No match. Try again in better lighting.');
+            if (login) {
+                const destination = new URL(result.redirectUrl, location.origin);
+                if (destination.origin !== location.origin) throw Error('Invalid sign-in destination.');
+                finish('Signed in. Opening your workspace…'); location.assign(destination.href);
+            }
+            else if (operation === 'verify') finish(result.matched ? 'Your face matches the registered template. Your sign-in session is unchanged.' : 'No match. Try again in better lighting.');
             else { finish(operation === 'remove' ? 'Template removed.' : 'Encrypted template saved.'); location.reload(); }
         } catch (error) { if (ticket === generation) finish(error.name === 'NotAllowedError' ? 'Camera permission was denied. Allow access in your browser settings to try again.' : error.message || 'Camera operation failed. Try again.'); }
     }));

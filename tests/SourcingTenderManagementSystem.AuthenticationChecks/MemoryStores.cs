@@ -5,8 +5,13 @@ namespace SourcingTenderManagementSystem.AuthenticationChecks;
 // Test-only stores: no SQL connection, persistent users, or default credentials.
 public sealed class MemoryUsers : IUserPasswordStore<IdentityUser>, IUserRoleStore<IdentityUser>,
     IUserSecurityStampStore<IdentityUser>, IUserLockoutStore<IdentityUser>,
-    IUserEmailStore<IdentityUser>, IUserPhoneNumberStore<IdentityUser>, IUserPasskeyStore<IdentityUser>
+    IUserEmailStore<IdentityUser>, IUserPhoneNumberStore<IdentityUser>, IUserPasskeyStore<IdentityUser>, IUserTwoFactorStore<IdentityUser>, IUserAuthenticatorKeyStore<IdentityUser>
 {
+    private readonly Dictionary<string, string?> authenticatorKeys = [];
+    public Task SetAuthenticatorKeyAsync(IdentityUser user, string key, CancellationToken ct) { authenticatorKeys[user.Id] = key; return Task.CompletedTask; }
+    public Task<string?> GetAuthenticatorKeyAsync(IdentityUser user, CancellationToken ct) => Task.FromResult(authenticatorKeys.GetValueOrDefault(user.Id));
+    public Task SetTwoFactorEnabledAsync(IdentityUser user, bool enabled, CancellationToken ct) { user.TwoFactorEnabled = enabled; return Task.CompletedTask; }
+    public Task<bool> GetTwoFactorEnabledAsync(IdentityUser user, CancellationToken ct) => Task.FromResult(user.TwoFactorEnabled);
     public Dictionary<string, IdentityUser> Users { get; } = [];
     public Dictionary<string, HashSet<string>> Roles { get; } = [];
     public Dictionary<string,Dictionary<string,UserPasskeyInfo>> Passkeys {get;}=[];

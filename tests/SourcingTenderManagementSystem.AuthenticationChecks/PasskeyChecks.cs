@@ -52,7 +52,7 @@ internal static class PasskeyChecks {
   builder.Services.Configure<FaceOptions>(options=>options.Enabled=faceChecks);
   builder.Services.RemoveAll<IFaceCredentialStore>();builder.Services.AddSingleton<MemoryFaceCredentials>();builder.Services.AddSingleton<IFaceCredentialStore>(sp=>sp.GetRequiredService<MemoryFaceCredentials>());
   // This long deterministic flow tests application rules, not elapsed wall-clock throttling.
-  if(faceChecks){builder.Services.RemoveAll<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>>();builder.Services.AddRateLimiter(options=>{foreach(var policy in new[]{"passkey","face-settings","public-contact"})options.AddPolicy(policy,_=>System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("memory-fixture"));});}
+  if(faceChecks){builder.Services.RemoveAll<Microsoft.Extensions.Options.IConfigureOptions<Microsoft.AspNetCore.RateLimiting.RateLimiterOptions>>();builder.Services.AddRateLimiter(options=>{foreach(var policy in new[]{"passkey","face-settings","face-login","public-contact"})options.AddPolicy(policy,_=>System.Threading.RateLimiting.RateLimitPartition.GetNoLimiter("memory-fixture"));});}
   builder.Services.AddSingleton<IRoleDashboard,TestRoleDashboard>();builder.Services.AddSingleton<IAdminDashboard>(sp=>new TestAdminDashboard(sp.GetRequiredService<IHttpContextAccessor>(),clock));
 BrowserViewCoverage.Register(builder.Services);
   await using var app=builder.Build();app.Use(async(context,next)=>{context.Response.Headers["X-STMS-Passkey-Fixture"]="memory-only";await next();});app.UseStaticFiles();app.UseRouting();app.UseRateLimiter();app.UseAuthentication();app.UseAuthorization();app.MapControllerRoute("default","{controller=Home}/{action=Index}/{id?}");
