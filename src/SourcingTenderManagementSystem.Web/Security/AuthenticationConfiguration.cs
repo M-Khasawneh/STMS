@@ -9,6 +9,7 @@ public static class AuthenticationConfiguration
 {
     public static IServiceCollection AddAuthenticationFoundation(this IServiceCollection services)
     {
+        services.AddAntiforgery(options => options.Cookie.SecurePolicy = CookieSecurePolicy.Always);
         services.Configure<MvcOptions>(options =>
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
         services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);

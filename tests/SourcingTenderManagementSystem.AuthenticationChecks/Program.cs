@@ -327,6 +327,11 @@ try
     var html = await page.Content.ReadAsStringAsync();
     Check(page.StatusCode == HttpStatusCode.OK && html.Contains("autocomplete=\"current-password\"") && html.Contains("jquery.validate"), "login Razor view renders with client validation");
     Check(page.Headers.CacheControl?.NoStore == true, "authentication page is not cached");
+    using (var freshSession = new HttpClient(new HttpClientHandler { UseCookies = false, ServerCertificateCustomValidationCallback = (_, cert, _, _) => cert?.Thumbprint == certificate.Thumbprint }) { BaseAddress = client.BaseAddress })
+    {
+        using var freshLogin = await freshSession.GetAsync("/Account/Login");
+        Check(freshLogin.Headers.TryGetValues("Set-Cookie", out var cookies) && cookies.Any(value => value.StartsWith(".AspNetCore.Antiforgery.") && value.Contains("; secure", StringComparison.OrdinalIgnoreCase) && value.Contains("; httponly", StringComparison.OrdinalIgnoreCase)), "antiforgery cookie is Secure and HttpOnly on the real HTTPS login response");
+    }
     await Expect("/Protection/Employee", HttpStatusCode.Redirect, "/Account/Login");
     await Expect("/Protection/Fallback", HttpStatusCode.Redirect, "/Account/Login");
     Check((await client.PostAsync("/Account/Login", Form("employee", password, null))).StatusCode == HttpStatusCode.BadRequest, "login without antiforgery is rejected");

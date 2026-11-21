@@ -56,12 +56,19 @@ const path = require('path');
     await page.locator('[name="Form.DeliveryTimeframe"]').fill('Three weeks');
     await upload.getByRole('button', {name: 'Upload document'}).click();
     ok((await page.locator('[data-bid-form-status]').textContent()).includes('Save your offer changes first'), 'unsaved commercial changes block document navigation');
+    const savedVersion = await page.locator('[name="Form.Version"]').inputValue();
     await Promise.all([page.waitForResponse(r => r.request().method() === 'POST' && r.url().includes('/Bids/Edit/')), page.locator('[data-save-draft]').click()]);
-    await page.waitForLoadState('networkidle');
+    // Header notifications keep an SSE connection open. Wait for the saved model,
+    // not global network idleness, and verify the actual persisted correction.
+    await page.waitForFunction(previous => {
+      const version = document.querySelector('[data-bid-editor] [name="Form.Version"]');
+      return version && version.value !== previous;
+    }, savedVersion);
+    ok(await page.locator('[name="Form.DeliveryTimeframe"]').inputValue() === 'Three weeks', 'saved correction survives the server round trip');
     upload = page.locator('form[action*="/Upload/"]');
     await upload.locator('input[type=file]').setInputFiles(pdf);
     await Promise.all([page.waitForResponse(r => r.request().method() === 'POST' && r.url().includes('/Bids/Upload/')), upload.getByRole('button', {name: 'Upload document'}).click()]);
-    await page.waitForLoadState('networkidle');
+    await page.getByRole('heading', {name: 'proposal.pdf', exact: true}).waitFor({state: 'visible'});
     ok(await page.getByRole('heading', {name: 'proposal.pdf'}).count() === 1, 'private document upload integrated');
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({width, height: 1000});
