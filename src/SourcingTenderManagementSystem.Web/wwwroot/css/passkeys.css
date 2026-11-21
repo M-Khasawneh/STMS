@@ -1,1 +1,10 @@
 .passkey-login{padding-block:24px;border-top:1px solid var(--brand-border,#dedbd3);margin-top:24px}.passkey-login .eyebrow{display:block;margin-bottom:14px}.passkey-login [data-passkey-status]{font-size:.8rem;line-height:1.8;color:var(--brand-muted,#626e77);margin-top:14px}.passkey-login button{white-space:normal}.passkey-record{padding-block:22px;border-top:1px solid var(--brand-border,#dedbd3);display:flex;flex-wrap:wrap;align-items:start;gap:20px;justify-content:space-between}.passkey-record h3{font-size:1rem;overflow-wrap:anywhere}.passkey-record form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.passkey-record .form-label{margin:0}.passkey-record p{font-size:.8rem}.passkey-record input{margin-top:8px}.profile-settings [data-passkey-status]{font-size:.85rem;line-height:1.8}.passkey-login [hidden],.profile-settings [data-passkey-cancel][hidden]{display:none!important}@media(max-width:600px){.profile-settings .page-heading{flex-direction:column;align-items:flex-start}.passkey-record form,.passkey-record label,.passkey-record button{width:100%}}
+.public-shell .login-alternatives .login-method-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+.public-shell .login-alternatives .login-method-grid.has-camera { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.public-shell .login-alternatives .login-method-grid > :is(form,[data-face-login]) { display:contents; }
+.public-shell .login-alternatives .login-method-button { grid-row:1; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-width:0; min-height:48px; padding:12px 8px; margin:0; font-size:.875rem; border-radius:12px; }
+.login-method-button svg { flex-shrink:0; }
+.login-method-grid :is([data-face-preview],[data-face-status],[data-passkey-status],[data-face-cancel],[data-passkey-cancel]) { grid-column:1 / -1; }
+.public-shell .login-alternatives .login-method-help { margin:12px 0 0; font-size:.78rem; line-height:1.7; color:var(--st-muted); }
+
+.public-shell .login-alternatives .login-method-button:is(:hover,:active) { transform:none; }

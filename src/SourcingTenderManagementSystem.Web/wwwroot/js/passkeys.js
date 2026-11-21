@@ -13,13 +13,13 @@
   const button=form.querySelector('[data-passkey-button]'),cancel=form.querySelector('[data-passkey-cancel]'),status=form.querySelector('[data-passkey-status]');
   const creation=form.hasAttribute('data-passkey-enroll');let abort=null,busy=false;
   const supported=window.isSecureContext&&typeof window.PublicKeyCredential==='function'&&navigator.credentials?.create&&navigator.credentials?.get;
-  if(!supported){status.textContent='Passkeys are unavailable in this browser or connection. Use your password; a compatible HTTPS browser is required.';continue;}
+  if(!supported){status.hidden=false;status.textContent='Passkeys are unavailable in this browser or connection. Use your password; a compatible HTTPS browser is required.';continue;}
   button.disabled=false;
   status.textContent=creation?'Ready to register. Complete your device prompt, then check that the passkey appears in the registered list.':'Use a passkey already registered for this STMS address. First time here? Sign in with your password and register one in Profile settings → Manage device passkeys.';
   const stop=()=>{abort?.abort();};cancel.addEventListener('click',stop);window.addEventListener('pagehide',stop);
   form.addEventListener('keydown',e=>{if(e.key==='Escape'&&busy){e.preventDefault();stop();}});
   form.addEventListener('submit',async event=>{
-   event.preventDefault();if(busy||!form.reportValidity())return;busy=true;button.disabled=true;button.setAttribute('aria-busy','true');cancel.hidden=false;abort=new AbortController();
+   event.preventDefault();if(busy||!form.reportValidity())return;busy=true;status.hidden=false;button.disabled=true;button.setAttribute('aria-busy','true');cancel.hidden=false;abort=new AbortController();
    const token=form.querySelector('[name=__RequestVerificationToken]').value;
    const post=async(url,body,signal)=>fetch(url,{method:'POST',body,credentials:'same-origin',redirect:'follow',signal,headers:{'Accept':'application/json'}});
    try{

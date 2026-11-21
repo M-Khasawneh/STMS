@@ -50,20 +50,22 @@
         canvas.width = Math.max(1, Math.round(sourceWidth * scale));
         canvas.height = Math.max(1, Math.round(sourceHeight * scale));
         const context = canvas.getContext('2d',{willReadFrequently:true});
-        let lastTime = -1, lastSample = 0;
+        let lastTime = -1, lastSample = -Infinity;
         while (ticket === generation && performance.now() - start < 30000 && samples.length < 5) {
-            if (video.readyState < 2 || video.currentTime === lastTime) { await delay(80); continue; }
+            // Five distinct frames remain required. Avoid repeated inference between samples
+            // rather than imposing the previous near-one-second pause after each frame.
+            if (video.readyState < 2 || video.currentTime === lastTime || performance.now() - lastSample < 300) { await delay(40); continue; }
             lastTime = video.currentTime; context.drawImage(video,0,0,canvas.width,canvas.height);
             const faces = await api.detectAllFaces(canvas,new api.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptors();
             if (ticket !== generation) return null;
             if (faces.length !== 1 || faces[0].detection.box.width < canvas.width / 8) {
                 status.textContent = faces.length > 1 ? 'Only one person should be in the frame.' : 'Move into the frame and improve the lighting.';
                 samples.length = 0;
-            } else if (performance.now() - lastSample >= 900) {
+            } else {
                 samples.push(Array.from(faces[0].descriptor)); lastSample = performance.now();
                 status.textContent = `Capturing face samples ${samples.length} of 5. Keep looking at the camera.`;
             }
-            await delay(140);
+            if (samples.length < 5) await delay(40);
         }
         if (ticket !== generation) return null;
         if (samples.length < 5) throw Error('Face capture timed out. Try again in better lighting.');
@@ -72,6 +74,7 @@
     buttons.forEach(button => button.addEventListener('click',async () => {
         if (busy) return;
         const operation = button.dataset.faceAction;
+        status.hidden = false;
         const login = operation === 'login';
         const username = document.getElementById('UserName');
         if (login && !username?.value.trim()) { status.textContent = 'Enter your username above first.'; username?.focus(); return; }

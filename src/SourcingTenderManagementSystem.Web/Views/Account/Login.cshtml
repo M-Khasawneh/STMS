@@ -20,16 +20,24 @@
             </div>
             <button type="submit" class="btn btn-primary">Log in to your workspace <span aria-hidden="true"><partial name="_LinkArrow" /></span></button>
         </form>
-        <div class="passkey-login"><span class="eyebrow">OR USE YOUR DEVICE</span><form asp-controller="Passkeys" asp-action="LoginOptions" method="post" data-passkey-login data-finish="@Url.Action("Login","Passkeys")" data-cancel="@Url.Action("Cancel","Passkeys")"><button class="btn btn-outline-secondary" type="submit" data-passkey-button disabled>Sign in with face, fingerprint or PIN</button><button type="button" class="btn btn-outline-secondary" data-passkey-cancel hidden>Cancel</button><p role="status" aria-live="polite" data-passkey-status>Use a previously registered passkey. Device support determines the available verification methods.</p></form><noscript><p>Passkeys require JavaScript. Use the password form above.</p></noscript></div>
-        @if (CameraOptions.Value.Enabled) {
-            <section class="passkey-login face-settings" data-face-login data-begin="@Url.Action("Begin", "CameraLogin")" data-complete="@Url.Action("Complete", "CameraLogin")" data-library="@Url.Content("~/lib/face-api/face-api.js")" data-models="@Url.Content("~/lib/face-api/model")" aria-label="Camera face sign-in">
+        <section class="passkey-login login-alternatives" aria-label="Other sign-in methods">
+            <span class="eyebrow">OTHER WAYS TO SIGN IN</span>
+            <div class="login-method-grid @(CameraOptions.Value.Enabled ? "has-camera" : "")">
+            @if (CameraOptions.Value.Enabled) {
+            <div class="face-settings" data-face-login data-begin="@Url.Action("Begin", "CameraLogin")" data-complete="@Url.Action("Complete", "CameraLogin")" data-library="@Url.Content("~/lib/face-api/face-api.js")" data-models="@Url.Content("~/lib/face-api/model")">
                 @Html.AntiForgeryToken()
-                <span class="eyebrow">OR USE YOUR CAMERA</span><p>Enter your username above. Camera sign-in is available only if you previously enabled it in your account settings.</p>
-                <button type="button" class="btn btn-outline-secondary" data-face-action="login">Sign in with camera</button><button type="button" class="btn btn-outline-secondary" data-face-cancel hidden>Cancel camera</button>
+                <button type="button" class="btn btn-outline-secondary login-method-button" data-face-action="login" aria-label="Sign in with camera"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 5l1.5-2h5L16 5h3a2 2 0 012 2v12H3V7a2 2 0 012-2z"/><circle cx="12" cy="12" r="3.5"/></svg>Camera</button><button type="button" class="btn btn-outline-secondary" data-face-cancel hidden>Cancel camera</button>
                 <div class="face-capture" data-face-preview hidden><video muted autoplay playsinline aria-label="Live camera preview"></video><span>Keep one face in the frame.</span></div>
-                <p role="status" aria-live="polite" data-face-status>Camera is off. Your browser will ask for permission.</p>
-            </section>
-        }
+                <p role="status" aria-live="polite" data-face-status hidden>Camera is off. Your browser will ask for permission.</p>
+            </div>
+            }
+            <form asp-controller="Passkeys" asp-action="LoginOptions" method="post" data-passkey-login data-finish="@Url.Action("Login","Passkeys")" data-cancel="@Url.Action("Cancel","Passkeys")">
+                <button class="btn btn-outline-secondary login-method-button" type="submit" data-passkey-button aria-label="Sign in with passkey" disabled><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="8" cy="9" r="5"/><path d="M12 12l8 8 2-2-2-2 1-1-3-3-1 1-2-2"/></svg>Passkey</button><button type="button" class="btn btn-outline-secondary" data-passkey-cancel hidden>Cancel</button><p role="status" aria-live="polite" data-passkey-status hidden>Use a previously registered passkey. Device support determines the available verification methods.</p>
+            </form>
+            </div>
+            <p class="login-method-help">@if (CameraOptions.Value.Enabled) { <text>Camera uses your username and must be enabled in your settings. </text> }Passkey uses your device's face, fingerprint or PIN.</p>
+            <noscript><p>These methods require JavaScript. Use the password form above.</p></noscript>
+        </section>
         <div class="login-supplier-callout"><span>NEW HERE?</span><h2>Register your company.</h2><p>Suppliers can apply for an account and submit official company documents.</p><a asp-controller="Suppliers" asp-action="Register" class="login-registration-button">Supplier Registration <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div>
     </section>
 </div></div>

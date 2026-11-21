@@ -10,7 +10,7 @@ const fs=require('fs'),path=require('path');
   await context.addInitScript(()=>{
    window.faceFixture={denied:false,delay:false,tracks:[],frames:[]};
    const loaded=()=>Promise.resolve();
-   window.faceapi={nets:{tinyFaceDetector:{loadFromUri:loaded},faceLandmark68Net:{loadFromUri:loaded},faceRecognitionNet:{loadFromUri:loaded}},TinyFaceDetectorOptions:class{},detectAllFaces(canvas){faceFixture.frames.push({width:canvas.width,height:canvas.height});return{withFaceLandmarks(){return{withFaceDescriptors:async()=>[{descriptor:Float32Array.from({length:128},(_,i)=>i===0?1:0),detection:{box:{width:160}}}]}}}}};
+   window.faceapi={nets:{tinyFaceDetector:{loadFromUri:loaded},faceLandmark68Net:{loadFromUri:loaded},faceRecognitionNet:{loadFromUri:loaded}},TinyFaceDetectorOptions:class{},detectAllFaces(canvas){faceFixture.frames.push({width:canvas.width,height:canvas.height,at:performance.now()});sessionStorage.setItem('faceFixtureFrames',JSON.stringify(faceFixture.frames));return{withFaceLandmarks(){return{withFaceDescriptors:async()=>[{descriptor:Float32Array.from({length:128},(_,i)=>i===0?1:0),detection:{box:{width:160}}}]}}}}};
    Object.defineProperty(navigator.mediaDevices,'getUserMedia',{configurable:true,value:async options=>{
     if(options.audio!==false)throw Error('Audio requested');
     if(faceFixture.denied)throw new DOMException('Denied','NotAllowedError');
@@ -27,6 +27,13 @@ const fs=require('fs'),path=require('path');
   });
   const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
   const response=await page.goto(base+'/Account/Login');check(response.headers()['x-stms-passkey-fixture']==='memory-only','Refusing non-fixture host');
+  for(const width of [1440,768,390,320]) {
+   await page.setViewportSize({width,height:1000});
+   const boxes=await Promise.all([page.locator('[data-face-action=login]').boundingBox(),page.locator('[data-passkey-button]').boundingBox()]);
+   check(boxes.every(Boolean)&&Math.abs(boxes[0].y-boxes[1].y)<2&&boxes[1].x>boxes[0].x,'Camera and Passkey stay side by side '+width);
+   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Alternative login methods fit '+width);
+  }
+  await page.screenshot({path:path.join(out,'login-methods-mobile.png'),fullPage:true});
   await page.locator('#UserName').fill('passkey-user');await page.locator('#Password').fill('Fixture-Only!9427');
   await Promise.all([page.waitForURL('**/Workspace*'),page.locator('form[action="/Account/Login"] button[type=submit]').click()]);
   await page.goto(base+'/FaceSettings');
@@ -46,6 +53,9 @@ const fs=require('fs'),path=require('path');
   await enroll().click();const payload=JSON.parse((await completed).postData());
   check(await page.evaluate(()=>faceFixture.frames.length>0&&faceFixture.frames.every(f=>f.width===640&&f.height===360)),'Widescreen laptop frames retain their aspect ratio');
   check(payload.samples.length===5&&payload.samples.every(s=>s.length===128)&&!('image' in payload)&&!('password' in payload),'Only numeric descriptors and one-use token submitted');
+  const captureTimes=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('faceFixtureFrames')).slice(-5).map(f=>f.at));
+  check(captureTimes.length===5&&captureTimes.every((t,i)=>i===0||t-captureTimes[i-1]>=295),'Five separately sampled frames are retained');
+  check(captureTimes[4]-captureTimes[0]<3500,'Fast detector is not held by a five-second capture delay');
   await page.waitForFunction(()=>document.querySelector('[data-face-settings]')?.dataset.registered==='true');
   check(await page.locator('[data-face-action=verify]').isVisible(),'Encrypted enrollment persisted in memory fixture');
   await page.locator('[data-face-action=verify]').click();await page.waitForFunction(()=>document.querySelector('[data-face-status]').textContent.includes('matches the registered template'));
