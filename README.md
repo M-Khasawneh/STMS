@@ -1,4 +1,5 @@
-<div align="center"><img src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png" alt="STMS logo" width="104" />Sourcing & Tender Management System
+<div align="center"><img src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png" alt="STMS logo" width="104" />
+  Sourcing & Tender Management System
 A role-based procurement platform that brings purchasing requests, tender management, supplier bidding, evaluation, and award decisions into one workflow.
 
 Built with ASP.NET Core MVC · .NET 10 · Entity Framework Core · SQL Server
