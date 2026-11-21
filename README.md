@@ -1,20 +1,32 @@
-<div align="center"><img src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png" alt="STMS logo" width="104" />
-  Sourcing & Tender Management System
-A role-based procurement platform that brings purchasing requests, tender management, supplier bidding, evaluation, and award decisions into one workflow.
 
-Built with ASP.NET Core MVC · .NET 10 · Entity Framework Core · SQL Server
-<p>
-  <a href="https://stms-khasawneh.runasp.net/"><strong>Explore Live Website</strong></a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/M-Khasawneh/STMS"><strong>Source Code</strong></a>
-  &nbsp;·&nbsp;
-  <a href="#getting-started"><strong>Getting Started</strong></a>
-</p>
-<a href="https://stms-khasawneh.runasp.net/"><img alt="Live website" src="https://img.shields.io/badge/Live_Website-Visit_STMS-1769aa?style=for-the-badge&logo=googlechrome&logoColor=white" /></a>
-<img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" />
-<img alt="ASP.NET Core MVC" src="https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?style=for-the-badge" />
-<img alt="SQL Server" src="https://img.shields.io/badge/SQL_Server-Database-CC2927?style=for-the-badge" />
-</div><div align="center">
+<div align="center">
+
+  <img
+    src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png"
+    alt="STMS Logo"
+    width="110"
+  />
+
+  <h1>Sourcing & Tender Management System</h1>
+
+  <p>
+    A comprehensive, role-based procurement management platform
+    designed to streamline purchase requests, tender management,
+    supplier bidding, evaluation, and award decisions.
+  </p>
+
+  <p>
+    <a href="https://stms-khasawneh.runasp.net/">
+      <strong>Live Demo</strong>
+    </a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/M-Khasawneh/STMS">
+      <strong>GitHub Repository</strong>
+    </a>
+  </p>
+
+</div>
+<div align="center">
   <a href="https://stms-khasawneh.runasp.net/">
     <img src="docs/images/screenshots/public-home.png" alt="STMS public homepage" width="100%" />
   </a>
