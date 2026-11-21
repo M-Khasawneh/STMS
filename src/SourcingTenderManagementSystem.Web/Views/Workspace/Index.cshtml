@@ -19,10 +19,10 @@
     }
     if (admin || requester || officer) links.Add(("Requisitions", "Index", "Purchase requisitions", admin ? "Read-only oversight of purchase requisitions." : officer ? "Review requisitions within your authorised workflow." : "Create and follow your own purchase requisitions.", "RQ"));
     if (admin || supplier || requester || officer || manager) links.Add(("Tenders", "Index", "Tenders", admin ? "Read-only oversight of tenders." : "Open the tenders available to your account.", "TN"));
-    links.Add(("Notifications", "Index", "Notifications", "Read your account's in-app notifications.", "↗"));
+    links.Add(("Notifications", "Index", "Notifications", "Read your account's in-app notifications.", "\u2197"));
 }
 <div class="workspace-dashboard">
     <header class="workspace-welcome"><div><span class="eyebrow">YOUR WORKSPACE</span><h1>A clear place to begin.</h1><p>Welcome, <strong>@User.Identity?.Name</strong>. Choose where you want to work.</p><div class="workspace-role-list" aria-label="Your roles">@foreach (var role in ApplicationRoles.All.Where(User.IsInRole)) { <span>@role</span> }</div></div><span class="workspace-welcome-art" aria-hidden="true">st<span>WORKSPACE</span></span></header>
     <div class="workspace-section-heading"><h2>Your tools</h2><p>Access follows your existing roles and permissions.</p></div>
-    <div class="workspace-tools">@foreach (var link in links) { <a class="workspace-tool" asp-controller="@link.Controller" asp-action="@link.Action"><span class="workspace-tool-mark" aria-hidden="true">@link.Mark</span><span class="workspace-tool-copy"><h3>@link.Title</h3><p>@link.Description</p></span><span class="workspace-tool-arrow" aria-hidden="true">↗</span></a> }</div>
+    <div class="workspace-tools">@foreach (var link in links) { <a class="workspace-tool" asp-controller="@link.Controller" asp-action="@link.Action"><span class="workspace-tool-mark" aria-hidden="true">@if (link.Mark == "\u2197") { <partial name="_LinkArrow" /> } else { @link.Mark }</span><span class="workspace-tool-copy"><h3>@link.Title</h3><p>@link.Description</p></span><span class="workspace-tool-arrow" aria-hidden="true"><partial name="_LinkArrow" /></span></a> }</div>
 </div>

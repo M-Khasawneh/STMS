@@ -15,6 +15,7 @@
   const supported=window.isSecureContext&&typeof window.PublicKeyCredential==='function'&&navigator.credentials?.create&&navigator.credentials?.get;
   if(!supported){status.textContent='Passkeys are unavailable in this browser or connection. Use your password; a compatible HTTPS browser is required.';continue;}
   button.disabled=false;
+  status.textContent=creation?'Ready to register. Complete your device prompt, then check that the passkey appears in the registered list.':'Use a passkey already registered for this STMS address. First time here? Sign in with your password and register one in Profile settings → Manage device passkeys.';
   const stop=()=>{abort?.abort();};cancel.addEventListener('click',stop);window.addEventListener('pagehide',stop);
   form.addEventListener('keydown',e=>{if(e.key==='Escape'&&busy){e.preventDefault();stop();}});
   form.addEventListener('submit',async event=>{
@@ -38,6 +39,7 @@
    }catch(error){
     const messages={NotAllowedError:'The device prompt was cancelled, timed out, or no matching passkey was found. Try again or use your password.',InvalidStateError:'This passkey may already be registered. Check your registered passkeys.',SecurityError:'This device cannot use a passkey at this site address. Check HTTPS and the configured origin.',NotSupportedError:'This authenticator is unsupported. Use another compatible device or your password.',AbortError:'Passkey request cancelled. Your password sign-in remains available.'};
     status.textContent=messages[error.name]||(error instanceof TypeError?'Unable to connect. Try again or use your password.':error.message||'Passkey request failed.');
+    status.scrollIntoView({block:'nearest'});
     const data=new FormData();data.set('__RequestVerificationToken',token);try{await post(form.dataset.cancel,data);}catch{}
    }finally{const password=form.querySelector('[name=CurrentPassword]');if(password)password.value='';busy=false;abort=null;button.disabled=false;button.removeAttribute('aria-busy');cancel.hidden=true;}
   });

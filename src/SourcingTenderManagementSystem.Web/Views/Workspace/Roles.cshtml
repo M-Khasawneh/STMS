@@ -19,7 +19,7 @@
                 <header class="role-panel-heading"><h2>@panel.Title</h2><span class="role-panel-label">Overview</span></header>
                 <p class="role-panel-description">@panel.Description</p>
                 <div class="role-summary-metrics">@foreach (var metric in panel.Metrics) {
-                    <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View records <span aria-hidden="true">&#8599;</span></a> }</article>
+                    <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View records <span aria-hidden="true"><partial name="_LinkArrow" /></span></a> }</article>
                 }</div>
                 <div class="role-record-heading"><h3>Recent records</h3><span>Recorded / deadline</span></div>
                 @if (panel.Records.Count == 0) { <p class="role-work-empty">No records available in this section.</p> }
@@ -37,7 +37,7 @@
                 <section class="role-work-panel">
                     <header class="role-panel-heading"><h2>@panel.Title</h2><span class="role-panel-label">Personal</span></header>
                     <p class="role-panel-description">@panel.Description</p>
-                    <div class="role-summary-metrics">@foreach (var metric in panel.Metrics) { <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View notifications <span aria-hidden="true">&#8599;</span></a> }</article> }</div>
+                    <div class="role-summary-metrics">@foreach (var metric in panel.Metrics) { <article><span>@metric.Label</span><strong>@metric.Count.ToString("N0")</strong>@if (metric.Controller is not null) { <a asp-controller="@metric.Controller" asp-action="@metric.Action">View notifications <span aria-hidden="true"><partial name="_LinkArrow" /></span></a> }</article> }</div>
                     @if (panel.Records.Count == 0) { <p class="role-work-empty">No notifications to display.</p> }
                     else { <ul class="role-record-list">@foreach (var row in panel.Records) { <li><div class="role-record-content">@if (row.Controller is not null) { <a asp-controller="@row.Controller" asp-action="@row.Action" asp-route-id="@(row.Action == "Index" ? (Guid?)null : row.Id)">@row.Title</a> } else { <strong>@row.Title</strong> }<small>@if (row.At.HasValue) { <time datetime="@row.At.Value.ToString("O")">@TenderTime.Display(row.At.Value)</time> }</small></div><span class="status-pill">@row.Status</span></li> }</ul> }
                 </section>

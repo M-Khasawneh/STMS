@@ -1418,3 +1418,6 @@ strong {
 
 /* Supplier invitation titles must wrap inside narrow detail panels. */
 .requisition-detail-panel h1 { overflow-wrap: anywhere; }
+
+/* Vector link arrows retain the same monochrome appearance on iOS and desktop. */
+svg.stms-link-arrow { display:inline-block; width:1em; height:1em; flex-shrink:0; vertical-align:-.125em; }

@@ -21,7 +21,7 @@
         </div>
         <svg class="ref-hero-ribbon" viewBox="0 0 1400 280" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 205C170 310 280 150 470 165S700 240 900 108 1110 58 1420 140"/><path d="M-20 225C170 330 280 170 470 185S700 260 900 128 1110 78 1420 160"/></svg>
         <partial name="_PublicJourney" />
-        <div class="ref-feature-strip" aria-label="Platform capabilities"><article><span aria-hidden="true">◇</span><div><h2>Secure &amp; role-based</h2><p>Access appropriate to every participant.</p></div></article><article><span aria-hidden="true">▤</span><div><h2>Connected records</h2><p>Requests, tenders and supplier documents.</p></div></article><article><span aria-hidden="true">↗</span><div><h2>Clear progress</h2><p>Follow each stage of the sourcing process.</p></div></article><article><span aria-hidden="true">↔</span><div><h2>Clarifications &amp; inquiries</h2><p>Communication within your authorized scope.</p></div></article></div>
+        <div class="ref-feature-strip" aria-label="Platform capabilities"><article><span aria-hidden="true">◇</span><div><h2>Secure &amp; role-based</h2><p>Access appropriate to every participant.</p></div></article><article><span aria-hidden="true">▤</span><div><h2>Connected records</h2><p>Requests, tenders and supplier documents.</p></div></article><article><span aria-hidden="true"><partial name="_LinkArrow" /></span><div><h2>Clear progress</h2><p>Follow each stage of the sourcing process.</p></div></article><article><span aria-hidden="true">↔</span><div><h2>Clarifications &amp; inquiries</h2><p>Communication within your authorized scope.</p></div></article></div>
         <svg class="ref-showcase-edge" viewBox="0 0 1400 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 15C130 140 210-15 400 35S740 100 970 52 1220 5 1400 35V90H0Z"/></svg>
     </section>
     <section class="ref-statistics" aria-label="Public system statistics"><div class="ref-statistics-heading"><span class="ref-overline">LIVE SYSTEM OVERVIEW</span><h2>Real activity.<br /><em>A shared perspective.</em></h2></div><div class="lp-metrics">
@@ -36,10 +36,10 @@
             <div class="lp-bento">
                 <article class="lp-feature lp-feature-wide" data-reveal>
                     <div class="lp-feature-art" aria-hidden="true"><span class="lp-paper"><i></i><i></i><i></i><b>✓</b></span><span class="lp-paper lp-paper-back"></span></div>
-                    <div><span class="lp-icon" aria-hidden="true">↗</span><h3>Start with a clear request.</h3><p>Capture the quantities, specifications, reason and target date. Give every review the context it needs.</p><a href="#how-it-works">Follow the workflow <span aria-hidden="true">→</span></a></div>
+                    <div><span class="lp-icon" aria-hidden="true"><partial name="_LinkArrow" /></span><h3>Start with a clear request.</h3><p>Capture the quantities, specifications, reason and target date. Give every review the context it needs.</p><a href="#how-it-works">Follow the workflow <span aria-hidden="true">→</span></a></div>
                 </article>
                 <article class="lp-feature lp-feature-blue" data-reveal><span class="lp-icon" aria-hidden="true">◇</span><h3>A place for your suppliers.</h3><p>Company registration, invitations and offers come together in each supplier’s own workspace.</p><a asp-controller="Suppliers" asp-action="Register">Become a supplier <span aria-hidden="true">→</span></a><div class="lp-mini-orbits" aria-hidden="true"><i></i><i></i><i></i></div></article>
-                <article class="lp-feature lp-feature-strip" data-reveal><span class="lp-icon" aria-hidden="true">◎</span><div><h3>The right work. The right people.</h3><p>Role-based workspaces connect your team to relevant requests, tenders and notifications.</p></div><a asp-controller="Account" asp-action="Login">Account login <span aria-hidden="true">↗</span></a></article>
+                <article class="lp-feature lp-feature-strip" data-reveal><span class="lp-icon" aria-hidden="true">◎</span><div><h3>The right work. The right people.</h3><p>Role-based workspaces connect your team to relevant requests, tenders and notifications.</p></div><a asp-controller="Account" asp-action="Login">Account login <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></article>
             </div>
         </div>
     </section>
@@ -59,14 +59,14 @@
     </section>
 
     <section id="about" class="lp-about lp-section" aria-labelledby="about-title">
-        <div class="lp-container lp-about-grid"><div class="lp-about-art" aria-hidden="true" data-reveal><span>One<br />shared<br /><em>purpose.</em></span><i></i></div><div data-reveal><p class="lp-kicker">ABOUT STMS</p><h2 id="about-title">Make the process<br /><span>work together.</span></h2><p>STMS organizes purchasing digitally, from the first request to the final decision. Departments, sourcing teams and suppliers work with a shared context for documents and decisions.</p><a asp-controller="Home" asp-action="About" class="lp-text-link">Discover the platform <span aria-hidden="true">↗</span></a></div></div>
+        <div class="lp-container lp-about-grid"><div class="lp-about-art" aria-hidden="true" data-reveal><span>One<br />shared<br /><em>purpose.</em></span><i></i></div><div data-reveal><p class="lp-kicker">ABOUT STMS</p><h2 id="about-title">Make the process<br /><span>work together.</span></h2><p>STMS organizes purchasing digitally, from the first request to the final decision. Departments, sourcing teams and suppliers work with a shared context for documents and decisions.</p><a asp-controller="Home" asp-action="About" class="lp-text-link">Discover the platform <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div></div>
     </section>
 
     <section id="supplier-registration" class="lp-cta lp-section" aria-labelledby="supplier-title">
-        <div class="lp-container"><div class="lp-cta-panel" data-reveal><p class="lp-kicker">FOR SUPPLIERS</p><h2 id="supplier-title">Your next opportunity<br /><span>starts with a connection.</span></h2><p>Register your company and submit official documents. An administrator reviews your application before account access is activated.</p><a asp-controller="Suppliers" asp-action="Register" class="lp-button lp-sling-cta">Register your company <span aria-hidden="true">↗</span></a></div></div>
+        <div class="lp-container"><div class="lp-cta-panel" data-reveal><p class="lp-kicker">FOR SUPPLIERS</p><h2 id="supplier-title">Your next opportunity<br /><span>starts with a connection.</span></h2><p>Register your company and submit official documents. An administrator reviews your application before account access is activated.</p><a asp-controller="Suppliers" asp-action="Register" class="lp-button lp-sling-cta">Register your company <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div></div>
     </section>
 
-    <section id="contact" class="lp-contact" aria-labelledby="contact-title"><div class="lp-container" data-reveal><div><p class="lp-kicker">LET’S CONNECT</p><h2 id="contact-title">Find your next step.</h2><p>Send a message directly to the STMS administrator.</p></div><a asp-controller="Home" asp-action="Contact" class="lp-button lp-button-outline">Contact the administrator <span aria-hidden="true">↗</span></a></div></section>
+    <section id="contact" class="lp-contact" aria-labelledby="contact-title"><div class="lp-container" data-reveal><div><p class="lp-kicker">LET’S CONNECT</p><h2 id="contact-title">Find your next step.</h2><p>Send a message directly to the STMS administrator.</p></div><a asp-controller="Home" asp-action="Contact" class="lp-button lp-button-outline">Contact the administrator <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div></section>
 </div>
 @section Scripts {
     <script src="~/js/landing-premium.js" asp-append-version="true"></script>

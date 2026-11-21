@@ -17,10 +17,10 @@
                 <div class="password-control"><input asp-for="Password" class="form-control" autocomplete="current-password" value="" /><button type="button" class="password-toggle" aria-controls="Password" aria-pressed="false" hidden>Show</button></div>
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Log in to your workspace <span aria-hidden="true">&#8599;</span></button>
+            <button type="submit" class="btn btn-primary">Log in to your workspace <span aria-hidden="true"><partial name="_LinkArrow" /></span></button>
         </form>
         <div class="passkey-login"><span class="eyebrow">OR USE YOUR DEVICE</span><form asp-controller="Passkeys" asp-action="LoginOptions" method="post" data-passkey-login data-finish="@Url.Action("Login","Passkeys")" data-cancel="@Url.Action("Cancel","Passkeys")"><button class="btn btn-outline-secondary" type="submit" data-passkey-button disabled>Sign in with face, fingerprint or PIN</button><button type="button" class="btn btn-outline-secondary" data-passkey-cancel hidden>Cancel</button><p role="status" aria-live="polite" data-passkey-status>Use a previously registered passkey. Device support determines the available verification methods.</p></form><noscript><p>Passkeys require JavaScript. Use the password form above.</p></noscript></div>
-        <div class="login-supplier-callout"><span>NEW TO STMS?</span><h2>Register your company.</h2><p>Suppliers can apply for an account and submit official company documents.</p><a asp-controller="Suppliers" asp-action="Register" class="login-registration-button">Supplier Registration <span aria-hidden="true">↗</span></a></div>
+        <div class="login-supplier-callout"><span>NEW TO STMS?</span><h2>Register your company.</h2><p>Suppliers can apply for an account and submit official company documents.</p><a asp-controller="Suppliers" asp-action="Register" class="login-registration-button">Supplier Registration <span aria-hidden="true"><partial name="_LinkArrow" /></span></a></div>
     </section>
 </div></div>
 @section Styles {<link rel="stylesheet" href="~/css/passkeys.css" asp-append-version="true"/>}

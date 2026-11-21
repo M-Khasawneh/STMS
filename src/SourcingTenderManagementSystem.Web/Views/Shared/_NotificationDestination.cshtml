@@ -1,6 +1,6 @@
 @model SourcingTenderManagementSystem.Web.Models.Entities.Notification
 @if (User.IsInRole("Admin") && Model.Subject.StartsWith("Website message: ") && Model.BidId is null && Model.TenderId is null && Model.PurchaseRequisitionId is null) {
-    <form asp-controller="Messages" asp-action="Open" asp-route-id="@Model.Id" method="post"><button type="submit" class="notification-open">Read message <span aria-hidden="true">↗</span></button></form>
+    <form asp-controller="Messages" asp-action="Open" asp-route-id="@Model.Id" method="post"><button type="submit" class="notification-open">Read message <span aria-hidden="true"><partial name="_LinkArrow" /></span></button></form>
 } else if (Model.TenderId.HasValue && Model.Subject == "Tender award recorded") {
     <a asp-controller="TopCommittee" asp-action="Outcome" asp-route-id="@Model.TenderId" class="notification-open">View your authorized outcome</a>
 } else if (Model.TenderId.HasValue && Model.Subject == "Top report returned") {
@@ -8,16 +8,16 @@
 } else if (Model.TenderId.HasValue && Model.Subject is "Top committee update" or "Top committee round" or "Top committee outcome") {
     <a asp-controller="TopCommittee" asp-action="Index" class="notification-open">View final decisions</a>
 } else if (Model.BidId is null && Model.Subject is "Internal clarification requested" or "Internal clarification answered" or "Internal clarification resolved") {
-    <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@(Model.PurchaseRequisitionId??Model.TenderId)" asp-route-requisition="@Model.PurchaseRequisitionId.HasValue" class="notification-open">View clarification ↗</a>
+    <a asp-controller="Clarifications" asp-action="Details" asp-route-id="@(Model.PurchaseRequisitionId??Model.TenderId)" asp-route-requisition="@Model.PurchaseRequisitionId.HasValue" class="notification-open">View clarification <partial name="_LinkArrow" /></a>
 } else if (Model.BidId.HasValue) {
     var destination = User.IsInRole("Supplier") ? "Bids" : Model.Subject is "Clarification requested" or "Clarification answered" ? "Compliance" : "ReviewBids";
-    <a asp-controller="@destination" asp-action="Details" asp-route-id="@Model.BidId" class="notification-open">View offer ↗</a>
+    <a asp-controller="@destination" asp-action="Details" asp-route-id="@Model.BidId" class="notification-open">View offer <partial name="_LinkArrow" /></a>
 } else if (Model.TenderId.HasValue && Model.Subject is "Unified report submitted" or "Manager report decision") {
-    <a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@Model.TenderId" class="notification-open">View unified report ↗</a>
+    <a asp-controller="UnifiedReports" asp-action="Details" asp-route-id="@Model.TenderId" class="notification-open">View unified report <partial name="_LinkArrow" /></a>
 } else if (Model.TenderId.HasValue && Model.Subject == "Evaluation started") {
-    <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@Model.TenderId" class="notification-open">View offers to evaluate ↗</a>
+    <a asp-controller="ReviewBids" asp-action="Index" asp-route-tenderId="@Model.TenderId" class="notification-open">View offers to evaluate <partial name="_LinkArrow" /></a>
 } else if (Model.TenderId.HasValue) {
-    <a asp-controller="Tenders" asp-action="Details" asp-route-id="@Model.TenderId" class="notification-open">View tender ↗</a>
+    <a asp-controller="Tenders" asp-action="Details" asp-route-id="@Model.TenderId" class="notification-open">View tender <partial name="_LinkArrow" /></a>
 } else if (Model.PurchaseRequisitionId.HasValue) {
-    <a asp-controller="Requisitions" asp-action="Details" asp-route-id="@Model.PurchaseRequisitionId" class="notification-open">View requisition ↗</a>
+    <a asp-controller="Requisitions" asp-action="Details" asp-route-id="@Model.PurchaseRequisitionId" class="notification-open">View requisition <partial name="_LinkArrow" /></a>
 }

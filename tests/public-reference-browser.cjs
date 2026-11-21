@@ -9,6 +9,7 @@ check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'
 check(await p.locator('.public-topbar [data-appearance-toggle]').isVisible(),'Appearance available without opening mobile menu');
 check(await p.locator('main h1').count()===1,'One meaningful page heading '+route);
 check(await p.locator('.public-footer').count()===1,'One real footer');
+check(await p.locator('svg.stms-link-arrow[aria-hidden=true]').count()>0,'Vector link arrows render without emoji glyphs');
 if(width<=1024){
 const menu=p.locator('.home-menu-toggle');await menu.click();await p.locator('#home-navigation').waitFor({state:'visible'});
 const contrast=await p.locator('#home-navigation').evaluate(nav=>{
@@ -17,6 +18,10 @@ const background=luminance(getComputedStyle(nav).backgroundColor);
 return [...nav.querySelectorAll('a')].map(a=>{const style=getComputedStyle(a),text=luminance(style.color),surface=style.backgroundColor==='rgba(0, 0, 0, 0)'?background:luminance(style.backgroundColor);return (Math.max(text,surface)+.05)/(Math.min(text,surface)+.05);});
 });check(contrast.every(value=>value>=4.5),'Mobile navigation contrast '+theme+'/'+width+route);
 await p.keyboard.press('Escape');check(await menu.getAttribute('aria-expanded')==='false','Mobile menu closes with Escape');
+}
+if(route==='/'&&width<=768){
+const flow=await p.locator('.lp-workflow-intro').evaluate(e=>({position:getComputedStyle(e).position,bottom:e.getBoundingClientRect().bottom,next:document.querySelector('.lp-steps>li').getBoundingClientRect().top}));
+check(flow.position==='static'&&flow.bottom<=flow.next,'Mobile workflow introduction does not overlap the first stage');
 }
 if(route==='/'){check((await p.locator('h1').textContent()).replace(/\s+/g,' ').trim()==='Unified Platform for Sourcing & Tender Management','Required headline preserved');check(await p.locator('[data-journey-step]').count()===6&&await p.locator('.lp-steps>li').count()===6,'Six summary and detailed stages');check(await p.locator('.ref-hero-copy img').count()===0,'No logo in hero');check((await p.locator('.lp-metrics strong').allTextContents()).every(v=>v==='Unavailable'),'Unavailable fixture metrics remain unknown, never demo numbers');
 await p.locator('[data-journey-step="3"]').click();check(await p.locator('[data-journey-step="3"]').getAttribute('aria-pressed')==='true','Workflow selection is functional');await p.keyboard.press('ArrowRight');check(await p.locator('[data-journey-step="4"]').getAttribute('aria-pressed')==='true','Workflow keyboard movement');await p.locator('[data-journey-reset]').click();check(await p.locator('[data-journey-step="0"]').getAttribute('aria-pressed')==='true','Workflow restart');check(!await p.locator('.ref-journey').evaluate(e=>e.classList.contains('is-playing')),'Reduced motion disables automatic cycling');}
