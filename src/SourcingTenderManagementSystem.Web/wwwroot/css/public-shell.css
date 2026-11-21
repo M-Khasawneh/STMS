@@ -140,3 +140,5 @@ body.public-shell .public-topbar .public-nav > a.registration-link:hover { backg
 
 /* Keyboard focus must reveal a sticky-footer link immediately, without the global smooth-scroll delay. */
 html:has(.footer-keyboard-flow){scroll-behavior:auto!important}
+.public-shell.account-login-page .login-home-link { display:inline-flex; width:fit-content; min-height:44px; margin-bottom:24px; padding:10px 14px; gap:8px; font-size:.8rem; }
+.public-shell.account-login-page .login-home-link:is(:hover,:active) { transform:none; }
