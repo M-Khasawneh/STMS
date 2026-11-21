@@ -107,22 +107,31 @@ Documents & utilities	PDFsharp, PdfPig, PDFtoImage, TesseractOCR, QRCoder
 Optional integration	Ollama-assisted bid analysis (human decisions remain authoritative)
 
 
-Project layout
+
+## Project Structure
+
+```text
 STMS/
 ├── src/
 │   └── SourcingTenderManagementSystem.Web/
-│       ├── Controllers/   # HTTP endpoints and MVC actions
-│       ├── Data/          # Services, EF Core, migrations and storage
-│       ├── Models/        # Domain and view models
-│       ├── Security/      # Identity, eligibility and passkeys
-│       ├── Views/         # Razor pages and shared layouts
-│       └── wwwroot/       # Public frontend assets
-├── tests/                 # Service, MVC, schema and browser checks
-├── docs/                  # Architecture and feature documentation
-└── scripts/               # Local development utilities
-Private uploaded documents are stored outside wwwroot and served through protected application actions.
-Getting started
-Prerequisites
+│       ├── Controllers/   # MVC controllers and HTTP actions
+│       ├── Data/          # Services, EF Core, migrations, storage
+│       ├── Models/        # Domain entities and view models
+│       ├── Security/      # Identity, authorization, passkeys
+│       ├── Views/         # Razor views and shared layouts
+│       └── wwwroot/       # CSS, JavaScript, images and assets
+├── tests/                 # Automated and browser tests
+├── docs/                  # Technical documentation
+└── scripts/               # Development utilities
+```
+
+> Private uploaded documents are stored outside `wwwroot`
+> and accessed through authorized application endpoints.
+
+## Getting Started
+
+### Prerequisites
+
 - .NET 10 SDK
 - SQL Server instance and appropriate database access
 - Trusted local HTTPS development certificate
