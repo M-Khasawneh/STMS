@@ -34,6 +34,16 @@ const fs=require('fs'),path=require('path');
    await page.screenshot({path:path.join(out,name.replace('/','-')+'-dark.png'),fullPage:true});
   }
   check(panels.length===0,'No untokenized bright panels in dark workspace: '+panels.join(','));
+  await context.setExtraHTTPHeaders({'X-Bid-Test-Actor':'admin'});
+  for(const name of ['Suppliers/Index','Requisitions/Index','Tenders/Index']) {
+   await visit('/UiPagePreview/Page?name='+encodeURIComponent(name)+'&state=empty');
+   const contrast=await page.locator('.workspace-empty-state').evaluate(panel=>{
+    const lum=color=>{const a=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return a[0]*.2126+a[1]*.7152+a[2]*.0722;};
+    const surface=getComputedStyle(panel).backgroundColor,b=lum(surface);
+    return {opaque:surface.startsWith('rgb('),minimum:Math.min(...[...panel.querySelectorAll('h2,p')].map(e=>{const t=lum(getComputedStyle(e).color);return (Math.max(t,b)+.05)/(Math.min(t,b)+.05);}))};
+   });
+   check(contrast.opaque&&contrast.minimum>=4.5,'Readable dark empty state '+name);
+  }
   await page.setViewportSize({width:390,height:1000});
   const menu=page.locator('.menu-toggle');await menu.click();
   check(await menu.getAttribute('aria-expanded')==='true','Mobile drawer opens');
