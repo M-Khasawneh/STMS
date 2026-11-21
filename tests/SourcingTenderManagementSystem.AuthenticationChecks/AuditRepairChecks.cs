@@ -44,8 +44,33 @@ internal static class AuditRepairChecks
         Check(!exception.ExceptionHandled, "Unrelated failures are not hidden");
         var page = new PageInfo(2, 25, 51, "retained", "Draft");
         Check(page.Pages == 3 && new PageInfo(1,25,0,null,null).Pages == 1, "Paging metadata handles boundaries");
+        await PublicStatisticsAvailability(Check);
         await RateLimit(Check);
         Console.WriteLine($"PASS: {checks} database-free audit repair recovery/concurrency checks.");
+    }
+    private static async Task PublicStatisticsAvailability(Action<bool,string> check)
+    {
+        foreach (var connection in new string?[] { null, string.Empty })
+        {
+            var probe = new RejectSqlConnection();
+            using var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseSqlServer(connection).AddInterceptors(probe).Options);
+            var statistics = new PublicStatistics(db, NullLogger<PublicStatistics>.Instance);
+            var result = await statistics.ReadAsync(default);
+            check(result == new PublicHomeViewModel(null, null, null) && probe.Attempts == 0,
+                "Missing SQL configuration returns unknown public counts without opening a connection");
+            using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+            try { await statistics.ReadAsync(cancelled.Token); throw new Exception("Cancellation ignored"); }
+            catch (OperationCanceledException) { check(probe.Attempts == 0, "Cancelled public statistics do not attempt SQL"); }
+        }
+    }
+    private sealed class RejectSqlConnection : Microsoft.EntityFrameworkCore.Diagnostics.DbConnectionInterceptor
+    {
+        public int Attempts;
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult> ConnectionOpeningAsync(
+            System.Data.Common.DbConnection connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult result, CancellationToken cancellationToken = default)
+        { Attempts++; throw new InvalidOperationException("This test must not open SQL."); }
     }
     private static async Task RateLimit(Action<bool,string> check)
     {

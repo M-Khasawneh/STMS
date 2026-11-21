@@ -14,6 +14,12 @@ public sealed class PublicStatistics(ApplicationDbContext database, ILogger<Publ
 {
     public async Task<PublicHomeViewModel> ReadAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(database.Database.GetConnectionString()))
+        {
+            logger.LogWarning("Public statistics are unavailable because the database connection is not configured.");
+            return new(null, null, null);
+        }
         try
         {
             // Sequential queries share the scoped DbContext; never query it concurrently.
