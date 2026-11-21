@@ -16,6 +16,14 @@
   </p>
 
   <p>
+    <img src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 10" />
+    <img src="https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt="ASP.NET Core MVC" />
+    <img src="https://img.shields.io/badge/EF_Core-10-6C3483?style=for-the-badge" alt="EF Core 10" />
+    <img src="https://img.shields.io/badge/SQL_Server-Database-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white" alt="SQL Server" />
+    <img src="https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5" />
+  </p>
+
+  <p>
     <a href="https://stms-khasawneh.runasp.net/">
       <strong>Live Demo</strong>
     </a>
@@ -26,6 +34,7 @@
   </p>
 
 </div>
+
 <div align="center">
   <a href="https://stms-khasawneh.runasp.net/">
     <img src="docs/images/screenshots/public-home.png" alt="STMS public homepage" width="100%" />
