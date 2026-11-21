@@ -71,40 +71,67 @@ Sign-in	Dark mode	Mobile homepage
 
 
 [View screenshot capture notes](docs/images/screenshots/capture-info.json)
-</details>Procurement workflow
+</details>
+## Procurement Workflow
+
+The system manages the procurement lifecycle from the initial purchase request to the final award.
+
 ```mermaid
 flowchart LR
-    A[Purchase Request] --> B[Department Review]
-    B --> C[Tender Creation]
-    C --> D[Supplier Invitations]
-    D --> E[Bid Submission]
-    E --> F[Compliance & Evaluation]
-    F --> G[Manager Review]
-    G --> H[Committee Decision]
-    H --> I[Final Award]
+    A["Purchase Request"] --> B["Department Review"]
+    B --> C["Tender Creation"]
+    C --> D["Supplier Invitations"]
+    D --> E["Bid Submission"]
+    E --> F["Compliance & Evaluation"]
+    F --> G["Manager Review"]
+    G --> H["Committee Decision"]
+    H --> I["Final Award"]
 ```
-A supplier must be approved and accept an invitation before preparing an offer. Submission deadlines, ownership, tender stage, and committee assignments are enforced on the server. Administrative access does not automatically grant visibility into confidential offers.
-Roles & access control
-The application supports seven distinct roles, each with dedicated responsibilities and access boundaries.
-Role	Primary responsibility
-Admin	Employee and department management, supplier applications, and administration.
-Requesting Department	Create and track authorized purchase requests.
-Sourcing Officer	Manage eligible requests, tenders, and supplier invitations.
-Supplier	Manage the company's own invitations and bids.
-Evaluation Committee	Review and score assigned tender offers.
-Sourcing Manager	Review criteria, assign committees, and assess evaluation reports.
-Top Committee	Participate in assigned final-decision voting rounds.
 
+A supplier must be approved and accept an invitation before preparing an offer. Submission deadlines, ownership, tender stage, and committee assignments are enforced on the server.
 
-Authorization combines ASP.NET Core Identity with resource ownership, department scope, assignment checks, and workflow-state validation.
-Technology stack
-Layer	Technologies
-Backend	C#, .NET 10, ASP.NET Core MVC, Razor Views
-Data	SQL Server, Entity Framework Core 10
-Authentication & authorization	ASP.NET Core Identity, role- and resource-based access checks, passkeys
-Frontend	HTML, CSS, Bootstrap 5, vanilla JavaScript
-Documents & utilities	PDFsharp, PdfPig, PDFtoImage, TesseractOCR, QRCoder
-Optional integration	Ollama-assisted bid analysis (human decisions remain authoritative)
+> **Security:** Administrative access does not automatically grant visibility into confidential supplier offers.
+
+---
+
+## Roles & Access Control
+
+The application implements seven distinct roles, each with clearly defined responsibilities and access boundaries.
+
+| Role | Primary Responsibility |
+|------|------------------------|
+| **Admin** | Manage employees, departments, supplier applications, and system administration. |
+| **Requesting Department** | Create and track authorized purchase requests. |
+| **Sourcing Officer** | Manage eligible requests, tenders, and supplier invitations. |
+| **Supplier** | Manage the company's own invitations and bids. |
+| **Evaluation Committee** | Review and score offers for assigned tenders. |
+| **Sourcing Manager** | Review evaluation criteria, assign committees, and assess evaluation reports. |
+| **Top Committee** | Participate in assigned final-decision voting rounds. |
+
+**Authorization Model**
+
+Authorization combines ASP.NET Core Identity with:
+
+- Role-based access control (RBAC)
+- Resource ownership validation
+- Department-level access restrictions
+- Tender and committee assignment checks
+- Workflow-state validation
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| **Backend** | C#, .NET 10, ASP.NET Core MVC, Razor Views |
+| **Database** | Microsoft SQL Server, Entity Framework Core 10 |
+| **Authentication & Security** | ASP.NET Core Identity, role- and resource-based authorization, passkeys |
+| **Frontend** | HTML5, CSS3, Bootstrap 5, Vanilla JavaScript |
+| **Document Processing** | PDFsharp, PdfPig, PDFtoImage, TesseractOCR |
+| **Utilities** | QRCoder |
+| **AI Integration (Optional)** | Ollama-assisted bid analysis with human-controlled decisions |
+
 
 
 
