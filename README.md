@@ -1,213 +1,307 @@
-<p align="center">
-  <img src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png" alt="STMS logo" width="100" />
-</p>
 
-<h1 align="center">Sourcing &amp; Tender Management System</h1>
+<div align="center">
 
-<p align="center">Purchase requests, tenders, supplier offers, and committee decisions in one application.</p>
+  <img
+    src="src/SourcingTenderManagementSystem.Web/wwwroot/images/brand/stms-logo.png"
+    alt="STMS Logo"
+    width="110"
+  />
 
-<p align="center">
-  ASP.NET Core MVC · .NET 10 · EF Core 10 · SQL Server · ASP.NET Core Identity
-</p>
+  <h1>Sourcing & Tender Management System</h1>
 
-<p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#screenshots">Screenshots</a> ·
-  <a href="#workflow">Workflow</a> ·
-  <a href="#running-locally">Running locally</a> ·
-  <a href="#documentation">Documentation</a>
-</p>
+  <p>
+    A comprehensive, role-based procurement management platform
+    designed to streamline purchase requests, tender management,
+    supplier bidding, evaluation, and award decisions.
+  </p>
 
-[![STMS homepage](docs/images/screenshots/public-home.png)](docs/images/screenshots/public-home.png)
+  <p>
+    <img src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 10" />
+    <img src="https://img.shields.io/badge/ASP.NET_Core-MVC-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt="ASP.NET Core MVC" />
+    <img src="https://img.shields.io/badge/EF_Core-10-6C3483?style=for-the-badge" alt="EF Core 10" />
+    <img src="https://img.shields.io/badge/SQL_Server-Database-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white" alt="SQL Server" />
+    <img src="https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5" />
+  </p>
 
-## About the project
+  <p>
+    <a href="https://stms-khasawneh.runasp.net/">
+      <strong>Live Demo</strong>
+    </a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="https://github.com/M-Khasawneh/STMS">
+      <strong>GitHub Repository</strong>
+    </a>
+  </p>
 
-STMS follows a purchase from the initial request through tendering, supplier bids, evaluation, and award. Departments submit their requests, sourcing officers prepare tenders and invite suppliers, and assigned committees review the offers and record their decisions.
+</div>
 
-The application is built with ASP.NET Core MVC and Razor Views. The frontend uses HTML, CSS, Bootstrap 5, and vanilla JavaScript. Each user sees the pages and records available to their role, with additional checks for ownership, department, tender assignment, and workflow stage.
+<div align="center">
+  <a href="https://stms-khasawneh.runasp.net/">
+    <img src="docs/images/screenshots/public-home.png" alt="STMS public homepage" width="100%" />
+  </a>
+  <sub>Public homepage · Click the screenshot to open the live website.</sub>
+</div>Overview
+STMS is a web-based procurement and tender management system designed to coordinate the purchasing lifecycle across departments, sourcing teams, suppliers, and evaluation committees.
 
-## Features
+Instead of managing requests, offers, and approvals across disconnected processes, STMS connects each stage—from a department's initial purchase request to the final award—while enforcing role-based access and workflow-specific business rules.
 
-- **Administration:** manage employees, departments, roles, supplier applications, and contact messages.
-- **Supplier registration:** collect company information and official documents, then approve, reject, or suspend applications with recorded reasons.
-- **Purchase requests:** save drafts, add items, submit for review, and handle approval, rejection, or correction.
-- **Tenders:** create a tender from an approved request, configure evaluation criteria, manage dates, and invite approved suppliers.
-- **Supplier offers:** prepare JOD pricing, attach private documents, and submit an offer before the deadline. Submitted offers cannot be edited by the supplier.
-- **Evaluation:** assign committees to a tender, record technical and financial scores, prepare a unified report, and send it for review.
-- **Decisions:** run committee voting rounds and record the winning offer and award.
-- **Daily work:** role-specific dashboards, notifications, clarifications, search, reports, and Excel/PDF exports.
+The project uses server-rendered Razor Views, application services, ASP.NET Core Identity, and EF Core with SQL Server. It is structured as an ASP.NET Core MVC application rather than a separate frontend/API architecture.
+Key capabilities
+Area	What the system supports
+Procurement requests	Draft, itemize, submit, review, approve, reject, or return requests for correction.
+Tender management	Create tenders from approved requests, define criteria and deadlines, and invite eligible suppliers.
+Supplier onboarding	Register companies, upload required documents, and review applications with recorded decisions.
+Supplier bids	Prepare itemized JOD quotations, upload private documents, save drafts, and submit before deadlines.
+Evaluation & compliance	Apply tender-specific access rules, evaluate technical and financial offers, and prepare consolidated reports.
+Committee decisions	Manage assigned voting rounds and record final award decisions.
+Operations & reporting	Role-specific dashboards, notifications, clarifications, search, and Excel/PDF exports.
 
-The public website includes the homepage, About, Contact, sign-in, and supplier registration pages. The interface supports light and dark modes, mobile layouts, and reduced-motion preferences.
 
-## Screenshots
+Interface & accessibility
+- Responsive layouts for desktop and mobile screens.
+- Light and dark appearance modes.
+- Reduced-motion preference support.
+- Role-specific navigation and contextual actions.
+Application preview
+Screenshots show sample records and accounts captured from isolated testing or preview environments; they do not contain live production data.
 
-These screenshots were taken from the application's Razor Views in an isolated test environment. The records, accounts, and figures shown are sample data. The tender detail view uses the existing render-only test host. Click an image to see it at full size.
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/images/screenshots/admin-overview.png"><img src="docs/images/screenshots/admin-overview.png" alt="Administration dashboard" /></a>
+      <br /><strong>Administration dashboard</strong>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/images/screenshots/tender-details.png"><img src="docs/images/screenshots/tender-details.png" alt="Tender details" /></a>
+      <br /><strong>Tender management</strong>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/images/screenshots/supplier-bid.png"><img src="docs/images/screenshots/supplier-bid.png" alt="Supplier bid form" /></a>
+      <br /><strong>Supplier bid submission</strong>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/images/screenshots/reports-workspace.png"><img src="docs/images/screenshots/reports-workspace.png" alt="Reporting workspace" /></a>
+      <br /><strong>Reports & analytics</strong>
+    </td>
+  </tr>
+</table><details>
+<summary><strong>More screenshots — authentication, dark mode & mobile</strong></summary>
+Sign-in	Dark mode	Mobile homepage
+<a href="docs/images/screenshots/account-login.png"><img src="docs/images/screenshots/account-login.png" alt="Sign-in screen" width="260" /></a>	<a href="docs/images/screenshots/admin-dark.png"><img src="docs/images/screenshots/admin-dark.png" alt="Dark-mode dashboard" width="260" /></a>	<a href="docs/images/screenshots/mobile-home.png"><img src="docs/images/screenshots/mobile-home.png" alt="Mobile homepage" width="160" /></a>
 
-### Admin dashboard
 
-System counts, pending applications, and upcoming tender deadlines.
-
-[![Admin dashboard](docs/images/screenshots/admin-overview.png)](docs/images/screenshots/admin-overview.png)
-
-<details>
-<summary><strong>Tender details</strong></summary>
-
-The source request, terms, items, available actions, and tender status are shown together.
-
-[![Tender details and status](docs/images/screenshots/tender-details.png)](docs/images/screenshots/tender-details.png)
-
+[View screenshot capture notes](docs/images/screenshots/capture-info.json)
 </details>
+## Procurement Workflow
 
-<details>
-<summary><strong>Supplier bid form</strong></summary>
-
-Suppliers enter unit prices against the requested quantities. The form calculates line totals in JOD.
-
-[![Supplier bid form](docs/images/screenshots/supplier-bid.png)](docs/images/screenshots/supplier-bid.png)
-
-</details>
-
-<details>
-<summary><strong>Reports</strong></summary>
-
-Report categories, filters, summary figures, and export options.
-
-[![Reports and filters](docs/images/screenshots/reports-workspace.png)](docs/images/screenshots/reports-workspace.png)
-
-</details>
-
-<details>
-<summary><strong>Sign-in page</strong></summary>
-
-Password sign-in, registered device passkeys, and the link to supplier registration.
-
-[![Sign-in page](docs/images/screenshots/account-login.png)](docs/images/screenshots/account-login.png)
-
-</details>
-
-<details>
-<summary><strong>Dark mode</strong></summary>
-
-[![Admin dashboard in dark mode](docs/images/screenshots/admin-dark.png)](docs/images/screenshots/admin-dark.png)
-
-</details>
-
-<details>
-<summary><strong>Mobile view</strong></summary>
-
-The homepage at a 390 × 844 browser viewport.
-
-<p align="center">
-  <a href="docs/images/screenshots/mobile-home.png"><img src="docs/images/screenshots/mobile-home.png" alt="Mobile homepage" width="320" /></a>
-</p>
-
-</details>
-
-[Capture notes](docs/images/screenshots/capture-info.json)
-
-## Workflow
+The system manages the procurement lifecycle from the initial purchase request to the final award.
 
 ```mermaid
 flowchart LR
-    A[Purchase request] --> B[Review and approval]
-    B --> C[Tender]
-    C --> D[Supplier invitations]
-    D --> E[Bid submission]
-    E --> F[Compliance and evaluation]
-    F --> G[Report and manager review]
-    G --> H[Committee decision]
-    H --> I[Award]
+    A["Purchase Request"] --> B["Department Review"]
+    B --> C["Tender Creation"]
+    C --> D["Supplier Invitations"]
+    D --> E["Bid Submission"]
+    E --> F["Compliance & Evaluation"]
+    F --> G["Manager Review"]
+    G --> H["Committee Decision"]
+    H --> I["Final Award"]
 ```
 
-Suppliers must be approved and accept their invitation before creating a bid. Tender deadlines are checked on the server. Bid access also depends on the tender stage and committee assignment; being an Admin does not grant access to confidential proposal contents.
+A supplier must be approved and accept an invitation before preparing an offer. Submission deadlines, ownership, tender stage, and committee assignments are enforced on the server.
 
-## User roles
+> **Security:** Administrative access does not automatically grant visibility into confidential supplier offers.
 
-| Role | Main responsibility |
-| --- | --- |
-| Admin | Users, departments, supplier applications, and administrative oversight |
-| Requesting Department | Create and follow up on the user's own purchase requests |
-| Sourcing Officer | Review eligible requests and manage tenders, invitations, and authorized procurement actions |
-| Supplier | Respond to invitations and manage the company's own offers |
-| Evaluation Committee | Evaluate offers for assigned tenders |
-| Sourcing Manager | Approve criteria, assign committees, and review evaluation reports |
-| Top Committee | Vote in assigned final-decision rounds |
+---
 
-The detailed restrictions are covered in the module documentation below.
+## Roles & Access Control
 
-## Project structure
+The application implements seven distinct roles, each with clearly defined responsibilities and access boundaries.
+
+| Role | Primary Responsibility |
+|------|------------------------|
+| **Admin** | Manage employees, departments, supplier applications, and system administration. |
+| **Requesting Department** | Create and track authorized purchase requests. |
+| **Sourcing Officer** | Manage eligible requests, tenders, and supplier invitations. |
+| **Supplier** | Manage the company's own invitations and bids. |
+| **Evaluation Committee** | Review and score offers for assigned tenders. |
+| **Sourcing Manager** | Review evaluation criteria, assign committees, and assess evaluation reports. |
+| **Top Committee** | Participate in assigned final-decision voting rounds. |
+
+**Authorization Model**
+
+Authorization combines ASP.NET Core Identity with:
+
+- Role-based access control (RBAC)
+- Resource ownership validation
+- Department-level access restrictions
+- Tender and committee assignment checks
+- Workflow-state validation
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| **Backend** | C#, .NET 10, ASP.NET Core MVC, Razor Views |
+| **Database** | Microsoft SQL Server, Entity Framework Core 10 |
+| **Authentication & Security** | ASP.NET Core Identity, role- and resource-based authorization, passkeys |
+| **Frontend** | HTML5, CSS3, Bootstrap 5, Vanilla JavaScript |
+| **Document Processing** | PDFsharp, PdfPig, PDFtoImage, TesseractOCR |
+| **Utilities** | QRCoder |
+| **AI Integration (Optional)** | Ollama-assisted bid analysis with human-controlled decisions |
+
+
+
+
+## Project Structure
 
 ```text
-src/SourcingTenderManagementSystem.Web/
-├── Controllers/       MVC actions
-├── Data/              Application services, database context, migrations, and file storage
-├── Models/            Entities and view models
-├── Security/          Identity, account eligibility, and passkeys
-├── Views/             Razor Views and shared layouts
-└── wwwroot/           Public CSS, JavaScript, images, and vendor files
-
-tests/                 Service, MVC, schema, and browser checks
-docs/                  Module documentation and verification notes
-scripts/               Local setup utilities
+STMS/
+├── src/
+│   └── SourcingTenderManagementSystem.Web/
+│       ├── Controllers/   # MVC controllers and HTTP actions
+│       ├── Data/          # Services, EF Core, migrations, storage
+│       ├── Models/        # Domain entities and view models
+│       ├── Security/      # Identity, authorization, passkeys
+│       ├── Views/         # Razor views and shared layouts
+│       └── wwwroot/       # CSS, JavaScript, images and assets
+├── tests/                 # Automated and browser tests
+├── docs/                  # Technical documentation
+└── scripts/               # Development utilities
 ```
 
-Controllers use application services for workflow rules and EF Core for SQL Server persistence. Uploaded documents are stored outside `wwwroot` and accessed through protected actions.
+> Private uploaded documents are stored outside `wwwroot`
+> and accessed through authorized application endpoints.
 
-PDFsharp, PdfPig, PDFtoImage, TesseractOCR, and QRCoder handle document-related work. Optional Ollama integration provides bid-analysis assistance; human reviewers still make the decisions.
+## Getting Started
 
-## Running locally
 
-You need the .NET 10 SDK, access to a SQL Server database, and a trusted HTTPS development certificate.
+### Prerequisites
 
-```powershell
+Before running the application locally, make sure you have:
+
+- .NET 10 SDK
+- Microsoft SQL Server
+- A trusted HTTPS development certificate
+- Git
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/M-Khasawneh/STMS.git
 cd STMS
+```
 
+### 2. Configure the Application
+
+Create a local configuration file using the provided example:
+
+```powershell
 Copy-Item src/SourcingTenderManagementSystem.Web/appsettings.Example.json `
           src/SourcingTenderManagementSystem.Web/appsettings.json
 ```
 
-Set your SQL Server connection in the local configuration. `PublicSite:Origin` and `Passkeys:Origin` must match the HTTPS address you use. The included HTTPS launch profile uses `https://localhost:7162`.
+Update your local configuration with:
 
-```powershell
+- SQL Server connection settings.
+- `PublicSite:Origin` matching your local HTTPS address.
+- `Passkeys:Origin` matching the same trusted origin.
+
+The default HTTPS development URL is:
+
+`https://localhost:7162`
+
+### 3. Restore Dependencies
+
+```bash
 dotnet restore SourcingTenderManagementSystem.slnx
+```
+
+### 4. Build the Solution
+
+```bash
 dotnet build SourcingTenderManagementSystem.slnx --no-restore
+```
+
+### 5. Run the Application
+
+```bash
 dotnet run --project src/SourcingTenderManagementSystem.Web --launch-profile https
 ```
 
-No default password or populated database is included. Startup does not apply migrations or create users. Before setting up a database, read the [database notes](docs/database-design.md), [employee and department setup](docs/employee-management.md), and [first Admin provisioning guide](docs/first-admin-provisioning.md). The migration history includes a first-Admin prerequisite, so review it before applying migrations to a new database.
+> **Database setup:** The repository does not include a populated database, default credentials, or automatic database initialization. Review the database and administrator provisioning documentation before applying migrations.
 
-Keep real configuration, connection credentials, uploads, and database backups out of Git. Private documents and local OCR/model data need to be provided separately. See [document extraction](docs/bid-document-extraction.md) for the optional setup.
+For detailed instructions, see:
 
-## Before deployment
+- [Database Design](docs/database-design.md)
+- [First Admin Provisioning](docs/first-admin-provisioning.md)
+- [Employee Management](docs/employee-management.md)
 
-The procurement workflow has been exercised with an isolated SQL database, alongside service/MVC and browser tests. The remaining deployment work depends on the target environment:
+> **Security Notice:** Never commit production credentials, connection strings containing secrets, private uploads, database backups, or Data Protection keys.
 
-- Review pending migrations. The last inspected local database still needed the bid-uniqueness and camera-settings migrations.
-- Supply production configuration through the deployment environment. Local `appsettings*.json` files and `App_Data` are excluded from publish output; the example file is only a template.
-- Configure HTTPS, allowed hosts, public/passkey origins, and proxy settings where needed.
-- Set private-storage permissions and back up the database, uploaded files, and Data Protection keys.
-- On a single Windows host without a user-profile key store, `DataProtection__PersistWindowsKeys=true` stores DPAPI-encrypted keys in `App_Data/DataProtection-Keys`. Preserve this folder across deployments. These keys are tied to that Windows server; plan key migration before moving hosts.
-- Check the document workers under the account and OS that will run the application.
+---
 
-Camera verification, voice recognition, and native passkeys need testing on the actual devices. The browser tests use simulated devices. Ollama also needs a running local service and model; real generation was not verified in the last readiness run because the service was unavailable. Camera-based verification is optional and does not replace passkeys. Linux/macOS deployment and backup restoration have not been verified.
+## Testing & Deployment
+
+The project has undergone service-level, MVC, browser, and isolated SQL workflow testing.
+
+These tests validate important application behaviors but do not guarantee compatibility with every production environment.
+
+### Production Readiness Checklist
+
+Before deploying the application, verify:
+
+- [ ] Review and apply required database migrations.
+- [ ] Configure HTTPS, allowed hosts, and trusted origins.
+- [ ] Secure production credentials and application secrets.
+- [ ] Configure reverse proxy settings where applicable.
+- [ ] Verify private document storage permissions.
+- [ ] Configure persistent ASP.NET Core Data Protection keys.
+- [ ] Establish database and file backup procedures.
+- [ ] Validate protected PDF processing on the hosting server.
+- [ ] Test camera, microphone, and native passkeys on supported devices.
+- [ ] Verify Ollama integration if AI-assisted analysis is enabled.
+
+**Additional verification:**
+
+- [Physical Device Acceptance](docs/physical-device-acceptance.md)
+- [Protected PDF Verification](docs/pdf-browser-regression-fixes.md)
+
+> Linux/macOS deployment and backup restoration were not verified in the latest readiness assessment.
+
+---
 
 ## Documentation
 
-- [Purchase requests](docs/purchase-requisitions.md)
-- [Tenders and invitations](docs/tenders-invitations.md)
-- [Supplier registration](docs/supplier-registration.md)
-- [Supplier bids and documents](docs/bids-phase3.md)
-- [Evaluation and scoring](docs/evaluation-scoring.md)
-- [Unified evaluation report](docs/unified-evaluation-report.md)
-- [Committee decisions and awards](docs/top-committee.md)
-- [Reports](docs/reporting.md)
-- [Passkeys](docs/identity-passkeys.md)
-- [Physical-device checks](docs/physical-device-acceptance.md)
-- [Protected PDF checks](docs/pdf-browser-regression-fixes.md)
+Detailed technical and functional documentation is available in the `docs/` directory.
 
-The V5 requirements document is maintained separately from the current source tree. Some early analysis notes contain questions that were resolved later; refer to the relevant module's approved decisions for the current rules.
+| Category | Documentation |
+|----------|---------------|
+| **Procurement** | [Purchase Requests](docs/purchase-requisitions.md) · [Tenders & Invitations](docs/tenders-invitations.md) |
+| **Supplier Management** | [Supplier Registration](docs/supplier-registration.md) · [Bids & Documents](docs/bids-phase3.md) |
+| **Evaluation** | [Evaluation & Scoring](docs/evaluation-scoring.md) · [Unified Evaluation Report](docs/unified-evaluation-report.md) |
+| **Decisions** | [Committee Decisions & Awards](docs/top-committee.md) |
+| **Reporting** | [Reporting & Exports](docs/reporting.md) |
+| **Security** | [Identity & Passkeys](docs/identity-passkeys.md) · [Employee Management](docs/employee-management.md) |
+| **Document Processing** | [Document Extraction](docs/bid-document-extraction.md) · [PDF Verification](docs/pdf-browser-regression-fixes.md) |
+
+---
 
 ## License
 
-No project-wide license has been selected. Public visibility alone does not grant permission to reuse the code. Third-party components keep their own licenses; their notices are included with the files and in [docs/third-party](docs/third-party/).
+No project-wide license has been selected.
+
+Public availability of this repository does not automatically grant permission to reuse, modify, or redistribute its source code.
+
+Third-party libraries and components retain their respective licenses.
+
+See the [Third-Party Notices](docs/third-party/) for additional information.
+
+<div align="center">
+  <strong>Explore STMS</strong>
+  <p><a href="https://stms-khasawneh.runasp.net/">Live Website</a> · <a href="https://github.com/M-Khasawneh/STMS">GitHub Repository</a></p>
+</div>
