@@ -9,6 +9,15 @@ check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'
 check(await p.locator('.public-topbar [data-appearance-toggle]').isVisible(),'Appearance available without opening mobile menu');
 check(await p.locator('main h1').count()===1,'One meaningful page heading '+route);
 check(await p.locator('.public-footer').count()===1,'One real footer');
+if(width<=1024){
+const menu=p.locator('.home-menu-toggle');await menu.click();await p.locator('#home-navigation').waitFor({state:'visible'});
+const contrast=await p.locator('#home-navigation').evaluate(nav=>{
+const luminance=color=>{const values=color.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return values[0]*.2126+values[1]*.7152+values[2]*.0722;};
+const background=luminance(getComputedStyle(nav).backgroundColor);
+return [...nav.querySelectorAll('a')].map(a=>{const style=getComputedStyle(a),text=luminance(style.color),surface=style.backgroundColor==='rgba(0, 0, 0, 0)'?background:luminance(style.backgroundColor);return (Math.max(text,surface)+.05)/(Math.min(text,surface)+.05);});
+});check(contrast.every(value=>value>=4.5),'Mobile navigation contrast '+theme+'/'+width+route);
+await p.keyboard.press('Escape');check(await menu.getAttribute('aria-expanded')==='false','Mobile menu closes with Escape');
+}
 if(route==='/'){check((await p.locator('h1').textContent()).replace(/\s+/g,' ').trim()==='Unified Platform for Sourcing & Tender Management','Required headline preserved');check(await p.locator('[data-journey-step]').count()===6&&await p.locator('.lp-steps>li').count()===6,'Six summary and detailed stages');check(await p.locator('.ref-hero-copy img').count()===0,'No logo in hero');check((await p.locator('.lp-metrics strong').allTextContents()).every(v=>v==='Unavailable'),'Unavailable fixture metrics remain unknown, never demo numbers');
 await p.locator('[data-journey-step="3"]').click();check(await p.locator('[data-journey-step="3"]').getAttribute('aria-pressed')==='true','Workflow selection is functional');await p.keyboard.press('ArrowRight');check(await p.locator('[data-journey-step="4"]').getAttribute('aria-pressed')==='true','Workflow keyboard movement');await p.locator('[data-journey-reset]').click();check(await p.locator('[data-journey-step="0"]').getAttribute('aria-pressed')==='true','Workflow restart');check(!await p.locator('.ref-journey').evaluate(e=>e.classList.contains('is-playing')),'Reduced motion disables automatic cycling');}
 if(width===1440||width===390){await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:path.join(out,(route==='/'?'home':route.split('/').at(-1))+'-'+theme+'-'+width+'.png'),fullPage:route!=='/'});}
