@@ -10,3 +10,8 @@
 .face-status { margin-top:20px; padding:12px 15px; background:var(--st-raised); border-radius:10px; color:var(--st-ink); }
 .face-settings [hidden] { display:none!important; }
 @media(max-width:600px) { .face-section-heading { align-items:start; flex-direction:column; gap:5px; } .face-actions>* { width:100%; } }
+/* Explicit result states retain the message text and live-region announcement. */
+body .face-settings [data-face-status][data-state="error"] { color:#b42318; }
+body .face-settings [data-face-status][data-state="success"] { color:#16703b; }
+html[data-theme="dark"] body .face-settings [data-face-status][data-state="error"] { color:#fda29b; }
+html[data-theme="dark"] body .face-settings [data-face-status][data-state="success"] { color:#75e2a2; }

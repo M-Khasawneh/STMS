@@ -12,10 +12,13 @@
     let generation = 0, stream, busy = false, modelPromise;
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
     function stopCamera() { stream?.getTracks().forEach(track => track.stop()); stream = null; video.srcObject = null; preview.hidden = true; }
-    function finish(message) {
+    function showStatus(message, state = 'neutral') {
+        status.hidden = false; status.dataset.state = state; status.textContent = message;
+    }
+    function finish(message, state = 'neutral') {
         generation++; busy = false; stopCamera(); cancel.hidden = true;
         buttons.forEach(button => { button.disabled = false; button.removeAttribute('aria-busy'); });
-        status.textContent = message;
+        showStatus(message, state);
     }
     async function post(url, data) {
         const response = await fetch(url, { method:'POST', credentials:'same-origin', redirect:'error', headers:{'Content-Type':'application/json','RequestVerificationToken':root.querySelector('[name="__RequestVerificationToken"]').value}, body:JSON.stringify(data), signal:AbortSignal.timeout(15000) });
@@ -74,11 +77,11 @@
     buttons.forEach(button => button.addEventListener('click',async () => {
         if (busy) return;
         const operation = button.dataset.faceAction;
-        status.hidden = false;
+        status.hidden = false; status.dataset.state = 'neutral';
         const login = operation === 'login';
         const username = document.getElementById('UserName');
-        if (login && !username?.value.trim()) { status.textContent = 'Enter your username above first.'; username?.focus(); return; }
-        if (!login && operation !== 'verify' && !password.value) { status.textContent = 'Enter your current password first.'; password.focus(); return; }
+        if (login && !username?.value.trim()) { showStatus('Enter your username above first.', 'error'); username?.focus(); return; }
+        if (!login && operation !== 'verify' && !password.value) { showStatus('Enter your current password first.', 'error'); password.focus(); return; }
         if (operation === 'remove' && !confirm('Remove your encrypted face template? Device passkeys are unaffected.')) return;
         busy = true; const ticket = ++generation;
         buttons.forEach(item => item.disabled = true); button.setAttribute('aria-busy','true'); cancel.hidden = false;
@@ -99,11 +102,11 @@
             if (login) {
                 const destination = new URL(result.redirectUrl, location.origin);
                 if (destination.origin !== location.origin) throw Error('Invalid sign-in destination.');
-                finish('Signed in. Opening your workspace…'); location.assign(destination.href);
+                finish('Signed in. Opening your workspace…', 'success'); location.assign(destination.href);
             }
-            else if (operation === 'verify') finish(result.matched ? 'Your face matches the registered template. Your sign-in session is unchanged.' : 'No match. Try again in better lighting.');
-            else { finish(operation === 'remove' ? 'Template removed.' : 'Encrypted template saved.'); location.reload(); }
-        } catch (error) { if (ticket === generation) finish(error.name === 'NotAllowedError' ? 'Camera permission was denied. Allow access in your browser settings to try again.' : error.message || 'Camera operation failed. Try again.'); }
+            else if (operation === 'verify') finish(result.matched ? 'Your face matches the registered template. Your sign-in session is unchanged.' : 'No match. Try again in better lighting.', result.matched ? 'success' : 'error');
+            else { finish(operation === 'remove' ? 'Template removed.' : 'Encrypted template saved.', 'success'); location.reload(); }
+        } catch (error) { if (ticket === generation) finish(error.name === 'NotAllowedError' ? 'Camera permission was denied. Allow access in your browser settings to try again.' : error.message || 'Camera operation failed. Try again.', 'error'); }
     }));
     cancel.addEventListener('click',() => finish('Camera capture cancelled.'));
     document.addEventListener('keydown',event => { if (event.key === 'Escape' && busy) { event.preventDefault(); finish('Camera capture cancelled.'); } });

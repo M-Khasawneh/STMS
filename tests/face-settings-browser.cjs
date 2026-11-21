@@ -44,6 +44,7 @@ const fs=require('fs'),path=require('path');
   await password().fill('Fixture-Only!9427');await page.evaluate(()=>faceFixture.denied=true);await enroll().click();
   await page.waitForFunction(()=>document.querySelector('[data-face-status]').textContent.includes('permission was denied'));
   check(await enroll().isEnabled(),'Permission denial recovers');
+  check(await status().getAttribute('data-state')==='error','Camera errors use the error state');
   await page.evaluate(()=>{faceFixture.denied=false;faceFixture.delay=true});await password().fill('Fixture-Only!9427');await enroll().click();
   await page.waitForFunction(()=>typeof faceFixture.resume==='function');await page.locator('[data-face-cancel]').click();await page.evaluate(()=>faceFixture.resume());
   await page.waitForFunction(()=>faceFixture.tracks.every(track=>track.readyState==='ended'));
@@ -60,6 +61,7 @@ const fs=require('fs'),path=require('path');
   check(await page.locator('[data-face-action=verify]').isVisible(),'Encrypted enrollment persisted in memory fixture');
   await page.locator('[data-face-action=verify]').click();await page.waitForFunction(()=>document.querySelector('[data-face-status]').textContent.includes('matches the registered template'));
   check(await page.evaluate(()=>faceFixture.tracks.every(track=>track.readyState==='ended')),'Camera tracks stop after verification');
+  check(await status().getAttribute('data-state')==='success','Successful verification uses the success state');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:1000});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Camera settings responsive '+width)}
   await page.screenshot({path:path.join(out,'face-settings-mobile.png'),fullPage:true});
   check(await page.locator('[data-face-action=enable-login]').isVisible(),'Registering a face leaves camera login disabled');
