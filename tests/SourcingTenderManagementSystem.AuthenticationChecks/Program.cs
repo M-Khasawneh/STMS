@@ -312,7 +312,8 @@ try
     // Public metrics must distinguish unavailable data from a genuine zero.
     if (!args.Contains("--workspace-auth-regressions-only", StringComparer.Ordinal)) {
         Check(publicHtml.Contains("Unavailable") && !publicHtml.Contains("data-count=\"0\""), "unavailable statistics are not misreported as zero");
-        Check(publicHtml.Contains("Send a message directly to the STMS administrator") && publicHtml.Contains("Register your company"), "public home links the real Contact form and Supplier Registration");
+        Check(publicHtml.Contains("href=\"/Home/Contact\"") && publicHtml.Contains("href=\"/Suppliers/Register\"") && publicHtml.Contains("Register your company"), "public home links the real Contact form and Supplier Registration");
+        Check(publicHtml.Contains("public-brand-name\">Sourcing &amp; Tender") && publicHtml.Contains("Management System</span>"), "public brand shows the full product name");
     }
     using var employeeSessionHandler = new HttpClientHandler
     {

@@ -197,3 +197,18 @@ body.public-shell.stms-public-reference.account-login-page .login-supplier-callo
 body.public-shell.stms-public-reference .public-topbar .public-nav>a:not(.btn):not(.registration-link):is(:hover,:focus-visible) {
     background:var(--st-gold-soft); color:var(--st-ink); border-radius:10px;
 }
+
+/* The full product name stays readable without crowding mobile navigation. */
+body.stms-public-reference .public-brand-name { line-height:1.25; font-size:1rem; }
+body.stms-public-reference .public-brand-name .brand-sub { margin-top:4px; font-size:.7rem; letter-spacing:.02em; }
+body.stms-public-reference .sticky-footer-brand { font-size:1.15rem; line-height:1.25; }
+body.stms-public-reference .sticky-footer-brand small { font-size:.72em; font-weight:500; }
+@media(max-width:600px) {
+    body.public-shell.stms-public-reference .public-topbar .public-brand { gap:8px; }
+    body.public-shell.stms-public-reference .public-topbar .brand-logo,
+    body.public-shell.stms-public-reference .public-topbar .brand-logo img { width:36px; height:36px; flex-basis:36px; }
+    body.public-shell.stms-public-reference .public-brand-name { padding-left:8px; font-size:clamp(.72rem,3vw,.9rem); }
+    body.public-shell.stms-public-reference .public-brand-name .brand-sub { font-size:.62rem; }
+    body.public-shell.stms-public-reference .home-menu-toggle { width:44px; height:44px; flex-shrink:0; justify-content:center; padding:10px; }
+    body.public-shell.stms-public-reference .home-menu-toggle>span { display:none; }
+}
