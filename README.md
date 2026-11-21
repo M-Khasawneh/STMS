@@ -157,47 +157,128 @@ STMS/
 
 ## Getting Started
 
+
 ### Prerequisites
 
+Before running the application locally, make sure you have:
+
 - .NET 10 SDK
-- SQL Server instance and appropriate database access
-- Trusted local HTTPS development certificate
-1. Clone the repository
+- Microsoft SQL Server
+- A trusted HTTPS development certificate
+- Git
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/M-Khasawneh/STMS.git
 cd STMS
-2. Configure your environment
+```
+
+### 2. Configure the Application
+
+Create a local configuration file using the provided example:
+
+```powershell
 Copy-Item src/SourcingTenderManagementSystem.Web/appsettings.Example.json `
           src/SourcingTenderManagementSystem.Web/appsettings.json
-Configure your SQL Server connection and set PublicSite:Origin and Passkeys:Origin to the HTTPS address used locally. The included HTTPS launch profile uses https://localhost:7162.
-3. Restore, build & run
+```
+
+Update your local configuration with:
+
+- SQL Server connection settings.
+- `PublicSite:Origin` matching your local HTTPS address.
+- `Passkeys:Origin` matching the same trusted origin.
+
+The default HTTPS development URL is:
+
+`https://localhost:7162`
+
+### 3. Restore Dependencies
+
+```bash
 dotnet restore SourcingTenderManagementSystem.slnx
+```
+
+### 4. Build the Solution
+
+```bash
 dotnet build SourcingTenderManagementSystem.slnx --no-restore
+```
+
+### 5. Run the Application
+
+```bash
 dotnet run --project src/SourcingTenderManagementSystem.Web --launch-profile https
-Database initialization is a separate, deliberate step. The repository does not include a populated database or default credentials, and startup does not automatically apply migrations or provision users. Before initializing a fresh database, follow the [database design](docs/database-design.md) and [first Admin provisioning](docs/first-admin-provisioning.md) instructions, including the migration prerequisites.
-Security: Never commit real connection strings, credentials, private uploads, database backups, or Data Protection keys. Some document-processing and AI features require separate local services or assets.
+```
 
-Testing & deployment notes
-The project has been checked using service/MVC tests, browser checks, and a procurement workflow backed by an isolated SQL test database. These checks do not constitute a blanket guarantee for every deployment environment.
+> **Database setup:** The repository does not include a populated database, default credentials, or automatic database initialization. Review the database and administrator provisioning documentation before applying migrations.
 
-Before production use, verify:
-- Pending database migrations, including bid uniqueness and camera settings where applicable.
-- HTTPS, allowed hosts, trusted origins, reverse proxy configuration, and production secrets.
-- Private file permissions, database/file backups, and persistent Data Protection keys.
-- PDF/document processing on the actual hosting environment.
-- Native passkeys, microphone and camera capabilities on real devices if those features are needed.
-- Ollama inference against a running service if AI-assisted analysis is enabled.
-See the [physical-device acceptance checklist](docs/physical-device-acceptance.md) and [protected PDF verification notes](docs/pdf-browser-regression-fixes.md) for more detail. The last reported readiness check did not verify Linux/macOS deployment or backup restoration.
-Documentation
-Topic	Reference
-Procurement & tenders	[Purchase requests](docs/purchase-requisitions.md) · [Tenders and invitations](docs/tenders-invitations.md)
-Suppliers & bidding	[Supplier registration](docs/supplier-registration.md) · [Bids and documents](docs/bids-phase3.md)
-Evaluation & awards	[Evaluation and scoring](docs/evaluation-scoring.md) · [Unified report](docs/unified-evaluation-report.md) · [Committee decisions](docs/top-committee.md)
-Operations & security	[Reporting](docs/reporting.md) · [Passkeys](docs/identity-passkeys.md) · [Employee management](docs/employee-management.md)
-Document processing	[Document extraction](docs/bid-document-extraction.md) · [PDF checks](docs/pdf-browser-regression-fixes.md)
+For detailed instructions, see:
 
+- [Database Design](docs/database-design.md)
+- [First Admin Provisioning](docs/first-admin-provisioning.md)
+- [Employee Management](docs/employee-management.md)
 
-License
-No project-wide license has been selected. Making the repository public does not, by itself, grant permission to reuse its source code. Third-party components retain their respective licenses; see [third-party notices](docs/third-party/).
+> **Security Notice:** Never commit production credentials, connection strings containing secrets, private uploads, database backups, or Data Protection keys.
+
+---
+
+## Testing & Deployment
+
+The project has undergone service-level, MVC, browser, and isolated SQL workflow testing.
+
+These tests validate important application behaviors but do not guarantee compatibility with every production environment.
+
+### Production Readiness Checklist
+
+Before deploying the application, verify:
+
+- [ ] Review and apply required database migrations.
+- [ ] Configure HTTPS, allowed hosts, and trusted origins.
+- [ ] Secure production credentials and application secrets.
+- [ ] Configure reverse proxy settings where applicable.
+- [ ] Verify private document storage permissions.
+- [ ] Configure persistent ASP.NET Core Data Protection keys.
+- [ ] Establish database and file backup procedures.
+- [ ] Validate protected PDF processing on the hosting server.
+- [ ] Test camera, microphone, and native passkeys on supported devices.
+- [ ] Verify Ollama integration if AI-assisted analysis is enabled.
+
+**Additional verification:**
+
+- [Physical Device Acceptance](docs/physical-device-acceptance.md)
+- [Protected PDF Verification](docs/pdf-browser-regression-fixes.md)
+
+> Linux/macOS deployment and backup restoration were not verified in the latest readiness assessment.
+
+---
+
+## Documentation
+
+Detailed technical and functional documentation is available in the `docs/` directory.
+
+| Category | Documentation |
+|----------|---------------|
+| **Procurement** | [Purchase Requests](docs/purchase-requisitions.md) · [Tenders & Invitations](docs/tenders-invitations.md) |
+| **Supplier Management** | [Supplier Registration](docs/supplier-registration.md) · [Bids & Documents](docs/bids-phase3.md) |
+| **Evaluation** | [Evaluation & Scoring](docs/evaluation-scoring.md) · [Unified Evaluation Report](docs/unified-evaluation-report.md) |
+| **Decisions** | [Committee Decisions & Awards](docs/top-committee.md) |
+| **Reporting** | [Reporting & Exports](docs/reporting.md) |
+| **Security** | [Identity & Passkeys](docs/identity-passkeys.md) · [Employee Management](docs/employee-management.md) |
+| **Document Processing** | [Document Extraction](docs/bid-document-extraction.md) · [PDF Verification](docs/pdf-browser-regression-fixes.md) |
+
+---
+
+## License
+
+No project-wide license has been selected.
+
+Public availability of this repository does not automatically grant permission to reuse, modify, or redistribute its source code.
+
+Third-party libraries and components retain their respective licenses.
+
+See the [Third-Party Notices](docs/third-party/) for additional information.
+
 <div align="center">
   <strong>Explore STMS</strong>
   <p><a href="https://stms-khasawneh.runasp.net/">Live Website</a> · <a href="https://github.com/M-Khasawneh/STMS">GitHub Repository</a></p>
