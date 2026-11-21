@@ -187,6 +187,7 @@ The procurement workflow has been exercised with an isolated SQL database, along
 - Supply production configuration through the deployment environment. Local `appsettings*.json` files and `App_Data` are excluded from publish output; the example file is only a template.
 - Configure HTTPS, allowed hosts, public/passkey origins, and proxy settings where needed.
 - Set private-storage permissions and back up the database, uploaded files, and Data Protection keys.
+- On a single Windows host without a user-profile key store, `DataProtection__PersistWindowsKeys=true` stores DPAPI-encrypted keys in `App_Data/DataProtection-Keys`. Preserve this folder across deployments. These keys are tied to that Windows server; plan key migration before moving hosts.
 - Check the document workers under the account and OS that will run the application.
 
 Camera verification, voice recognition, and native passkeys need testing on the actual devices. The browser tests use simulated devices. Ollama also needs a running local service and model; real generation was not verified in the last readiness run because the service was unavailable. Camera-based verification is optional and does not replace passkeys. Linux/macOS deployment and backup restoration have not been verified.

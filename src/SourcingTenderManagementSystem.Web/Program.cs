@@ -8,6 +8,7 @@ if (args.Length > 0 && args[0] == "--extract-bid-text") {
 }
 if(args.Length==1 && args[0]=="--watermark-document"){Environment.ExitCode=await DocumentWatermarkWorker.RunAsync();return;}
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHostingDataProtection(builder.Configuration, builder.Environment);
 
 var provisionFirstAdmin = args.Contains("--provision-first-admin", StringComparer.Ordinal);
 if (provisionFirstAdmin)
